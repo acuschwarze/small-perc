@@ -66,6 +66,12 @@ def raw_P(p,i,n):
 
 
 def calculate_P(p,i,n, fdict={}, pdict={}):
+    
+    if p in pdict:
+        if n in pdict[p]:
+            if i in pdict[p][n]:
+                return pdict[p][n][i]
+            
     if i==0 and n==0:
         P_tot = 1
     elif i>0 and n==0:
