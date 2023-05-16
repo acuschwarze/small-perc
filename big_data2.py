@@ -7,7 +7,7 @@ from random import choice
 import matplotlib.pyplot as plt
 from data import *
 
-def f(p,i,n):
+def f(p,i,n): #original recursive function for f
   if i == 0:
     p_connect = 0
   if i == 1:
@@ -19,7 +19,7 @@ def f(p,i,n):
     p_connect = 1-sum_f
   return p_connect
 
-def raw_f(p, i, n):
+def raw_f(p, i, n): # I think this is the same as above
     if i == 0:
         p_connect = 0
     if i == 1:
@@ -32,7 +32,7 @@ def raw_f(p, i, n):
     return p_connect
 
 
-def calculate_f(p, i, n, fdict={}):
+def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
     if p in fdict:
         if n in fdict[p]:
             if i in fdict[p][n]:
@@ -53,10 +53,10 @@ def calculate_f(p, i, n, fdict={}):
     return p_connect
 
 
-def g(p, i, n):
+def g(p, i, n): # function to calculate g values
     return (1 - p) ** (i * (n - i))
 
-def P(p,i,n):
+def P(p,i,n): # original P value function
   #print("execute P", p, i, n)
   if i==0 and n==0:
     P_tot = 1
@@ -75,7 +75,7 @@ def P(p,i,n):
     P_tot = scipy.special.comb(n,i)*f(p,i,n)*g(p,i,n)*sum_P
   return P_tot
 
-def raw_P(p, i, n):
+def raw_P(p, i, n): # also same as original P value function
     if i == 0 and n == 0:
         P_tot = 1
     elif i > 0 and n == 0:
@@ -94,7 +94,7 @@ def raw_P(p, i, n):
     return P_tot
 
 
-def calculate_P(p, i, n, fdict={}, pdict={}):
+def calculate_P(p, i, n, fdict={}, pdict={}): #using dictionaries to calculate P
     if p in pdict:
         if n in pdict[p]:
             if i in pdict[p][n]:
@@ -120,14 +120,14 @@ def calculate_P(p, i, n, fdict={}, pdict={}):
     return P_tot
 
 
-def raw_S(p, n):
+def raw_S(p, n): #original way to calculate S
     sum = 0
     for k in range(1, n + 1):
         sum += P(p, k, n) * k
     return sum
 
 
-def calculate_S(p, n, fdict={}, pdict={}):
+def calculate_S(p, n, fdict={}, pdict={}): # calculating S with dictionaries
     sum = 0
     for k in range(1, n + 1):
         sum += calculate_P(p, k, n, fdict=fdict, pdict=pdict) * k
@@ -307,27 +307,28 @@ if __name__ == "__main__":
         print('Data saved to', args.pfile + '.p')
 
 
+#get f and p values
 fvalues = pickle.load(open('fvalues.p', 'rb'))
 pvalues = pickle.load(open('Pvalues.p', 'rb'))
 
 
-def big_S(p, n, fdict1=fvalues, pdict1=pvalues):
-    S_array = np.zeros(n[0])
-    for i in range(1,n[0]+1):
-        S_array[i-1] = calculate_S(p, i, fdict=fdict1, pdict=pdict1)
+def big_S(p, n, fdict1=fvalues, pdict1=pvalues): #usually i input an array with one n value for now
+    S_array = np.zeros(n[0]) #takes that n value and makes a new array with that length
+    for i in range(1,n[0]+1): #indexing purposes
+        S_array[i-1] = calculate_S(p, i, fdict=fdict1, pdict=pdict1) #finds S for each value <= n
     return S_array
 
-def big_relS(p, n, fdict1=fvalues, pdict1=pvalues):
+def big_relS(p, n, fdict1=fvalues, pdict1=pvalues): #i also input just one n value
     S_array = np.zeros(n[0])
     for i in range(1,n[0]+1):
-        S_array[i-1] = calculate_S(p, i, fdict=fdict1, pdict=pdict1)/i
+        S_array[i-1] = calculate_S(p, i, fdict=fdict1, pdict=pdict1)/i # divide by i to get the rel LCC
     return S_array
 
 
-def S_calc_data(p=.1,n=[20,50,100]):
+def S_calc_data(p=.1,n=[20,50,100]): #returns the values of S for multiple n values.
   x_array = np.zeros(len(n))
   y_array = np.zeros(len(n))
-  for a in range(len(n)):
+  for a in range(len(n)): # i think this is actually the same as n?
     x_array[a] = n[a]
   for b in range(len(n)):
     y_array[b] = calculate_S(p,n[b])
@@ -335,7 +336,10 @@ def S_calc_data(p=.1,n=[20,50,100]):
   return x_array, y_array
 
 
-def average_degree(graph):
+# start of robustness library stuff
+
+# performance measures
+def average_degree(graph): # returns mean degree
     # print("mean degree" + str(graph.number_of_edges() * 2 / graph.number_of_nodes()))
     return graph.number_of_edges() * 2 / graph.number_of_nodes()
 
@@ -594,19 +598,20 @@ def computeRobustnessCurve(g, remove_nodes='random', performance='largest_connec
         if remove_nodes == 'random':
             v = choice(list(g.nodes()))
         elif remove_nodes == 'attack':
-            v = sorted(g.degree, key=lambda x: x[1], reverse=True)[0][0]
+            v = sorted(g.degree, key=lambda x: x[1], reverse=True)[0][0] #find most connected node
         else:
             print('Error: I dont know that mode of removing nodes')
             v = None  # will this error
         g.remove_node(v)
 
-        data_array[1, i] = computePerformance(g)
+        data_array[1, i] = computePerformance(g) # calculates performance value after each removal
 
         if performance == "average small component size:":
+            # this was after we started doing stuff from the book - this helps calculate little s
             n = nx.number_of_nodes(g)
             n_c = nx.number_connected_components(g)
             k = average_degree(g)
-            p_t = 1 / k
+            p_t = 1 / k #percolation threshold
             if i in np.arange(0, (1 / k) * g.number_of_nodes(), 1):
                 data_array[1, i] = n / n_c
 
@@ -616,16 +621,18 @@ def computeRobustnessCurve(g, remove_nodes='random', performance='largest_connec
 # constructs an ER(random) or SF (exponential) network–helper function for computeRobustnessCurves and computeRobustnessData
 
 def construct_a_network(number_of_nodes, number_of_edges, graph_type):  # n = #nodes, m = #edges
-    # density = .1
-    # number_of_edges = int((number_of_nodes - 1) * density)/2
+    # density = .1   #used this when we wanted a specific density rather than a specific m
+    # number_of_edges = int((number_of_nodes - 1) * density)/2  #used this to calculate m from density
     if graph_type == 'ER':
-        p=.1
+        p=.1 #setting a specific p for the recent stuff with lambert/recursive rel LCC
         #p = 2 * number_of_edges * (number_of_nodes - number_of_edges) / (number_of_nodes * (number_of_nodes - 1))
         g = nx.erdos_renyi_graph(number_of_nodes, p, seed=None, directed=False)
+        #checking that things are calculated correctly
         # print("ER" + str(number_of_nodes) + "mean degree" + str(average_degree(g)) + "density" + str(nx.density(g)))
         return g
     elif graph_type == 'SF':
         g2 = nx.barabasi_albert_graph(number_of_nodes, number_of_edges)
+        #checking that things are running correctly
         # print("SF" + str(number_of_nodes) + "mean degree" + str(average_degree(g2)) + "density" + str(nx.density(g2)))
         return g2
     else:
@@ -636,6 +643,7 @@ def computeRobustnessCurves(number_of_nodes=100, number_of_edges=20, graph_type=
                             performance='largest_connected_component', num_trials=10):
     # constructs a network and runs computeRobustnessCurves over given amount of trials; helper for completeRobustnessData
 
+    # array to store data from multiple trials
     data_array = np.zeros((num_trials + 1, number_of_nodes), dtype=float)
     data_array[0] = np.arange(number_of_nodes)
 
@@ -644,12 +652,13 @@ def computeRobustnessCurves(number_of_nodes=100, number_of_edges=20, graph_type=
         if average_degree(g) == 0:
             percolation_threshold = 0
         else:
+            #not sure why both are here? Maybe to calculate percolation with two different methods?
             percolation_threshold = 1 / average_degree(g)
             percolation_threshold = 1 / number_of_nodes + (number_of_nodes - 1) / (average_degree(g) * number_of_nodes)
             # print(percolation_threshold)
 
         data = computeRobustnessCurve(g, remove_nodes=remove_nodes, performance=performance)
-        data_array[i + 1] = data[1]
+        data_array[i + 1] = data[1] # add a new row of performance data
 
     return data_array, percolation_threshold  # 2d array for performance over removing n nodes, num_trials trials
 
@@ -661,18 +670,18 @@ def perf_sim2(n, p, smoothing=False):
     y_array = np.zeros(n)
     x_array = np.zeros(n)
     for i in range(n):
-        x_array[i] = i / n
+        x_array[i] = i / n #get proportion of nodes "removed"
 
-    new_p = p
+    new_p = p # could probably delete this now since p doesn't change
     new_n = n
 
     for i in range(n):
-        c = 2 * new_p * scipy.special.comb(new_n, 2) / new_n
+        c = 2 * new_p * scipy.special.comb(new_n, 2) / new_n #mean degree
         if smoothing == True:
             y_array[i] = 1 + scipy.special.lambertw((-c * np.exp(-c)), k=0, tol=1e-8) / c + 1 / new_n
         else:
             y_array[i] = 1 + scipy.special.lambertw((-c * np.exp(-c)), k=0, tol=1e-8) / c
-        if new_n ** 2 - 2 * new_n == 0:
+        if new_n ** 2 - 2 * new_n == 0: # can delete this if else statement
             new_p = new_p
         else:
             new_p = new_p
@@ -681,22 +690,25 @@ def perf_sim2(n, p, smoothing=False):
     return x_array, y_array
 
 
-def my_lambertw(x, k=0):
+def my_lambertw(x, k=0): # lambert function with the values near percolation threshold guaranteed (sometimes
+                        # just doing lambert function will leave small gaps in the graph)
     if x + 1 / np.exp(1) < 1E-20:
         return -1.0
     else:
         return scipy.special.lambertw(x, k=k)
 
 
-def perf_sim2copy(n, p, smoothing=False):
+def perf_sim2copy(n, p, smoothing=False): #this was a function for troubleshooting lambert stuff
     # y_array = np.zeros(n-2)
     # x_array = np.zeros(n-2)
     # for i in range(n-2):
-    y_array = np.zeros(n - 2)
-    z_array = np.zeros(n - 2)
-    x_array = np.zeros(n - 2)
-    mean_array = np.zeros(n)
-    difference = np.zeros(n)
+    # we did -2 to avoid the end tail bit at first
+    y_array = np.zeros(n - 2) # just the part that goes into the lambert function
+    z_array = np.zeros(n - 2) # actual S from entire lambert calculation
+    x_array = np.zeros(n - 2) # proportion of nodes "removed"
+    mean_array = np.zeros(n) #for c values
+    difference = np.zeros(n) #for difference between y and 1/e - made sure some values aligned, but I can't quite
+                            #remember why - I don't think we use this much anymore though
 
     new_p = p
     new_n = n
@@ -725,7 +737,7 @@ def perf_sim2copy(n, p, smoothing=False):
     return x_array, y_array, z_array, mean_array, difference, percolation_threshold2
 
 
-def maxdegree(n, p):
+def maxdegree(n, p): #for the attack simluations with lambert function etc
     vals = [[i, n * sst.binom(n, p).pmf(i)] for i in range(1, n + 1)]
     for i, v in vals[::-1]:
         if v >= 1:
@@ -733,13 +745,13 @@ def maxdegree(n, p):
     return 0
 
 
-def perf_sim2_attack(n, p, smoothing=False):
+def perf_sim2_attack(n, p, smoothing=False): #does the lambert calculations but with attacks
     y_array = np.zeros(n)
     x_array = np.zeros(n)
     for i in range(n):
         x_array[i] = i / n
 
-    new_p = p
+    new_p = p #this time probably can't remove this
     new_n = n
 
     for i in range(n - 2):
@@ -759,7 +771,7 @@ def perf_sim2_attack(n, p, smoothing=False):
     return x_array, y_array
 
 
-def perf_sim_revision1(n, p, smoothing=False):
+def perf_sim_revision1(n, p, smoothing=False): #I think this ended up not working well. Could delete
     y_array = np.zeros(n)
     x_array = np.zeros(n)
     for i in range(n):
@@ -769,8 +781,12 @@ def perf_sim_revision1(n, p, smoothing=False):
     new_n = n
     for i in range(n - 2):
         c = 2 * new_p * scipy.special.comb(new_n, 2) / new_n
+
+        # the function below is from the book - before they approximate using n to infinity
         func = lambda x: (new_n - 1) * np.log(1 - c / (new_n - 1) * (1 - x)) - np.log(x)
+        # I don't think this function actually does anything with S
         S = 1 + scipy.special.lambertw((-c * np.exp(-c)), k=0, tol=1e-8) / c
+        # solving the function for the rel lcc - but because of logs, there were lots of random jumps
         S2 = scipy.optimize.fsolve(func, np.real(S))
         print(S2)
         y_array[i] = S2
@@ -783,7 +799,7 @@ def perf_sim_revision1(n, p, smoothing=False):
     return x_array, y_array
 
 
-def s_sim(n, p, smoothing=False):
+def s_sim(n, p, smoothing=False): # i think this is for little s - the average small component size
     y_array = np.zeros(n)
     x_array = np.zeros(n)
     new_p = p
@@ -807,7 +823,7 @@ def s_sim(n, p, smoothing=False):
     return x_array, y_array
 
 
-def s_sim_attack(n, p, smoothing=False):
+def s_sim_attack(n, p, smoothing=False): # average small component size for attack removals
     y_array = np.zeros(n)
     x_array = np.zeros(n)
 
@@ -844,6 +860,7 @@ def completeRobustnessData(graph_types=['ER', 'SF'],
                            remove_strategies=['random', 'attack'],
                            performance='efficiency'):
     # initialize some big list
+    # in the lambert/recursion stuff, don't actually use all these at once. But maybe in the future?
     LIST = [[[[0 for i in range(len(remove_strategies))]
               for j in range(len(numbers_of_edges))]
              for k in range(len(numbers_of_nodes))]
@@ -854,11 +871,13 @@ def completeRobustnessData(graph_types=['ER', 'SF'],
         for i_nn, number_of_nodes in enumerate(numbers_of_nodes):
             for i_ne, number_of_edges in enumerate(numbers_of_edges):
                 for i_rs, remove_strategy in enumerate(remove_strategies):
+                    # for every graph size, average degree, and removal strategy, get the data of the performance
+                    # values over all the trials (10 is the default)
                     data = computeRobustnessCurves(graph_type=graph_type,
                                                    number_of_nodes=number_of_nodes,
                                                    number_of_edges=number_of_edges, remove_nodes=remove_strategy,
                                                    performance=performance)[0]
-                    LIST[i_gt][i_nn][i_ne][i_rs] = data
+                    LIST[i_gt][i_nn][i_ne][i_rs] = data #put this data into the list
     return LIST
 
     # returns 6-dimensional array indicating performance over removing
@@ -887,21 +906,23 @@ def plot_graphs(graph_types=['ER', 'SF'],
                 performance='efficiency', to_vary='nodes', vary_index=1, smoothing=False, both=False,
                 forbidden_values=[]):  # figure out what vary_index did again
     LIST = completeRobustnessData(graph_types, numbers_of_nodes, numbers_of_edges, remove_strategies, performance)
-    print("list")
-    if to_vary == 'nodes':
+
+    if to_vary == 'nodes': # I use this one mostly - it means that we're comparing by graph size
         # start plotting
         fig = plt.figure()
 
         # 1. plot performance as function of n
         x = 1
-        while x < 2:
+        while x < 2: # since only 1 subplot right now, set while x<2
             for i_gt, graph_type in enumerate(graph_types):
                 for i_rs, remove_strategy in enumerate(remove_strategies):
 
                     ax1 = plt.subplot(2, 2, x)  # 1 subplot for every combination of graph type/rs
+                                                # only 1 subplot right now
                     x += 1
                     print("x")
                     for i_nn, number_of_node in enumerate(numbers_of_nodes):
+                        # percolation threshold stuff from the robustness graphs - vertical line
                         # if computeRobustnessCurves(graph_type=graph_type,
                         #                          number_of_nodes=number_of_node, remove_nodes = remove_strategy,
                         #                          number_of_edges = numbers_of_edges[0],
@@ -916,30 +937,39 @@ def plot_graphs(graph_types=['ER', 'SF'],
                         #                          number_of_nodes=number_of_node,
                         #                          number_of_edges = numbers_of_edges[0],
                         #                          performance=performance)[2]
+
+                        # calculating p from the m and n values in the parameters - when I put
+                        # p=.1 in the construct_a_network function and below, this line gets overwritten
                         p = 2 * numbers_of_edges[i_nn] * (number_of_node - numbers_of_edges[i_nn]) / (
                                     number_of_node * (number_of_node - 1))
-                        #print(p)
-                        #print("p")
+
+                        # don't know why we have this
                         calc_array = np.flip(np.arange(number_of_node) + 1)
                         #print("calc_array")
                         #calculated = big_S(p, np.flip(np.arange(number_of_node)),fvalues,pvalues)
 
+                        # calculate the rel LCC from recursion for p=.1, and the graph size in question
                         calculated = big_relS(.1,[number_of_node],fvalues,pvalues)
                         print(calculated)
-                        #print(calculated)
+                        #print(calculated) # checkpoints
                         #print("calculated")
                         x_points = np.zeros(number_of_node)
                         for u in range(number_of_node):
                             x_points[u] = u / number_of_node
                         #print("xpoints")
+
+                        #get simulated data from the big list
                         data_array = np.array(LIST[i_gt][i_nn][vary_index][i_rs][1:])
                         # print("data array shape", data_array.shape)
+
+                        #this prevented some sort of bug about invalid values
                         for val in forbidden_values:
                             data_array[data_array == val] = np.nan
                         # print("data array shape", data_array.shape)
 
                         # print(np.nanmean(data_array,
                         # axis = 0))
+                        #plot the simulated data
                         ax1.plot(x_points,  # range(numbers_of_nodes[i_nn]),
                                  np.nanmean(data_array,
                                             axis=0), 'o-',
@@ -952,17 +982,25 @@ def plot_graphs(graph_types=['ER', 'SF'],
                         # simulation
                         #p = 2 * numbers_of_edges[0] * (numbers_of_nodes[0] - numbers_of_edges[0]) / (
                                     #numbers_of_nodes[0] * (numbers_of_nodes[0] - 1))
-                        p=.1
+
+                        p=.1 # I guess I also defined p here too for the lambert function
                         if performance == "relative LCC" and remove_strategies == ["random"]:
+                            # the commented lines are from other notebooks where I was plotting different things, like
+                            # lambert functions while keeping the ratio of p to graph size constant, etc.
+
                             # ax1.plot(rich(p, fixed=.8)[0],rich(p, fixed=.8)[1])
                             # ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[0], perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[1], label = 'Lambert Input')
+
+                            #lambert plot
                             ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing=smoothing)[0],
                                      perf_sim2copy(numbers_of_nodes[0], p, smoothing=smoothing)[2], label='Theoretical')
+                            #recursive plot
                             ax1.plot(np.flip(np.arange(0,number_of_node))/number_of_node, calculated,
                                      label="calculated")
-                            print(calculated)
+                            print(calculated) #checkpoint
                             plt.show()
                             ax1.legend()
+
                             # ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[0], perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[3], label = 'mean degree')
                             # ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[0], perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[4], label = 'difference')
                             # ax1.plot(np.linspace(0,1,100), -1/np.exp(1)*np.ones(shape=(100)))
@@ -1003,6 +1041,8 @@ def plot_graphs(graph_types=['ER', 'SF'],
                         ax1.set_xlabel('n (number nodes removed)')
                         ax1.set_ylabel(performance)
 
+                        # this was from robustness library stuff/plotting different percolation thresholds
+                        #for different sized graphs.
                         if number_of_node == numbers_of_nodes[0]:
                             set_color = "tab:blue"
                         # if number_of_node == numbers_of_nodes[1]:
@@ -1021,6 +1061,8 @@ def plot_graphs(graph_types=['ER', 'SF'],
             plt.subplots_adjust(left=None, bottom=None, right=2, top=2, wspace=None, hspace=None)
             plt.show()
 
+    # this isn't used so much now - it was mostly from robustness stuff when I would compare
+    # performance values when there were different densities
     elif to_vary == 'edges':
         # start plotting
         fig = plt.figure()
