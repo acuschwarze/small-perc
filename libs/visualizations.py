@@ -24,6 +24,7 @@ def plot_graphs(graph_types=['ER', 'SF'],
                 remove_strategies=['random', 'attack'],
                 performance='efficiency', to_vary='nodes', vary_index=1, smoothing=False, both=False,
                 forbidden_values=[]):  # figure out what vary_index did again
+                
     LIST = completeRobustnessData(graph_types, numbers_of_nodes, numbers_of_edges, remove_strategies, performance)
 
     if to_vary == 'nodes': # I use this one mostly - it means that we're comparing by graph size
