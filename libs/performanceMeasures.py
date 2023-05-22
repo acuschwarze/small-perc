@@ -150,7 +150,7 @@ def meanCommunicability(G, lcc_only=False):
     return comm
 
 
-def resistanceDistance(G):
+def resistanceDistance(G,lcc_only=False):
     '''Get the resistance distance of a graph `G`.
 
     Parameters
@@ -172,7 +172,7 @@ def resistanceDistance(G):
         return resistanceDistance(getLCC(G))
 
     # get number of nodes
-    n = graph.number_of_nodes()
+    n = G.number_of_nodes()
     
     # set special case for small networks
     if n < 1:
@@ -202,7 +202,7 @@ def getReachability(G):
        Reachability of the graph G.
     '''
     # get number of nodes
-    n = graph.number_of_nodes()
+    n = G.number_of_nodes()
 
     # count number of connected node pairs
     r = 0
@@ -332,7 +332,7 @@ def averageSmallComponentSize(G, smooth=False):
     ascs = n_no_lcc / n_c
 
     if smooth:
-        k = average_degree(G)
+        k = averageDegree(G)
         p_t = 1 / k  # percolation threshold #AS: Do we need this?
 
     return ascs

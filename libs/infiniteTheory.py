@@ -19,6 +19,9 @@ import networkx as nx
 from scipy.special import comb, lambertw
 from scipy.optimize import fsolve
 from data import *
+from utils import *
+from performanceMeasures import *
+from Dictionaries import *
 
 def perf_sim2(n, p, smoothing=False):
     # y_array = np.zeros(n-2)
@@ -104,7 +107,7 @@ def perf_sim2_attack(n, p, smoothing=False): #does the lambert calculations but 
     new_n = n
 
     for i in range(n - 2):
-        max = maxdegree(new_n, new_p)
+        max = expectedMaxDegree(new_n, new_p)
         c = 2 * new_p * comb(new_n, 2) / new_n
         if smoothing == True:
             y_array[i] = 1 + lambertw((-c * np.exp(-c)), k=0, tol=1e-8) / c + 1 / new_n
@@ -119,33 +122,6 @@ def perf_sim2_attack(n, p, smoothing=False): #does the lambert calculations but 
 
     return x_array, y_array
 
-
-def perf_sim_revision1(n, p, smoothing=False): #I think this ended up not working well. Could delete
-    y_array = np.zeros(n)
-    x_array = np.zeros(n)
-    for i in range(n):
-        x_array[i] = i / n
-
-    new_p = p
-    new_n = n
-    for i in range(n - 2):
-        c = 2 * new_p * comb(new_n, 2) / new_n
-
-        # the function below is from the book - before they approximate using n to infinity
-        func = lambda x: (new_n - 1) * np.log(1 - c / (new_n - 1) * (1 - x)) - np.log(x)
-        # I don't think this function actually does anything with S
-        S = 1 + lambertw((-c * np.exp(-c)), k=0, tol=1e-8) / c
-        # solving the function for the rel lcc - but because of logs, there were lots of random jumps
-        S2 = scipy.optimize.fsolve(func, np.real(S))
-        print(S2)
-        y_array[i] = S2
-        if new_n ** 2 - 2 * new_n == 0:
-            new_p = new_p
-        else:
-            new_p = new_p * new_n / (new_n - 2) - 2 * c / ((new_n - 1) * (new_n - 2))
-            new_n -= 1
-
-    return x_array, y_array
 
 
 def s_sim(n, p, smoothing=False): # i think this is for little s - the average small component size
@@ -182,7 +158,7 @@ def s_sim_attack(n, p, smoothing=False): # average small component size for atta
         x_array[i] = i / n
 
     for i in range(n - 2):
-        max = maxdegree(new_n, new_p)
+        max = expectedMaxDegree(new_n, new_p)
         c = 2 * new_p * comb(new_n, 2) / new_n
         # print(c)
         S = 1 + lambertw((-c * np.exp(-c)), k=0, tol=1e-8) / c

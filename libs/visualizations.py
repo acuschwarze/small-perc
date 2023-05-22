@@ -15,6 +15,11 @@ import matplotlib.pyplot as plt
 from random import choice
 from scipy.special import comb
 from data import *
+from infiniteTheory import *
+from finiteTheory import *
+from performanceMeasures import *
+from robustnessSimulations import *
+from Dictionaries import *
 
 
 # WORKS
@@ -25,7 +30,7 @@ def plot_graphs(graph_types=['ER', 'SF'],
                 performance='efficiency', to_vary='nodes', vary_index=1, smoothing=False, both=False,
                 forbidden_values=[]):  # figure out what vary_index did again
                 
-    LIST = completeRobustnessData(graph_types, numbers_of_nodes, numbers_of_edges, remove_strategies, performance)
+    LIST = completeRCData(graph_types, numbers_of_nodes, numbers_of_edges, remove_strategies, performance)
 
     if to_vary == 'nodes': # I use this one mostly - it means that we're comparing by graph size
         # start plotting
@@ -133,6 +138,9 @@ def plot_graphs(graph_types=['ER', 'SF'],
                         if performance == "relative LCC" and remove_strategies == ["attack"]:
                             ax1.plot(perf_sim2_attack(numbers_of_nodes[0], p, smoothing=smoothing)[0],
                                      perf_sim2_attack(numbers_of_nodes[0], p, smoothing=smoothing)[1])
+                            Sattack = S_attack(p,[number_of_node],fvalues,pvalues)
+                            ax1.plot(np.flip(np.arange(0, number_of_node)) / number_of_node, Sattack,
+                                     label="calculated")
 
                         if performance == "average small component size" and remove_strategies == ["random"]:
                             if both == True:

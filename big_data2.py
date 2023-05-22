@@ -7,19 +7,8 @@ from random import choice
 import matplotlib.pyplot as plt
 from data import *
 
-def f(p,i,n): #original recursive function for f
-  if i == 0:
-    p_connect = 0
-  if i == 1:
-    p_connect = 1
-  else:
-    sum_f = 0
-    for i_n in range(1,i,1):
-      sum_f += f(p,i_n,n)*scipy.special.comb(i-1,i_n-1)*(1-p)**((i_n)*(i-i_n))
-    p_connect = 1-sum_f
-  return p_connect
 
-def raw_f(p, i, n): # I think this is the same as above
+def raw_f(p, i, n):
     if i == 0:
         p_connect = 0
     if i == 1:
@@ -56,24 +45,6 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
 def g(p, i, n): # function to calculate g values
     return (1 - p) ** (i * (n - i))
 
-def P(p,i,n): # original P value function
-  #print("execute P", p, i, n)
-  if i==0 and n==0:
-    P_tot = 1
-  elif i>0 and n==0:
-    P_tot = 0
-  elif i > n or n < 0 or i<=0:
-    P_tot = 0
-  elif i == 1 and n == 1:
-    P_tot = 1
-  elif i == 1 and n != 1:
-    P_tot = (1-p)**scipy.special.comb(n,2)
-  else:
-    sum_P = 0
-    for j in range(0,i+1,1): # shouldn't it be i+1?
-      sum_P += P(p,j,n-i)
-    P_tot = scipy.special.comb(n,i)*f(p,i,n)*g(p,i,n)*sum_P
-  return P_tot
 
 def raw_P(p, i, n): # also same as original P value function
     if i == 0 and n == 0:

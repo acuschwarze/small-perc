@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from random import choice
 from scipy.special import comb
 from data import *
+from Dictionaries import *
 
 def raw_f(p, i, n): 
     '''Compute f (i.e., the probability that a subgraph with `i` nodes of an 
@@ -380,3 +381,12 @@ def S_calc_data(p=.1,n=[20,50,100]):
     print(x_array, y_array)
 
     return x_array, y_array
+
+def S_attack(p, n, fdict={}, pdict={}):
+    S = np.zeros(n[0])  # takes that n value and makes a new array with that length
+    new_p = p
+    for i in range(n[0], 0, -1):
+        S[i - 1] = calculate_S(new_p, i, fdict=fdict, pdict=pdict)  # finds S for each value <= n
+        new_p = new_p * i / (i - 2) - 2 * max / ((i - 1) * (i - 2))
+
+    return S

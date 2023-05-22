@@ -18,6 +18,7 @@ from scipy.special import comb
 from data import *
 from utils import *
 from performanceMeasures import *
+from Dictionaries import *
 
 def robustnessCurve(g, remove_nodes='random', 
     performance='largest_connected_component'):
@@ -108,9 +109,9 @@ def robustnessCurve(g, remove_nodes='random',
         # calculate performance value
         data_array[1, i] = computePerformance(g)
 
-        if performance == "average small component size smooth": # AS: What is happening here?
-          if i in np.arange(0, (1 / k) * g.number_of_nodes(), 1):
-              data_array[1, i] = n / (nx.number_connected_components(g) - 1)
+        # if performance == "average small component size smooth": # AS: What is happening here?
+        #   if i in np.arange(0, (1 / k) * g.number_of_nodes(), 1):
+        #       data_array[1, i] = n / (nx.number_connected_components(g) - 1)
 
     return data_array
 
