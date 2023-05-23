@@ -8,226 +8,166 @@
 ###############################################################################
 
 import numpy as np
-import scipy
 import scipy.stats as sst
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import choice
 from scipy.special import comb
 from data import *
-from infiniteTheory import *
-from finiteTheory import *
+import infiniteTheory
+import finiteTheory
 from performanceMeasures import *
 from robustnessSimulations import *
-from Dictionaries import *
 
 
 # WORKS
-def plot_graphs(graph_types=['ER', 'SF'],
-                numbers_of_nodes=[100],
-                numbers_of_edges=[1, 2, 3],
-                remove_strategies=['random', 'attack'],
-                performance='efficiency', to_vary='nodes', vary_index=1, smoothing=False, both=False,
-                forbidden_values=[]):  # figure out what vary_index did again
+def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
+    graph_types=['ER', 'SF'], remove_strategies=['random', 'attack'],
+    performance='largest_connected_component', num_trials=10,
+    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, savefig=''):
+    '''Calculate edge probability in an Erdos--Renyi network with original size
+    `n` and original edge probability `p` after removing the node with the
+    highest degree.
+
+    Parameters
+    ----------
+    graph_types : list (default=['ER', 'SF'])
+       List of random-graph models from which networks should be sampled.
+
+    numbers_of_nodes : list (default=[100])
+       List of initial network sizes.
+       
+    edge_probabilities : list (default=[0.1])
+       List of initial edge probabilities.
+       
+    remove_strategies : list (default = ['random', 'attack'])
+       List of removal strategies (either uniformly at random or by node degree
+       for nodes and by sum of incident node degrees for edges).
+       
+    performance : str (default='largest_connected_component')
+       Performance measure to be used.
+
+    num_trials : int (default=10)
+       Number of sample networks drawn from each random-graph model for each
+       combination of numbers of nodes and numbers of edges.
+
+    smooth_end : bool (default=False)
+       If smooth_end is True, apply end smoothing for infinite-theory results.
+
+    forbidden_values : list (default=[])
+       List of values to exclude from the plot.
+       
+    fdict (default={})
+       Dictionary of precomputed values of f.
+       
+    pdict (default={})
+       Dictionary of precomputed values of P.
+       
+    savefig : str (default='')
+       If savefig is a non-empty string, save of copy of the figure to that
+       destination.
+       
+    Returns
+    -------
+    figure (a matplotlib figure)
+       Figure with one or several subplots showing results.
+    '''
+
+    # get simulation data
+    sim_data = completeRCData(numbers_of_nodes=numbers_of_nodes,
+        edge_probabilities=edge_probabilities, num_trials=num_trials,
+        performance=performance, graph_types=graph_types,
+        remove_strategies=remove_strategies)
+
+    # get number of graph types
+    n_gt = len(graph_types)
+    
+    # get number of removal strategies
+    n_rs = len(remove_strategies)
+
+    # create a figure
+    fig = plt.figure(figsize=(8,8))
+    
+    # select colors
+    num_lines = len(numbers_of_nodes)*len(edge_probabilities)
+    colors = plt.cm.jet(np.linspace(0,1,num_lines))
+
+    # plot performance as function of the number of nodes removed
+    ax_index = 0
+    for i_gt, graph_type in enumerate(graph_types):
+        for i_rs, remove_strategy in enumerate(remove_strategies):
+
+            # create a subplot
+            ax1 = plt.subplot(n_gt, n_rs, 1+ax_index)
+            line_index = 0
+
+            # create a new line for each combination of number of nodes and
+            # number of edges
+            for i_nn, n in enumerate(numbers_of_nodes):
+                for i_ep, p in enumerate(edge_probabilities):
                 
-    LIST = completeRCData(graph_types, numbers_of_nodes, numbers_of_edges, remove_strategies, performance)
+                    # get relevant slice of simulated data
+                    data_array = np.array(sim_data[i_gt][i_nn][i_ep][i_rs])
+                    # exclude the first row, because it is the number of nodes
+                    data_array = data_array[1:]
 
-    if to_vary == 'nodes': # I use this one mostly - it means that we're comparing by graph size
-        # start plotting
-        fig = plt.figure()
+                    #this can prevent some sort of bug about invalid values
+                    for val in forbidden_values:
+                        data_array[data_array == val] = np.nan
+                        
+                    # plot simulated data
+                    removed_fraction = np.arange(n)/n
+                    line_data = np.nanmean(data_array,axis=0)
+                    ax1.plot(removed_fraction, line_data,
+                        'o', color=colors[line_index], 
+                        label="n={} , p={}".format(n , p))
+  
+                    if performance=='relative LCC':
 
-        # 1. plot performance as function of n
-        x = 1
-        while x < 2: # since only 1 subplot right now, set while x<2
-            for i_gt, graph_type in enumerate(graph_types):
-                for i_rs, remove_strategy in enumerate(remove_strategies):
+                        attack = (remove_strategy=='attack')
 
-                    ax1 = plt.subplot(2, 2, x)  # 1 subplot for every combination of graph type/rs
-                                                # only 1 subplot right now
-                    x += 1
-                    print("x")
-                    for i_nn, number_of_node in enumerate(numbers_of_nodes):
-                        # percolation threshold stuff from the robustness graphs - vertical line
-                        # if computeRobustnessCurves(graph_type=graph_type,
-                        #                          number_of_nodes=number_of_node, remove_nodes = remove_strategy,
-                        #                          number_of_edges = numbers_of_edges[0],
-                        #                          performance=performance)[1] > 0:
-                        #   percolation_threshold_graph = 1 - computeRobustnessCurves(graph_type=graph_type, remove_nodes = remove_strategy,
-                        #                          number_of_nodes=number_of_node,
-                        #                          number_of_edges = numbers_of_edges[0],
-                        #                          performance=performance)[1]
-                        #   print("pcg", 1-percolation_threshold_graph)
-                        # generating plot
-                        # x_points = computeRobustnessCurves(graph_type=graph_type,
-                        #                          number_of_nodes=number_of_node,
-                        #                          number_of_edges = numbers_of_edges[0],
-                        #                          performance=performance)[2]
+                        # get data from finite theory
+                        finiteRelS = finiteTheory.relSCurve(p,[n],
+                            attack=attack, fdict=fdict,pdict=pdict)
 
-                        # calculating p from the m and n values in the parameters - when I put
-                        # p=.1 in the construct_a_network function and below, this line gets overwritten
-                        p = 2 * numbers_of_edges[i_nn] * (number_of_node - numbers_of_edges[i_nn]) / (
-                                    number_of_node * (number_of_node - 1))
+                        # plot data from finite theory
+                        ax1.plot(removed_fraction, finiteRelS,
+                            color=colors[line_index],
+                            label="finite th.")
+  
+                        # get data from infinite theory
+                        infiniteRelS = infiniteTheory.relSCurve(n, p,
+                            attack=attack, smooth_end=smooth_end)
+  
+                        # plot data from infinite theory
+                        ax1.plot(removed_fraction, infiniteRelS,
+                            ls='--', color=colors[line_index],
+                            label="infinite th.")
+  
+                    elif performance == "average small component size":
 
-                        # don't know why we have this
-                        calc_array = np.flip(np.arange(number_of_node) + 1)
-                        #print("calc_array")
-                        #calculated = big_S(p, np.flip(np.arange(number_of_node)),fvalues,pvalues)
+                        # get data from infinite theory
+                        infiniteRelS = infiniteTheory.relSmallSCurve(p,[n],
+                            attack=attack, smooth_end=smooth_end)
+                        
+                        # plot data from infinite theory
+                        ax1.plot(removed_fraction, infiniteRelS,
+                            ls='--', color=colors[line_index],
+                            label="infinite th.")
+                        plt.ylim(0, 5)
+                        
+                    line_index += 1
 
-                        # calculate the rel LCC from recursion for p=.1, and the graph size in question
-                        calculated = big_relS(.1,[number_of_node],fvalues,pvalues)
-                        print(calculated)
-                        #print(calculated) # checkpoints
-                        #print("calculated")
-                        x_points = np.zeros(number_of_node)
-                        for u in range(number_of_node):
-                            x_points[u] = u / number_of_node
-                        #print("xpoints")
+            # label the plot
+            ax1.set_title(str(performance) + " of " + str(graph_type) +
+                          " graph, " + str(remove_strategy) + " removal")
+            ax1.legend()
+            ax1.set_xlabel('n (number nodes removed)')
+            ax1.set_ylabel(performance)
 
-                        #get simulated data from the big list
-                        data_array = np.array(LIST[i_gt][i_nn][vary_index][i_rs][1:])
-                        # print("data array shape", data_array.shape)
+    #plt.subplots_adjust(left=None, bottom=None, right=2, top=2, wspace=None, hspace=None)
 
-                        #this prevented some sort of bug about invalid values
-                        for val in forbidden_values:
-                            data_array[data_array == val] = np.nan
-                        # print("data array shape", data_array.shape)
+    if len(savefig) > 0:
+        plt.savefig(savefig)
 
-                        # print(np.nanmean(data_array,
-                        # axis = 0))
-                        #plot the simulated data
-                        ax1.plot(x_points,  # range(numbers_of_nodes[i_nn]),
-                                 np.nanmean(data_array,
-                                            axis=0), 'o-',
-                                 label="number of nodes=" + str(numbers_of_nodes[i_nn]))
-                        print(np.nanmean(data_array,
-                                            axis=0))
-                        #print("nanmean")
-                        # plt.show()
-
-                        # simulation
-                        #p = 2 * numbers_of_edges[0] * (numbers_of_nodes[0] - numbers_of_edges[0]) / (
-                                    #numbers_of_nodes[0] * (numbers_of_nodes[0] - 1))
-
-                        p=.1 # I guess I also defined p here too for the lambert function
-                        if performance == "relative LCC" and remove_strategies == ["random"]:
-                            # the commented lines are from other notebooks where I was plotting different things, like
-                            # lambert functions while keeping the ratio of p to graph size constant, etc.
-
-                            # ax1.plot(rich(p, fixed=.8)[0],rich(p, fixed=.8)[1])
-                            # ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[0], perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[1], label = 'Lambert Input')
-
-                            #lambert plot
-                            ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing=smoothing)[0],
-                                     perf_sim2copy(numbers_of_nodes[0], p, smoothing=smoothing)[2], label='Theoretical')
-                            #recursive plot
-                            ax1.plot(np.flip(np.arange(0,number_of_node))/number_of_node, calculated,
-                                     label="calculated")
-                            print(calculated) #checkpoint
-                            plt.show()
-                            ax1.legend()
-
-                            # ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[0], perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[3], label = 'mean degree')
-                            # ax1.plot(perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[0], perf_sim2copy(numbers_of_nodes[0], p, smoothing = smoothing)[4], label = 'difference')
-                            # ax1.plot(np.linspace(0,1,100), -1/np.exp(1)*np.ones(shape=(100)))
-                            # ax1.plot(np.linspace(0,1,100), np.ones(shape=(100)))
-                            # plt.xlim(.4, .6)
-                            # plt.ylim(-.5,1.2)
-
-                            # ax1.plot(perf_sim_revision1(numbers_of_nodes[0], p)[0], perf_sim_revision1(numbers_of_nodes[0], p)[1])
-                            print("work")
-                        if performance == "relative LCC" and remove_strategies == ["attack"]:
-                            ax1.plot(perf_sim2_attack(numbers_of_nodes[0], p, smoothing=smoothing)[0],
-                                     perf_sim2_attack(numbers_of_nodes[0], p, smoothing=smoothing)[1])
-                            Sattack = S_attack(p,[number_of_node],fvalues,pvalues)
-                            ax1.plot(np.flip(np.arange(0, number_of_node)) / number_of_node, Sattack,
-                                     label="calculated")
-
-                        if performance == "average small component size" and remove_strategies == ["random"]:
-                            if both == True:
-                                ax1.plot(perf_sim2(numbers_of_nodes[0], p, smoothing=smoothing)[0],
-                                         perf_sim2(numbers_of_nodes[0], p, smoothing=smoothing)[1])
-                            ax1.plot(s_sim(numbers_of_nodes[0], p)[0], s_sim(numbers_of_nodes[0], p)[1])
-                            plt.ylim(0, 5)
-
-                        if performance == "average small component size" and remove_strategies == ["attack"]:
-                            ax1.plot(s_sim_attack(numbers_of_nodes[0], p)[0], s_sim_attack(numbers_of_nodes[0], p)[1])
-                            plt.ylim(0, 5)
-
-                        if performance == "both" and remove_strategies == ["random"]:
-                            ax1.plot(perf_sim2(numbers_of_nodes[0], p, smoothing=smoothing)[0],
-                                     perf_sim2(numbers_of_nodes[0], p, smoothing=smoothing)[1])
-                            ax1.plot(s_sim(numbers_of_nodes[0], p)[0], s_sim(numbers_of_nodes[0], p)[1])
-                            plt.ylim(0, 5)
-
-                        # print(range(numbers_of_nodes[i_nn]))
-                        # print(np.nanmean(LIST[i_gt][i_nn][vary_index][i_rs][1:], axis = 0))
-                        # labeling plot
-                        ax1.set_title(str(performance) + " of " + str(graph_type) +
-                                      " graph, " + str(remove_strategy) + " removal: over "
-                                      + to_vary)
-                        ax1.legend()
-                        ax1.set_xlabel('n (number nodes removed)')
-                        ax1.set_ylabel(performance)
-
-                        # this was from robustness library stuff/plotting different percolation thresholds
-                        #for different sized graphs.
-                        if number_of_node == numbers_of_nodes[0]:
-                            set_color = "tab:blue"
-                        # if number_of_node == numbers_of_nodes[1]:
-                        #   set_color = "tab:orange"
-                        # if number_of_node == numbers_of_nodes[2]:
-                        #   set_color = "tab:green"
-                        # if number_of_node == numbers_of_nodes[3]:
-                        #   set_color = "tab:red"
-                        # if number_of_node == numbers_of_nodes[4]:
-                        #   set_color = "tab:purple"
-                        #laterpercolation_threshold_graph = 1 - perf_sim2copy(numbers_of_nodes[0], p, smoothing=smoothing)[5]
-                        # print(percolation_threshold_graph)
-                        #laterax1.axvline(percolation_threshold_graph, color=set_color)
-
-                    # fig.tight_layout()
-            plt.subplots_adjust(left=None, bottom=None, right=2, top=2, wspace=None, hspace=None)
-            plt.show()
-
-    # this isn't used so much now - it was mostly from robustness stuff when I would compare
-    # performance values when there were different densities
-    elif to_vary == 'edges':
-        # start plotting
-        fig = plt.figure()
-
-        # 1. plot performance as function of n, 2 * 2 * 5 figures
-        x = 1
-        while x < 5:
-            for i_gt, graph_type in enumerate(graph_types):
-                for i_rs, remove_strategy in enumerate(remove_strategies):
-                    ax1 = plt.subplot(2, 2, x)  # 1 subplot for every combination of graph type/rs
-                    x += 1
-
-                    for i_ne, number_of_edge in enumerate(numbers_of_edges):
-                        # generating plot
-                        ax1.plot(range(numbers_of_nodes[1]),
-                                 np.mean(LIST[i_gt][vary_index][i_ne][i_rs][1:],
-                                         axis=0), 'o-',
-                                 label="number of edges=" + str(numbers_of_edges[i_ne]))
-
-                        # labeling plot
-                        ax1.set_title(str(performance) + " of " + str(graph_type) +
-                                      " graph, " + str(remove_strategy) + " removal: over "
-                                      + to_vary)
-                        ax1.legend()
-                        ax1.set_xlabel('n (number nodes removed)')
-                        ax1.set_ylabel(performance)
-                        # plt.show
-                    # fig.tight_layout()
-            plt.subplots_adjust(left=None, bottom=None, right=2, top=2, wspace=None, hspace=None)
-            plt.show()
-
-        else:
-            print("Please vary either nodes or edges.")
-            # safety check if user made a mistake with to_vary
-
-if __name__ == "__main__":
-    #plot_graphs(['ER'], [2], [1], ["random"], performance = 'relative LCC', vary_index = 0, smoothing = True, forbidden_values = [0])
-    #plt.show()
-    plot_graphs(['ER'], [20], [1], ["random"], performance = 'relative LCC', vary_index = 0, smoothing = True, forbidden_values = [0])
-    plt.show()
+    return fig

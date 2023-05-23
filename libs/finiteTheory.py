@@ -12,24 +12,22 @@
 #     raw_S
 #     calculate_S
 #     SCurve (previously "big_S")
-#     relSCurve (previously "big_relS ")
-#     S_calc_data
+#     relSCurve (previously "big_relS")
+#     SPoints (previously "S_calc_data")
+#
+# This library previously contained:
+#     S_attack -> now merged into SCurve with attack=True
 #
 ###############################################################################
 
 import numpy as np
-import scipy
-import scipy.stats as sst
-import networkx as nx
-import matplotlib.pyplot as plt
-from random import choice
 from scipy.special import comb
-from data import *
-from Dictionaries import *
+from utils import *
 
 def raw_f(p, i, n): 
     '''Compute f (i.e., the probability that a subgraph with `i` nodes of an 
-    Erdos--Renyi random graph with n nodes and edge probability p is connected.
+    Erdos--Renyi random graph with `n` nodes and edge probability `p` is 
+    connected.
 
     Parameters
     ----------
@@ -46,7 +44,7 @@ def raw_f(p, i, n):
     -------
     p_connect : float
        The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with n nodes and edge probability p is connected.
+       random graph with `n` nodes and edge probability `p` is connected.
     '''
     if i == 0:
         p_connect = 0
@@ -85,7 +83,7 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
     -------
     f : float
        The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with n nodes and edge probability p is connected.
+       random graph with `n` nodes and edge probability `p` is connected.
     '''
     # look for precomputed data
     if p in fdict:
@@ -109,10 +107,9 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
 
 
 def calculate_g(p, i, n):
-    '''Compute g (i.e., the probability that a subgraph with `i` nodes of an
-    Erdos--Renyi random graph with n nodes and edge probability p is connected.
-    
-    AS: What is g again?
+    '''Compute g (i.e., the probability a selected set of `i` nodes 
+    Erdos--Renyi random graph with `n` nodes and edge probability `p` has no
+    neighbors in the remaining n-i nodes.
 
     Parameters
     ----------
@@ -128,8 +125,9 @@ def calculate_g(p, i, n):
     Returns
     -------
     g : float
-       The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with n nodes and edge probability p is connected.
+       The the probability a selected set of `i` nodes Erdos--Renyi random
+       graph with `n` nodes and edge probability `p` has no neighbors in the 
+       remaining n-i nodes.
     '''
     g = (1 - p) ** (i * (n - i))
 
@@ -137,11 +135,10 @@ def calculate_g(p, i, n):
  
 
 def raw_P(p, i, n):
-    '''Compute P (i.e., the probability that a subgraph with `i` nodes of an
-    Erdos--Renyi random graph with n nodes and edge probability p is connected.
-    
-    AS: What is P again?
-    
+    '''Compute P (i.e., the probability that an Erdos--Renyi random graph with 
+    `n` nodes and edge probability `p` has a largest connected component of 
+    size `i`.
+
     ISSUE #1: Did we decide on the range of j values?
 
     Parameters
@@ -158,8 +155,8 @@ def raw_P(p, i, n):
     Returns
     -------
     P_tot : float
-       The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with n nodes and edge probability p is connected.
+       The probability that an Erdos--Renyi random graph with `n` nodes and 
+       edge probability `p` has a largest connected component of size `i`.
     '''
     if i == 0 and n == 0:
         P_tot = 1
@@ -181,10 +178,10 @@ def raw_P(p, i, n):
 
 
 def calculate_P(p, i, n, fdict={}, pdict={}):
-    '''Load or compute P (i.e., the probability that a subgraph with `i` nodes 
-    of an Erdos--Renyi random graph with n nodes and edge probability p is 
-    connected.
-    
+    '''Load or compute P (i.e., the probability that an Erdos--Renyi random 
+    graph with `n` nodes and edge probability `p` has a largest connected 
+    component of size `i`.
+
     AS: What is P again?
     
     ISSUE #1: Did we decide on the range of j values?
@@ -209,8 +206,8 @@ def calculate_P(p, i, n, fdict={}, pdict={}):
     Returns
     -------
     P_tot : float
-       The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with n nodes and edge probability p is connected.
+       The probability that an Erdos--Renyi random graph with `n` nodes and
+       edge probability `p` has a largest connected component of size `i`.
     '''
     if p in pdict:
         if n in pdict[p]:
@@ -231,15 +228,15 @@ def calculate_P(p, i, n, fdict={}, pdict={}):
         sum_P = 0
         for j in range(0, i + 1, 1):  # shouldn't it be i+1?
             sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
-        P_tot = (comb(n, i)
-            * calculate_f(p, i, n, fdict=fdict) * g(p, i, n) * sum_P)
+        P_tot = (comb(n, i) * calculate_f(p, i, n, fdict=fdict)
+             * calculate_g(p, i, n) * sum_P)
 
     return P_tot
 
 
 def raw_S(p, n):
     '''Compute the expected size of the largest connected component of
-    an Erdos--Renyi random graph with n nodes and edge probability p using 
+    an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
     equations for percolation in finite networks.
 
     Parameters
@@ -254,7 +251,7 @@ def raw_S(p, n):
     -------
     S : float
        Expected size of the largest connected component of an Erdos--Renyi
-       random graph with n nodes and edge probability p.
+       random graph with `n` nodes and edge probability `p`.
     '''
     S = 0
     for k in range(1, n + 1):
@@ -265,7 +262,7 @@ def raw_S(p, n):
 
 def calculate_S(p, n, fdict={}, pdict={}):
     '''Load or compute the expected size of the largest connected component of 
-    an Erdos--Renyi random graph with n nodes and edge probability p using 
+    an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
     equations for percolation in finite networks.
 
     Parameters
@@ -286,7 +283,7 @@ def calculate_S(p, n, fdict={}, pdict={}):
     -------
     S : float
        Expected size of the largest connected component of an Erdos--Renyi
-       random graph with n nodes and edge probability p.
+       random graph with `n` nodes and edge probability `p`.
     '''
     S = 0
     for k in range(1, n + 1):
@@ -294,12 +291,14 @@ def calculate_S(p, n, fdict={}, pdict={}):
 
     return S
 
-def SCurve(p, n, fdict=fvalues, pdict=pvalues):
+def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
     '''Sequence of the expected sizes of the largest connected component of
-    an Erdos--Renyi random graph with n nodes and edge probability p when
-    removing nodes sequentially uniformly at random. Results are from
-    equations for percolation in finite networks.
+    an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
+    removing nodes sequentially, either uniformly at random or (adaptively) 
+    targeted by degree.
     
+    Results are from equations for percolation in finite networks.
+
     ISSUE #1: Does this work properly for more than one element in n?
 
     Parameters
@@ -310,9 +309,16 @@ def SCurve(p, n, fdict=fvalues, pdict=pvalues):
     n : list
        Numbers of nodes in a graph.
 
+    attack : bool (default=False)
+       If attack is True, target nodes by degree instead of uniformly at 
+       random.
+       
+    reverse : bool (default=False)
+       If reverse is True, return expected sizes in reverse order.
+
     fdict (default={})
        Dictionary of precomputed values of f.
-       
+
     pdict (default={})
        Dictionary of precomputed values of P.
 
@@ -322,21 +328,32 @@ def SCurve(p, n, fdict=fvalues, pdict=pvalues):
        Sequence of the expected sizes of the largest connected component under
        sequential node removal.
     '''
-    #usually i input an array with one n value for now
-    S = np.zeros(n[0]) #takes that n value and makes a new array with that length
+    
+    # initialize array (assume that n has only one entry for now)
+    S = np.zeros(n[0])
 
-    for i in range(1,n[0]+1): #indexing purposes
-        S[i-1] = calculate_S(p, i, fdict=fdict, pdict=pdict) #finds S for each value <= n
+    current_p = p
+    for i in range(n[0]-1, -1, -1):
+        # calculate S for each value <= n
+        S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict)
+        if attack:
+            # update p only if nodes are removed by degree
+            current_p = edgeProbabilityAfterTargetedAttack(i, current_p)
+
+    if reverse:
+        S = S[::-1]
 
     return S
 
 
-def big_relS(p, n, fdict={}, pdict={}):
+def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}):
     '''Sequence of the expected relative sizes of the largest connected 
-    component of an Erdos--Renyi random graph with n nodes and edge probability 
-    p when removing nodes sequentially uniformly at random. Results are from
-    equations for percolation in finite networks.
-    
+    component of an Erdos--Renyi random graph with `n` nodes and edge 
+    probability `p` when removing nodes sequentially, either uniformly at
+    random or (adaptively) targeted by degree.
+
+    Results are from equations for percolation in finite networks.
+
     ISSUE #1: Does this work properly for more than one element in n?
 
     Parameters
@@ -346,6 +363,13 @@ def big_relS(p, n, fdict={}, pdict={}):
 
     n : list
        Numbers of nodes in a graph.
+
+    attack : bool (default=False)
+       If attack is True, target nodes by degree instead of uniformly at 
+       random.
+       
+    reverse : bool (default=False)
+       If reverse is True, return expected sizes in reverse order.
 
     fdict (default={})
        Dictionary of precomputed values of f.
@@ -359,34 +383,58 @@ def big_relS(p, n, fdict={}, pdict={}):
        Sequence of the expected relative sizes of the largest connected 
        component under sequential node removal.
     '''
-    #i also input just one n value
-    relS = SCurve(p, n, fdict=fdict, pdict=pdict) / np.arange(1,n[0]+1)
+
+    # assume that n has only one entry for now
+    network_sizes = np.arange(1,n[0]+1)
+    
+    if reverse:
+        network_sizes = network_sizes[::-1]
+
+    relS = (SCurve(p, n, attack=attack, reverse=reverse,
+        fdict=fdict, pdict=pdict) / network_sizes)
 
     return relS
 
 
-def S_calc_data(p=.1,n=[20,50,100]): 
-    '''What happens here?
+def SPoints(p=.1, n=[20,50,100], attack=False, reverse=False, 
+    fdict={}, pdict={}):
+    '''List of the expected sizes of the largest connected component of
+    an Erdos--Renyi random graph with `n[i]` nodes and edge probability `p`.
+    Results are from equations for percolation in finite networks.
+
+    Parameters
+    ----------
+    p : float
+       Edge probability in a graph.
+
+    n : list
+       Numbers of nodes in a graph.
+       
+    attack : bool (default=False)
+       If attack is True, target nodes by degree instead of uniformly at 
+       random.
+       
+    reverse : bool (default=False)
+       If reverse is True, return expected sizes in reverse order.
+
+    fdict (default={})
+       Dictionary of precomputed values of f.
+       
+    pdict (default={})
+       Dictionary of precomputed values of P.
+
+    Returns
+    -------
+    n : 1D numpy array
+       List of network sizes.
+
+    sizes : 1D numpy array
+       List of corresponding expected sizes of the largest connected.
     '''
-    #returns the values of S for multiple n values.
-    x_array = np.zeros(len(n))
-    y_array = np.zeros(len(n))
 
-    for a in range(len(n)): 
-        # i think this is actually the same as n?
-        x_array[a] = n[a]
+    sizes = np.array([
+        calculate_S(p, nval, attack=attack, reverse=reverse,
+            fdict=fdict, pdict=pdict) for nval in n])
 
-    for b in range(len(n)):
-        y_array[b] = calculate_S(p,n[b])
-    print(x_array, y_array)
+    return n, sizes
 
-    return x_array, y_array
-
-def S_attack(p, n, fdict={}, pdict={}):
-    S = np.zeros(n[0])  # takes that n value and makes a new array with that length
-    new_p = p
-    for i in range(n[0], 0, -1):
-        S[i - 1] = calculate_S(new_p, i, fdict=fdict, pdict=pdict)  # finds S for each value <= n
-        new_p = new_p * i / (i - 2) - 2 * max / ((i - 1) * (i - 2))
-
-    return S

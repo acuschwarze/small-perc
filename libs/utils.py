@@ -6,6 +6,7 @@
 #    degreeProbability (previously "degree_distr")
 #    expectedNodeNumber
 #    expectedMaxDegree (previously "maxdegree")
+#    edgeProbabilityAfterTargetedAttack
 #    sampleNetwork (previously "construct_a_network")
 #    LaplacianMatrix (previously "laplacian_matrix")
 #    getLCC
@@ -102,20 +103,47 @@ def expectedMaxDegree(n, p):
     return 0
     
 
-def sampleNetwork(n, m, graph_type='ER'):
+def edgeProbabilityAfterTargetedAttack(n, p):
+    '''Calculate edge probability in an Erdos--Renyi network with original size
+    `n` and original edge probability `p` after removing the node with the
+    highest degree.
+
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
+    
+    p : float
+       Edge probability in Erdos Renyi graph.
+       
+    Returns
+    -------
+    new_p (float)
+       Updated edge probability.
+    '''
+    if n <=2:
+        new_p = 0
+
+    else:
+      emd = expectedMaxDegree(n, p)
+      new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+
+    return new_p
+
+
+def sampleNetwork(n, p, graph_type='ER'):
     '''Sample a network with `n` nodes and `m` edges per node from the Erdos--
     Renyi model or the Barabasi--Albert model.
-    
-    ISSUE #1: For ER graphs the edge probability is currently constant!
-    ISSUE #2: NetworkX's BA algorithm is flaky with the number of edges!
+
+    ISSUE #1: NetworkX's BA algorithm is flaky with the number of edges!
     
     Parameters
     ----------
     n : int
        Number of nodes.
     
-    m : int or float
-       (Expected) number of edges per node.
+    p : float
+       Edge probability.
        
     graph_type : str
        If graph_type=='ER', return an Erdos--Renyi graph; if graph_type=='BA',
@@ -129,7 +157,6 @@ def sampleNetwork(n, m, graph_type='ER'):
 
     if graph_type == 'ER':
         # generate an Erdos--Renyi random graph
-        p = .1 # AS: This does not seem right!
         g = nx.erdos_renyi_graph(n, p, seed=None, directed=False)
         return g
 
@@ -137,7 +164,7 @@ def sampleNetwork(n, m, graph_type='ER'):
         # generate a scale-free network using the Barabasi--Albert model
         # since no initial graph is given, the algorithm starts with a 
         # star graph with m+1 nodes
-        g = nx.barabasi_albert_graph(n, m)
+        g = nx.barabasi_albert_graph(n, int(np.round(p*(n-1))))
         return g
     else:
         raise ValueError("Invalid graph_type")

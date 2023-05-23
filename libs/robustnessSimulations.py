@@ -18,7 +18,7 @@ from scipy.special import comb
 from data import *
 from utils import *
 from performanceMeasures import *
-from Dictionaries import *
+#from Dictionaries import *
 
 def robustnessCurve(g, remove_nodes='random', 
     performance='largest_connected_component'):
@@ -71,9 +71,7 @@ def robustnessCurve(g, remove_nodes='random',
     elif performance == "average cluster size":
         computePerformance = lambda g: averageComponentSize(g)
     elif performance == "average small component size":
-        computePerformance = lambda g: averageSmallComponentSize(g, smooth=False)
-    elif performance == "average small component size smooth":
-        computePerformance = lambda g: averageSmallComponentSize(g, smooth=True)
+        computePerformance = lambda g: averageSmallComponentSize(g)
     elif performance == "mean shortest path":
         computePerformance = lambda g: meanShortestPathLength(g)
     elif performance == 'efficiency':
@@ -93,6 +91,12 @@ def robustnessCurve(g, remove_nodes='random',
 
     # compute values of performance measure throughout node removal
     for i in range(n):
+        # calculate performance value
+        data_array[1, i] = computePerformance(g)
+        
+        if i == n:
+            break
+
         # find a node to remove
         if remove_nodes == 'random':
             # select a random node
@@ -106,8 +110,7 @@ def robustnessCurve(g, remove_nodes='random',
         # remove node
         g.remove_node(v)
 
-        # calculate performance value
-        data_array[1, i] = computePerformance(g)
+
 
         # if performance == "average small component size smooth": # AS: What is happening here?
         #   if i in np.arange(0, (1 / k) * g.number_of_nodes(), 1):
@@ -116,13 +119,12 @@ def robustnessCurve(g, remove_nodes='random',
     return data_array
 
 
-def getRCSet(number_of_nodes=100, number_of_edges=20, num_trials=10, 
-    graph_type='ER', remove_nodes='random', 
-    performance='largest_connected_component'):
+def getRCSet(n=100, p=0.1, num_trials=10, graph_type='ER',
+    remove_nodes='random', performance='largest_connected_component'):
     '''Run several computational node-removal experiments on graphs sampled
     from a random-graph ensemble and record how a structural property of those
     graphs change as one removes nodes sequentially.
-    
+
     ISSUE #1: Returns the same percolation threshold for all realizations? Does 
     that make sense?
     
@@ -133,11 +135,11 @@ def getRCSet(number_of_nodes=100, number_of_edges=20, num_trials=10,
 
     Parameters
     ----------
-    number_of_nodes : int (default=100)
+    n : int (default=100)
        Number of nodes in sampled networks.
 
-    number_of_edges : int (default=20)
-       Number of edges in sampled networks.
+    p : float (default=0.1)
+       Edge probability in sampled networks.
 
     num_trials : int (default=10)
        Number of sample networks drawn from the random-graph model.
@@ -170,23 +172,24 @@ def getRCSet(number_of_nodes=100, number_of_edges=20, num_trials=10,
        (AS: Why do we return this here?)
     '''
     # array to store data from multiple trials
-    data_array = np.zeros((num_trials + 1, number_of_nodes), dtype=float)
-    data_array[0] = np.arange(number_of_nodes)
+    data_array = np.zeros((num_trials + 1, n), dtype=float)
+    data_array[0] = np.arange(n)
 
     for i in range(num_trials):
-        g = sampleNetwork(number_of_nodes=number_of_nodes,
-                number_of_edges=number_of_edges, graph_type=graph_type)
-        if averageDegree(g) == 0:
+        g = sampleNetwork(n, p, graph_type=graph_type)
+        c = averageDegree(g)
+        if c == 0:
             percolation_threshold = 0 # AS: Is this the right choice?
         else:
             #not sure why both are here? Maybe to calculate percolation with two different methods?
             # AS: One of these lines is redundant?
             # AS: It doesn't seem like this calculation has to happen in the loop is networks are generated correctly?
-            percolation_threshold = 1 / average_degree(g)
-            percolation_threshold = 1 / number_of_nodes + (number_of_nodes - 1) / (average_degree(g) * number_of_nodes)
+            percolation_threshold = 1 / c
+            percolation_threshold = 1 / n + (n - 1) / (c * n)
 
         # get robustness curve for graph g
-        data = robustnessCurve(g, remove_nodes=remove_nodes, performance=performance)
+        data = robustnessCurve(g, remove_nodes=remove_nodes, 
+            performance=performance)
 
         # add performance data to data array
         data_array[i + 1] = data[1]
@@ -194,23 +197,22 @@ def getRCSet(number_of_nodes=100, number_of_edges=20, num_trials=10,
     return data_array, percolation_threshold
 
 
-def completeRCData(numbers_of_nodes=np.arange(20, 101, 20), 
-    numbers_of_edges=[1, 2, 3], num_trials=10,
-    performance='largest_connected_component',
+def completeRCData(numbers_of_nodes=[100], edge_probabilities=[0.1],
+    num_trials=10, performance='largest_connected_component',
     graph_types=['ER', 'SF'], remove_strategies=['random', 'attack']):
     '''Run several computational node-removal experiments on graphs sampled
     from an Erdos--Renyi random-graph model and a Barabasi--Albert random-graph
     model and record how a structural property of those graphs change as one 
-    removes nodes sequentially either uniformly at random or targeted by 
+    removes nodes sequentially either uniformly at random or targeted by
     degree.
 
     Parameters
     ----------
-    numbers_of_nodes : int (default=100)
+    numbers_of_nodes : list (default=[100])
        Numbers of nodes in sampled networks.
 
-    numbers_of_edges : int (default=20)
-       Numbers of edges in sampled networks.
+    edge_probabilities : list (default=[0.1])
+       Edge probabilities in sampled networks.
 
     num_trials : int (default=10)
        Number of sample networks drawn from each random-graph model for each
@@ -240,23 +242,22 @@ def completeRCData(numbers_of_nodes=np.arange(20, 101, 20),
     '''
     # initialize some big list
     res = [[[[0 for i in range(len(remove_strategies))]
-              for j in range(len(numbers_of_edges))]
+              for j in range(len(edge_probabilities))]
              for k in range(len(numbers_of_nodes))]
             for l in range(len(graph_types))]
 
     for i_gt, graph_type in enumerate(graph_types):
-        for i_nn, number_of_nodes in enumerate(numbers_of_nodes):
-            for i_ne, number_of_edges in enumerate(numbers_of_edges):
+        for i_nn, n in enumerate(numbers_of_nodes):
+            for i_ep, p in enumerate(edge_probabilities):
                 for i_rs, remove_strategy in enumerate(remove_strategies):
                     # for every graph size, average degree, and removal 
                     # strategy, get the data of the performance values
                     # over all the trials (10 is the default)
-                    data = getRCSet(graph_type=graph_type,
-                                    number_of_nodes=number_of_nodes,
-                                    number_of_edges=number_of_edges,
-                                    remove_nodes=remove_strategy,
-                                    num_trials=num_trials,
-                                    performance=performance)[0]
+                    data = getRCSet(n=n, p=p, num_trials=num_trials,
+                        graph_type=graph_type, remove_nodes=remove_strategy,
+                        performance=performance)[0]
+
                     # collect data in list
-                    res[i_gt][i_nn][i_ne][i_rs] = data
+                    res[i_gt][i_nn][i_ep][i_rs] = np.copy(data)
+
     return res

@@ -1,113 +1,43 @@
-# This is a script to generate data for the recursion equation.
+###############################################################################
+#
+# This is a script to generate data for the recursion equation used in the
+# finite theory for percolation on small networks.
+#
+# The script has the following command line arguments:
+#     --pmin (-p): Minimum edge probability (default=0.1)
+#     --pmin (-P): Maximum edge probability (default=0.6)
+#     --dp(-dp): Step size for edge probability (default=0.1)
+#     --nmin(-n): Minimum network size (default=1)
+#     --nmax(-N): Maximum network size (default=500)
+#     --dn(-dn): Step size for network size (default=1)
+#     --ffile (-ff):  Path to f file without file extension 
+#        (default='data/fvalues')
+#     --pfile (-pf):  Path to P file without file extension
+#        (default='data/Pvalues')
+#     --overwritevalue (-ov): If True, overwrite existing data values.
+#        (default=False)
+#     --overwritevalue (-ov): f True, do not look for saved data before writing
+#        file. CAREFUL! THIS MAY REMOVE ALL SAVED DATA! (default=False)
+#     --compute-f (-cf): If True, update existing f data. (default=False)
+#     --compute-p (-cp): If True, update existing p data. (default=False)
+#
+# Default settings assume that there is a "data" folder in the same directory
+# as this file.
+#
+###############################################################################
 
 # IMPORT PACKAGES
 import numpy as np
-import scipy
-from scipy.special import comb 
+from scipy.special import comb
 from random import choice
 import sys, argparse # import packages to manage input arguments for scripts
 import os, pickle, csv # import packages for file I/O
 import time # package to help keep track of calculation time
-
-
-# DEFINE FUNCTIONS
-def raw_f(p,i,n):
-    if i == 0:
-        p_connect = 0
-    if i == 1:
-        p_connect = 1
-    else:
-        sum_f = 0
-        for i_n in range(1,i,1):
-            sum_f += f(p,i_n,n)*scipy.special.comb(i-1,i_n-1)*(1-p)**((i_n)*(i-i_n))
-        p_connect = 1-sum_f
-    return p_connect
-
-def calculate_f(p,i,n, fdict={}):
-    
-    if p in fdict:
-        if n in fdict[p]:
-            if i in fdict[p][n]:
-                return fdict[p][n][i]
-            
-    if i == 0:
-        p_connect = 0
-    if i == 1:
-        p_connect = 1
-    else:
-        sum_f = 0
-        for i_n in range(1,i,1):
-            sum_f += calculate_f(p,i_n,n, fdict=fdict)*scipy.special.comb(i-1,i_n-1)*(1-p)**((i_n)*(i-i_n))
-        p_connect = 1-sum_f
-    return p_connect
-  
-    
-def g(p,i,n):
-    return (1-p)**(i*(n-i))
-  
-    
-def raw_P(p,i,n):
-    if i==0 and n==0:
-        P_tot = 1
-    elif i>0 and n==0:
-        P_tot = 0
-    elif i > n or n < 0 or i<=0:
-        P_tot = 0
-    elif i == 1 and n == 1:
-        P_tot = 1
-    elif i == 1 and n != 1:
-        P_tot = (1-p)**scipy.special.comb(n,2)
-    else:
-        sum_P = 0
-        for j in range(0,i+1,1): # shouldn't it be i+1?
-            sum_P += P(p,j,n-i)
-        P_tot = scipy.special.comb(n,i)*f(p,i,n)*g(p,i,n)*sum_P
-    return P_tot
-
-
-def calculate_P(p,i,n, fdict={}, pdict={}):
-    
-    if p in pdict:
-        if n in pdict[p]:
-            if i in pdict[p][n]:
-                return pdict[p][n][i]
-            
-    if i==0 and n==0:
-        P_tot = 1
-    elif i>0 and n==0:
-        P_tot = 0
-    elif i > n or n < 0 or i<=0:
-        P_tot = 0
-    elif i == 1 and n == 1:
-        P_tot = 1
-    elif i == 1 and n != 1:
-        P_tot = (1-p)**scipy.special.comb(n,2)
-    else:
-        sum_P = 0
-        for j in range(0,i+1,1): # shouldn't it be i+1?
-            sum_P += calculate_P(p,j,n-i, fdict=fdict, pdict=pdict)
-        P_tot = scipy.special.comb(n,i)*calculate_f(p,i,n, fdict=fdict)*g(p,i,n)*sum_P
-    return P_tot
-  
-    
-def raw_S(p,n):
-    sum = 0
-    for k in range(1,n+1):
-        sum += P(p,k,n)*k
-    return sum
-
-
-def calculate_S(p,n, fdict={}, pdict={}):
-    sum = 0
-    for k in range(1,n+1):
-        sum += calculate_P(p,k,n, fdict=fdict, pdict=pdict)*k
-    return sum
-
+from libs.finiteTheory import *
 
 if __name__ == "__main__":
     # this code is only executed when the script is run rather than imported
-    
-    
+
     # READ INPUT ARGUMENTS
     
     # create an argument parser
@@ -127,9 +57,9 @@ if __name__ == "__main__":
                         help='Maximum network size')
     parser.add_argument('-dn', '--dn', type=int, default=1, 
                         help='Step size for network size')
-    parser.add_argument('-ff', '--ffile', type=str, default='fvalues', 
+    parser.add_argument('-ff', '--ffile', type=str, default='data/fvalues',
                         help='Path to f file (without file extension)')
-    parser.add_argument('-pf', '--pfile', type=str, default='Pvalues', 
+    parser.add_argument('-pf', '--pfile', type=str, default='data/Pvalues',
                         help='Path to P file (without file extension)')
     parser.add_argument('-ov', '--overwritevalue', type=bool, 
                         default=False, nargs='?', const=True, 
@@ -141,10 +71,10 @@ if __name__ == "__main__":
                               + 'THIS MAY REMOVE ALL SAVED DATA!'))
     parser.add_argument('-cf', '--compute-f', type=bool,
                         default=False, nargs='?', const=True,
-                        help=('If True, update f data.'))
+                        help=('If True, update existing f data.'))
     parser.add_argument('-cp', '--compute-p', type=bool,
-                        default=False, nargs='?', const=True, 
-                        help=('If True, update P data.'))   
+                        default=False, nargs='?', const=True,
+                        help=('If True, update existing P data.'))
     
     # parse arguments
     args = parser.parse_args()

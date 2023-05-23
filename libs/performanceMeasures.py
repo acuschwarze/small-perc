@@ -254,7 +254,7 @@ def relativeSizeOfLCC(G):
     n = G.number_of_nodes()
     # get size of the LCC
     rel_size = sizeOfLCC(G)
-    if n:
+    if n > 0:
         # divide LCC size by number of nodes if G is not empty
         rel_size = rel_size / n
 
@@ -308,10 +308,8 @@ def averageComponentSize(G):
     return acs
 
 
-def averageSmallComponentSize(G, smooth=False):
+def averageSmallComponentSize(G):
     '''Get the average (i.e., mean) component size of a graph `G`.
-    
-    ISSUE #1: p_t and smoothing doesn't seem to make any difference
 
     Parameters
     ----------
@@ -330,10 +328,6 @@ def averageSmallComponentSize(G, smooth=False):
     if n_c == 0:
         return 0
     ascs = n_no_lcc / n_c
-
-    if smooth:
-        k = averageDegree(G)
-        p_t = 1 / k  # percolation threshold #AS: Do we need this?
 
     return ascs
 
