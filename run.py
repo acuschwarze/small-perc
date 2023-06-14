@@ -4,7 +4,7 @@
 from matplotlib import pyplot as plt
 import sys, pickle
 # include the directory with libraries in the pythonpath
-sys.path.insert(0,"libs")
+sys.path.insert(0, "libs")
 
 # import local libraries
 from visualizations import *
@@ -13,7 +13,7 @@ from visualizations import *
 if __name__ == "__main__":
 
     # decide what to do with the figure
-    save = True
+    save = False
     show = False
 
     # import data

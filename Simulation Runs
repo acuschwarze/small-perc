@@ -1,10 +1,11 @@
+import sys, pickle
+sys.path.insert(0, "libs")
 from visualizations import *
 from utils import *
 from robustnessSimulations import *
 from performanceMeasures import *
 from infiniteTheory import *
 from finiteTheory import *
-from Dictionaries import *
 import numpy as np
 import scipy
 import scipy.stats as sst
@@ -14,4 +15,23 @@ from scipy.special import comb
 import matplotlib.pyplot as plt
 
 
-S_attack(.1,20,pvalues,fvalues)
+fvals = pickle.load(open('data/fvalues.p', 'rb'))
+pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+
+# def deg_diff(n, p):
+#     nvals = np.zeros(n)
+#     pvals = np.zeros(n)
+#     for i in range(n+1,0,-1):
+#         nvals[i-1] = i
+#         max = expectedMaxDegree(n, p)
+#         mean = 2*scipy.
+#         pvals[i-1] = diff
+
+
+
+
+fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[0.1],
+    graph_types=['ER'], remove_strategies=['attack'],
+    performance='relative LCC', num_trials=10,
+    smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
+fig.savefig("testfig.png")

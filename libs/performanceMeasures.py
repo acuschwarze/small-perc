@@ -304,7 +304,7 @@ def averageComponentSize(G):
     n_c = nx.number_connected_components(G)
     if n_c == 0:
         return 0
-    acs =  n / n_c
+    acs = n / n_c
     return acs
 
 

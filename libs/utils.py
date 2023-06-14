@@ -14,6 +14,7 @@
 ###############################################################################
 
 import networkx as nx
+import numpy as np
 from scipy.stats import binom as binomialDistribution
 
 def degreeFraction(k, G):
@@ -101,6 +102,7 @@ def expectedMaxDegree(n, p):
             return k
     # otherwise return 0
     return 0
+
     
 
 def edgeProbabilityAfterTargetedAttack(n, p):

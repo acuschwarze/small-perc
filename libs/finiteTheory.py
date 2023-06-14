@@ -338,7 +338,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
         S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict)
         if attack:
             # update p only if nodes are removed by degree
-            current_p = edgeProbabilityAfterTargetedAttack(i, current_p)
+            current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
 
     if reverse:
         S = S[::-1]
@@ -437,4 +437,5 @@ def SPoints(p=.1, n=[20,50,100], attack=False, reverse=False,
             fdict=fdict, pdict=pdict) for nval in n])
 
     return n, sizes
+
 
