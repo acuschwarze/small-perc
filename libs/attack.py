@@ -6,6 +6,21 @@ from random import choice
 from scipy.special import comb
 import matplotlib.pyplot as plt
 
+def probonly(n,m):
+    A = 1 / scipy.special.comb(scipy.special.comb(n, 2), m) * n * scipy.special.comb(n - 1, m)
+    return A
+
+
+def prob_larger(n,m):
+    probsum = 0
+    for i in range(m, 0, -1):
+        if m==1:
+            return 1
+        else:
+            probsum += probonly(n,i)
+    return probsum
+
+
 def probs(n,m):
     probsum = 0
     max = 0
@@ -13,20 +28,28 @@ def probs(n,m):
     y_calc = np.zeros(m+1)
     for i in range(m,0,-1):
         if i == m:
-            prob = 1/scipy.special.comb(scipy.special.comb(n,2),m) * n * scipy.special.comb(n-1,m)
+            if m == 1:
+                prob=1
+
+            else:
+                prob = 1/scipy.special.comb(scipy.special.comb(n,2),m) * n * scipy.special.comb(n-1,m)*\
+                       scipy.special.comb(scipy.special.comb(n,2)-n+1,m-i)/scipy.special.comb(m,i)
             max += prob * m
             probsum += prob
             x_calc[i] = m
             y_calc[i] = max
-            print(str(i) + "," + str(max))
+            print(str(i) + "," + str(prob))
         else:
-            prob = n*scipy.special.comb(n-1,i)/scipy.special.comb(scipy.special.comb(n,2),m)*(1-probsum)
+            prob = n*scipy.special.comb(n-1,i)/scipy.special.comb(scipy.special.comb(n,2),m)*\
+                   scipy.special.comb(scipy.special.comb(n,2)-n+1,m-i)/scipy.special.comb(m,i)*(1-prob_larger(n-1,m-i))
             max += i * prob
             probsum += prob
             x_calc[i] = i
             y_calc[i] = max
-            print(str(i) + ","+ str(max))
+            print(str(i) + ","+ str(prob))
+    print("probsum" + str(probsum))
     return x_calc,y_calc
+
 
 def sim_attack(n,m):
     x_sim = np.zeros(m+1)
@@ -48,6 +71,6 @@ def graph(n,m):
     plt.legend()
     plt.show()
 
-graph(10,5) #all the max values end up less than 0
+graph(10,4) #all the max values end up less than 0
 
-#graph(10,40) gives a lot of 0s for the recursion
+#graph(10,40) #gives a lot of 0s for the recursion
