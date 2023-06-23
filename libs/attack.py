@@ -11,9 +11,9 @@ def probonly(n,m):
     return A
 
 
-def prob_larger(n,m):
+def prob_larger(n,m,k):
     probsum = 0
-    for i in range(m, 0, -1):
+    for i in range(m, k, -1):
         if m==1:
             return 1
         else:
@@ -24,6 +24,7 @@ def prob_larger(n,m):
 def probs(n,m):
     probsum = 0
     max = 0
+    prob_arr = np.zeros(m+1)
     x_calc = np.zeros(m+1)
     y_calc = np.zeros(m+1)
     for i in range(m,0,-1):
@@ -32,21 +33,26 @@ def probs(n,m):
                 prob=1
 
             else:
-                prob = 1/scipy.special.comb(scipy.special.comb(n,2),m) * n * scipy.special.comb(n-1,m)*\
-                       scipy.special.comb(scipy.special.comb(n,2)-n+1,m-i)/scipy.special.comb(m,i)
-            max += prob * m
+                prob = 1/scipy.special.comb(scipy.special.comb(n,2),m) * n * scipy.special.comb(n-1,m)\
+                       *scipy.special.comb((scipy.special.comb(n,2)-n+1),m-i)/scipy.special.comb(m,i)
+            #max += prob * m
             probsum += prob
+            prob_arr[i] = prob
             x_calc[i] = m
             y_calc[i] = max
             print(str(i) + "," + str(prob))
         else:
             prob = n*scipy.special.comb(n-1,i)/scipy.special.comb(scipy.special.comb(n,2),m)*\
-                   scipy.special.comb(scipy.special.comb(n,2)-n+1,m-i)/scipy.special.comb(m,i)*(1-prob_larger(n-1,m-i))
+                   scipy.special.comb(scipy.special.comb(n,2)-n+1,m-i)/scipy.special.comb(m,i)*(1-prob_larger(n-1,m-i,i))
             max += i * prob
             probsum += prob
+            prob_arr[i] = prob
             x_calc[i] = i
-            y_calc[i] = max
+            #y_calc[i] = max
             print(str(i) + ","+ str(prob))
+    for j in range (m+1):
+        max += prob_arr[j]*j
+        y_calc[j] = max
     print("probsum" + str(probsum))
     return x_calc,y_calc
 
@@ -71,6 +77,6 @@ def graph(n,m):
     plt.legend()
     plt.show()
 
-graph(10,4) #all the max values end up less than 0
+graph(10,9) #all the max values end up less than 0
 
 #graph(10,40) #gives a lot of 0s for the recursion
