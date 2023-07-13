@@ -330,10 +330,10 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
     '''
     
     # initialize array (assume that n has only one entry for now)
-    S = np.zeros(n[0])
+    S = np.zeros(n)
 
     current_p = p
-    for i in range(n[0]-1, -1, -1):
+    for i in range(n-1, -1, -1):
         # calculate S for each value <= n
         S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict)
         if attack:
@@ -385,7 +385,7 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}):
     '''
 
     # assume that n has only one entry for now
-    network_sizes = np.arange(1,n[0]+1)
+    network_sizes = np.arange(1,n+1)
     
     if reverse:
         network_sizes = network_sizes[::-1]

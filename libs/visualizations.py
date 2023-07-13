@@ -118,6 +118,7 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
                     # plot simulated data
                     removed_fraction = np.arange(n)/n
                     line_data = np.nanmean(data_array,axis=0)
+
                     ax1.plot(removed_fraction, line_data,
                         'o', color=colors[line_index], 
                         label="n={} , p={}".format(n , p))
@@ -127,9 +128,9 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
                         attack = (remove_strategy=='attack')
 
                         # get data from finite theory
-                        finiteRelS = finiteTheory.relSCurve(p,[n],
+                        finiteRelS = finiteTheory.relSCurve(p,n,
                             attack=attack, fdict=fdict,pdict=pdict)
-
+                        print(finiteRelS)
                         # plot data from finite theory
                         ax1.plot(removed_fraction, finiteRelS,
                             color=colors[line_index],
@@ -147,7 +148,7 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
                     elif performance == "average small component size":
 
                         # get data from infinite theory
-                        infiniteRelS = infiniteTheory.relSmallSCurve(p,[n],
+                        infiniteRelS = infiniteTheory.relSmallSCurve(p,n,
                             attack=attack, smooth_end=smooth_end)
                         
                         # plot data from infinite theory

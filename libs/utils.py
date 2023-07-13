@@ -75,33 +75,54 @@ def expectedNodeNumber(n, p, k):
 
 
 def expectedMaxDegree(n, p):
-    '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
-    with n nodes and edge probability p.
+    if n in [0, 1] or p == 0:
+        return 0
 
-    Parameters
-    ----------
-    n : int
-       Number of nodes.
-    
-    p : float
-       Edge probability in Erdos Renyi graph.
-       
-    Returns
-    -------
-    emd (int)
-       The expected value of the maximum degree.
-    '''
-    
-    # get list of possible degrees and expected number of nodes
-    vals = [[k, expectedNodeNumber(n, p, k)] for k in range(1, n + 1)]
+    if n == 2:
+        return p
+    k_max = 0
+    probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
+    probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
+    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
+    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
 
-    # return largest value of k for which the expected number of nodes is
-    # greater than or equal to 1
-    for k, enn in vals[::-1]:
-        if enn >= 1:
-            return k
-    # otherwise return 0
-    return 0
+    # every node has at least degree zero
+    probs_at_least_one_node[0] = 1
+    # at least one node has degree 1 if the graph is not empty
+    probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
+
+    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+    probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
+    mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
+
+    return mean_k_max
+
+# def expectedMaxDegree(n, p):
+#     '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
+#     with n nodes and edge probability p.
+#
+#     Parameters
+#     ----------
+#     n : int
+#        Number of nodes.
+#
+#     p : float
+#        Edge probability in Erdos Renyi graph.
+#
+#     Returns
+#     -------
+#     emd (int)
+#        The expected value of the maximum degree.
+#     '''
+
+    # probs_k_or_less = np.array([binomialDistribution.cdf(k,n-1,p) for k in range(n)])
+    # probs_at_least_k = np.concatenate([[1],np.array(1-probs_k_or_less[:-1])])
+    # probs_at_least_one_node = 1-(1-probs_at_least_k)**(n-1)
+    # probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+    # probs_kmax = probs_at_least_one_node[:-1]-probs_at_least_one_node[1:]
+    # mean_k_max = np.sum([probs_kmax[k]*k for k in range(n)])
+    # print(n,p,mean_k_max)
+    # return mean_k_max
 
     
 
@@ -127,8 +148,9 @@ def edgeProbabilityAfterTargetedAttack(n, p):
         new_p = 0
 
     else:
-      emd = expectedMaxDegree(n, p)
-      new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+        emd = expectedMaxDegree(n, p)
+        new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+        new_p = max([new_p, 0])
 
     return new_p
 
