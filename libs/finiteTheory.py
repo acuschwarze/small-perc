@@ -21,7 +21,8 @@
 ###############################################################################
 
 import numpy as np
-from scipy.special import comb
+import scipy.special
+from scipy.special import comb, factorial
 from utils import *
 
 def raw_f(p, i, n): 
@@ -228,7 +229,7 @@ def calculate_P(p, i, n, fdict={}, pdict={}):
         sum_P = 0
         for j in range(0, i + 1, 1):  # shouldn't it be i+1?
             sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
-        P_tot = (comb(n, i) * calculate_f(p, i, n, fdict=fdict)
+        P_tot = (scipy.special.comb(n,j)*calculate_f(p, i, n, fdict=fdict)
              * calculate_g(p, i, n) * sum_P)
 
     return P_tot
@@ -287,6 +288,9 @@ def calculate_S(p, n, fdict={}, pdict={}):
     '''
     S = 0
     for k in range(1, n + 1):
+        if calculate_P(p, k, n, fdict=fdict, pdict=pdict) > 1:
+            print("calcS")
+            print(n,p,k, calculate_P(p, k, n, fdict=fdict, pdict=pdict))
         S += calculate_P(p, k, n, fdict=fdict, pdict=pdict) * k
 
     return S
@@ -339,6 +343,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
         if attack:
             # update p only if nodes are removed by degree
             current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
+            print(current_p,i+1, S[i])
 
     if reverse:
         S = S[::-1]
@@ -393,6 +398,8 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}):
     relS = (SCurve(p, n, attack=attack, reverse=reverse,
         fdict=fdict, pdict=pdict) / network_sizes)
 
+    print(n,SCurve(p, n, attack=attack, reverse=reverse,
+        fdict=fdict, pdict=pdict))
     return relS
 
 

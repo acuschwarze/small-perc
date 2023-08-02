@@ -29,9 +29,19 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
 
+#fig, (ax1, ax2) = plt.subplots(1, 2)
+# ax1 = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.1,.2,.5],
+#     graph_types=['ER'], remove_strategies=['attack'],
+#     performance='relative LCC', num_trials=10,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
+# ax2 = plot_graphs(numbers_of_nodes=[10,20,30], edge_probabilities=[.1],
+#     graph_types=['ER'], remove_strategies=['attack'],
+#     performance='relative LCC', num_trials=10,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
 
-fig = plot_graphs(numbers_of_nodes=[50], edge_probabilities=[.1,.2],
-    graph_types=['ER'], remove_strategies=['random'],
+fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.2],
+    graph_types=['ER'], remove_strategies=['attack'],
     performance='relative LCC', num_trials=10,
-    smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
+    smooth_end=False, forbidden_values=[], fdict=fvals, savefig='')
 fig.savefig("testfig.png")
+

@@ -87,9 +87,9 @@ def expectedMaxDegree(n, p):
     probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
 
     # every node has at least degree zero
-    probs_at_least_one_node[0] = 1
+    #probs_at_least_one_node[0] = 1
     # at least one node has degree 1 if the graph is not empty
-    probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
+    #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
 
     probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
     probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
