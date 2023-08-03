@@ -54,7 +54,7 @@ def raw_f(p, i, n):
     else:
         sum_f = 0
         for i_n in range(1, i, 1):
-            sum_f += (f(p, i_n, n) 
+            sum_f += (raw_f(p, i_n, n)
                 * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
         p_connect = 1 - sum_f
 
@@ -173,8 +173,8 @@ def raw_P(p, i, n):
         sum_P = 0
         for j in range(0, i + 1, 1):  # shouldn't it be i+1?
             # AS : Did we ever resolve this issue?
-            sum_P += P(p, j, n - i)
-        P_tot = comb(n, i) * f(p, i, n) * g(p, i, n) * sum_P
+            sum_P += raw_P(p, j, n - i)
+        P_tot = comb(n, i) * raw_f(p, i, n) * calculate_g(p, i, n) * sum_P
     return P_tot
 
 

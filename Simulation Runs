@@ -1,4 +1,7 @@
 import sys, pickle
+
+from libs.utils import *
+
 sys.path.insert(0, "libs")
 from visualizations import *
 from utils import *
@@ -38,10 +41,91 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 #     graph_types=['ER'], remove_strategies=['attack'],
 #     performance='relative LCC', num_trials=10,
 #     smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
+#
+# fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.2],
+#     graph_types=['ER'], remove_strategies=['attack'],
+#     performance='relative LCC', num_trials=10,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, savefig='')
+# fig.savefig("testfig.png")
 
-fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.2],
-    graph_types=['ER'], remove_strategies=['attack'],
-    performance='relative LCC', num_trials=10,
-    smooth_end=False, forbidden_values=[], fdict=fvals, savefig='')
-fig.savefig("testfig.png")
+def bump(n,i,p,para = "f"):
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    if para == "f":
+        for ip in range(len(p)):
+            x_1 = np.zeros(i)
+            y_1 = np.zeros(i)
+            simx = np.zeros(i)
+            simy = np.zeros(i)
+            G = nx.erdos_renyi_graph(n, p[ip])
+            cc = [len(c) for c in sorted(nx.connected_components(G), key=len, reverse=True)]
+            print(cc)
+            for ii in range(i):
+                x_1[ii] = ii
+                y_1[ii] = raw_f(p[ip],ii,n)
+                simx[ii] = ii
+                sizei = 0
+                for sizes in cc:
+                    if sizes == ii:
+                        sizei+=1
+                simy[ii] = sizei/len(cc)
+            ax1.plot(x_1,y_1,label = p[ip])
+            ax1.set_xlabel('i')
+            ax1.set_ylabel("raw f")
+            ax2.plot(simx,simy, label = p[ip])
+            ax2.set_xlabel('i')
+            ax2.set_ylabel("simulated f")
+    if para == "kmax":
+        for ik in range(n):
+            G = nx.erdos_renyi_graph(ik,p)
+            x_1[ik] = ik/n
+            y_1[ik] = expectedMaxDegree(ik, p)
+            simx[ik] = ik
+            simy[ik] = max(len(c) for c in sorted(nx.connected_components(G), key=len, reverse=True))
+        simx = np.flip(simx)
+        simy = np.flip(simy)
+        ax1.plot(x_1, y_1)
+        ax1.set_xlabel('fraction n removed')
+        ax1.set_ylabel("kmax")
+        ax2.plot(simx, simy)
+        ax2.set_xlabel('fraction n removed')
+        ax2.set_ylabel("simulated kmax")
 
+    if para == "P":
+        for ip in range(len(p)):
+            x_1 = np.zeros(i)
+            y_1 = np.zeros(i)
+            simx = np.zeros(i)
+            simy = np.zeros(i)
+            G = nx.erdos_renyi_graph(n, p[ip])
+            cc = [len(c) for c in sorted(nx.connected_components(G), key=len, reverse=True)]
+            print(cc)
+            for ii in range(i):
+                x_1[ii] = ii
+                y_1[ii] = raw_P(p[ip],ii,n)
+                simx[ii] = ii
+                sizei = 0
+                for sizes in cc:
+                    if sizes == ii:
+                        sizei+=1
+                simy[ii] = sizei/len(cc)
+            ax1.plot(x_1,y_1,label = p[ip])
+            ax1.set_xlabel('i')
+            ax1.set_ylabel("raw P")
+            ax2.plot(simx,simy, label = p[ip])
+            ax2.set_xlabel('i')
+            ax2.set_ylabel("simulated f")
+    fig.legend()
+    fig.savefig("bumpfig.png")
+
+bump(20,20,[.1,.3], "P")
+
+def kmaxbump(n,p):
+    fig = plt.figure((8,8))
+    x_1 = np.zeros(n)
+    y_1 = np.zeros(n)
+    simx = np.zeros(i)
+    simy = np.zeros(i)
+    G = nx.erdos_renyi_graph(n, p[ip])
+    for i in range(n):
+        x_1[i] = i
+        y_1[i] = expectedMaxDegree(i, p)
