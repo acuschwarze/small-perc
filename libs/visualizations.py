@@ -18,13 +18,13 @@ import infiniteTheory
 import finiteTheory
 from performanceMeasures import *
 from robustnessSimulations import *
-
+from scipy.signal import argrelextrema
 
 # WORKS
 def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
     graph_types=['ER', 'SF'], remove_strategies=['random', 'attack'],
-    performance='largest_connected_component', num_trials=10,
-    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, savefig=''):
+    performance='largest_connected_component', num_trials=100,
+    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method = "abc", savefig=''):
     '''Calculate edge probability in an Erdos--Renyi network with original size
     `n` and original edge probability `p` after removing the node with the
     highest degree.
@@ -129,13 +129,13 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
 
                         # get data from finite theory
                         finiteRelS = finiteTheory.relSCurve(p,n,
-                            attack=attack, fdict=fdict,pdict=pdict)
+                            attack=attack, fdict=fdict,pdict=pdict,lcc_method="abc")
                         print(finiteRelS)
                         # plot data from finite theory
                         ax1.plot(removed_fraction, finiteRelS,
                             color=colors[line_index],
                             label="finite th.")
-  
+
                         # get data from infinite theory
                         infiniteRelS = infiniteTheory.relSCurve(n, p,
                             attack=attack, smooth_end=smooth_end)
@@ -282,7 +282,7 @@ def plot_graphs2(numbers_of_nodes=[100], edge_probabilities=[0.1], vary_both=Fal
 
                         # get data from finite theory
                         finiteRelS = finiteTheory.relSCurve(p, n,
-                                                            attack=attack, fdict=fdict, pdict=pdict)
+                                            attack=attack, fdict=fdict, pdict=pdict, lcc_method = "abc")
                         print(finiteRelS)
                         # plot data from finite theory
                         ax1.plot(removed_fraction, finiteRelS,

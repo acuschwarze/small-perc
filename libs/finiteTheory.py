@@ -9,6 +9,13 @@
 #     calculate_g (previously "g")
 #     raw_P
 #     calculate_P
+#     calcA
+#     calcB
+#     calcC
+#     abc
+#     c_graph
+#     normalized
+#     normalized_table
 #     raw_S
 #     calculate_S
 #     SCurve (previously "big_S")
@@ -23,9 +30,10 @@
 import numpy as np
 import scipy.special
 from scipy.special import comb, factorial
-from utils import *
+from libs.utils import *
+import matplotlib.pyplot as plt
 
-def raw_f(p, i, n): 
+def raw_f(p, i, n):
     '''Compute f (i.e., the probability that a subgraph with `i` nodes of an 
     Erdos--Renyi random graph with `n` nodes and edge probability `p` is 
     connected.
@@ -49,8 +57,10 @@ def raw_f(p, i, n):
     '''
     if i == 0:
         p_connect = 0
-    if i == 1:
+    elif i == 1:
         p_connect = 1
+    elif i > n:
+        p_connect = 0
     else:
         sum_f = 0
         for i_n in range(1, i, 1):
@@ -95,8 +105,10 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
     # if none is found start computation
     if i == 0:
         f = 0
-    if i == 1:
+    elif i == 1:
         f = 1
+    elif i>n:
+        f = 0
     else:
         sum_f = 0
         for i_n in range(1, i, 1):
@@ -169,23 +181,21 @@ def raw_P(p, i, n):
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
+    elif i == n:
+        P_tot = raw_f(p,n,n)
     else:
         sum_P = 0
-        for j in range(0, i + 1, 1):  # shouldn't it be i+1?
-            # AS : Did we ever resolve this issue?
+        for j in range(0, i + 1, 1):
             sum_P += raw_P(p, j, n - i)
         P_tot = comb(n, i) * raw_f(p, i, n) * calculate_g(p, i, n) * sum_P
+
     return P_tot
 
 
-def calculate_P(p, i, n, fdict={}, pdict={}):
+def calculate_P(p, i, n, fdict={}, pdict={}): # find P with dictionary
     '''Load or compute P (i.e., the probability that an Erdos--Renyi random 
     graph with `n` nodes and edge probability `p` has a largest connected 
     component of size `i`.
-
-    AS: What is P again?
-    
-    ISSUE #1: Did we decide on the range of j values?
 
     Parameters
     ----------
@@ -225,14 +235,140 @@ def calculate_P(p, i, n, fdict={}, pdict={}):
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
+    elif i == n:
+        P_tot = calculate_f(p,n,n)
     else:
         sum_P = 0
-        for j in range(0, i + 1, 1):  # shouldn't it be i+1?
-            sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
-        P_tot = (scipy.special.comb(n,j)*calculate_f(p, i, n, fdict=fdict)
-             * calculate_g(p, i, n) * sum_P)
+        for j in range(1, i + 1, 1):
+            if j==i:
+                sum_P += .5 * calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
+            else:
+                sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
+
+        P_tot = (scipy.special.comb(n,i)*calculate_f(p, i, n, fdict=fdict)
+             * calculate_g(p, i, n) * sum_P) # * factor of ceiling(n/2)??
 
     return P_tot
+
+
+def calcA(p,i,n): # calculate P_tot without j=i
+    P_tot = 0
+    for j in range(i):
+        P_tot+=calculate_P(p,j,n-i)
+    P_tot = scipy.special.comb(n,i)*calculate_f(p,i,n)*calculate_g(p,i,n)*P_tot
+    return P_tot
+
+def calcB(p,i,n): # calculate P_tot for only j=i
+    P_tot = scipy.special.comb(n,i)*calculate_f(p,i,n)*calculate_g(p,i,n)*calculate_P(p,i,n-i)
+    return P_tot
+
+def calcC(p,n): # find the factor C such that sum of calcA + calcB * c over all j<=i = 1
+    A = 0
+    B = 0
+    for i_i in range(1,n+1):
+        A+=calcA(p,i_i,n)
+        B+=calcB(p,i_i,n)
+    if B == 0:
+        c = 0
+    else:
+        c = (1 - A) / B
+    return c
+
+
+def abc(p,i,n): # make an array with P(p,i,n) for i<=n
+    # use calcA, calB, calcC
+  a_table = np.zeros(i+1)
+  b_table = np.zeros(i+1)
+  abc_table = np.zeros(i+1)
+
+  A = 0
+  B = 0
+  for i_i in range(1,n+1):
+    a_table[i_i] = calcA(p,i_i,n)
+    b_table[i_i] = calcB(p,i_i,n)
+    A+=a_table[i_i]
+    B+=b_table[i_i]
+  if B == 0:
+    c = 0
+  else:
+    c = (1-A)/B
+  for j in range(1,n+1):
+    # find P(p,j,n) with the equation: calcA(p,j,n)+calcC(p,j,n)*calcB(p,j,n) = P(p,j,n)
+    abc_table[j] = a_table[j] + c*b_table[j]
+  return abc_table
+
+
+def c_graph(n,p,to_vary): # graph c over n or p for various levels of p or n respectively
+    if to_vary == "n":
+        for i_p in range(len(p)):
+            c_vals = np.zeros(n[0]+1)
+            n_vals = np.linspace(0,n[0],n[0]+1)
+            for i_n in range(n[0]+1):
+                c_vals[i_n] = calcC(p[i_p],i_n)
+            plt.plot(n_vals, c_vals, label="p="+str(p[i_p]))
+            print("plotted")
+        print(n_vals)
+        print(c_vals)
+        plt.xlabel("n")
+        plt.ylabel("c")
+
+    elif to_vary == "p":
+        for i_n in range(len(n)):
+            print(n[i_n])
+            p_vals = np.linspace(0, 1, 81, endpoint=True)
+            c_vals = np.zeros(len(p_vals))
+            for i_p in range(11):
+                c_vals[i_p] = calcC(p_vals[i_p],n[i_n])
+            plt.plot(p_vals, c_vals, label="n="+str(n[i_n]))
+            print("plotted")
+        print(p_vals)
+        print(c_vals)
+        plt.xlabel("p")
+        plt.ylabel("c")
+    "should show"
+    plt.legend()
+    plt.show()
+
+
+def normalized(p,i,n):
+  # calculates P for a certain i and n
+  # normalizes the P values during the calculation rather than just at the end
+
+  p_vals = np.zeros(n+1)
+  for i_i in range(n+1):
+    if i_i == 0 and n == 0:
+      P_tot = 1
+    elif i_i > 0 and n == 0:
+          P_tot = 0
+    elif i_i > n or n < 0 or i_i <= 0:
+          P_tot = 0
+    elif i_i == 1 and n != 1:
+          P_tot = (1 - p) ** comb(n, 2)
+    elif i_i == n:
+      P_tot = calculate_f(p,i_i,n)
+    else:
+      P_tot = 0
+      for j in range(1,i_i+1):
+          if j==i:
+            P_tot+=.5*normalized(p,j,n-i_i)
+          else:
+            P_tot += normalized(p, j, n - i_i)
+      P_tot = scipy.special.comb(n,i_i)*calculate_f(p,i_i,n)*calculate_g(p,i_i,n)*P_tot
+    p_vals[i_i] = P_tot
+  c = np.sum(p_vals)
+  if i<=n:
+    return p_vals[i]/c
+  else:
+    return 0
+
+def normalized_table(p,i,n):
+    # creates table of P probabilities that are normalized during the calculations
+
+  p_table = np.zeros(shape=(n+1,i+1))
+  for i_n in range(n+1):
+    for i_i in range(i+1):
+      p_table[i_n,i_i] = normalized(p,i_i,i_n)
+  return p_table
 
 
 def raw_S(p, n):
@@ -256,13 +392,13 @@ def raw_S(p, n):
     '''
     S = 0
     for k in range(1, n + 1):
-        S += P(p, k, n) * k
+        S += raw_P(p, k, n) * k
 
     return S
 
 
-def calculate_S(p, n, fdict={}, pdict={}):
-    '''Load or compute the expected size of the largest connected component of 
+def calculate_S(p, n, fdict={}, pdict={},lcc_method = "abc"):
+    '''Load or compute the expected size of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
     equations for percolation in finite networks.
 
@@ -276,7 +412,7 @@ def calculate_S(p, n, fdict={}, pdict={}):
 
     fdict (default={})
        Dictionary of precomputed values of f.
-       
+
     pdict (default={})
        Dictionary of precomputed values of P.
 
@@ -286,16 +422,28 @@ def calculate_S(p, n, fdict={}, pdict={}):
        Expected size of the largest connected component of an Erdos--Renyi
        random graph with `n` nodes and edge probability `p`.
     '''
-    S = 0
-    for k in range(1, n + 1):
-        if calculate_P(p, k, n, fdict=fdict, pdict=pdict) > 1:
-            print("calcS")
-            print(n,p,k, calculate_P(p, k, n, fdict=fdict, pdict=pdict))
-        S += calculate_P(p, k, n, fdict=fdict, pdict=pdict) * k
+    if lcc_method == "abc":
+        S = 0
+        p_table = abc(p, n, n)
+        for k in range(1, n + 1):
+            S += p_table[k] * k
+        return S
 
+    elif lcc_method == ".5 factor":
+        S = 0
+        for k in range(1, n + 1):
+            if calculate_P(p, k, n, fdict=fdict, pdict=pdict) > 1:
+            S += calculate_P(p, k, n, fdict=fdict, pdict=pdict) * k
+
+    elif lcc_method == "normalized during":
+        S = 0
+        p_table = normalized_table(p, n, n)
+        for k in range(1, n + 1):
+            S += p_table[n, k] * k
+        return S
     return S
 
-def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
+def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method="abc"):
     '''Sequence of the expected sizes of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
     removing nodes sequentially, either uniformly at random or (adaptively) 
@@ -339,7 +487,9 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
     current_p = p
     for i in range(n-1, -1, -1):
         # calculate S for each value <= n
-        S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict)
+        S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict, lcc_method="abc")
+        #S[i] = raw_S(current_p,i+1)
+
         if attack:
             # update p only if nodes are removed by degree
             current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
@@ -351,7 +501,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}):
     return S
 
 
-def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}):
+def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method = "abc"):
     '''Sequence of the expected relative sizes of the largest connected 
     component of an Erdos--Renyi random graph with `n` nodes and edge 
     probability `p` when removing nodes sequentially, either uniformly at
@@ -396,10 +546,10 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}):
         network_sizes = network_sizes[::-1]
 
     relS = (SCurve(p, n, attack=attack, reverse=reverse,
-        fdict=fdict, pdict=pdict) / network_sizes)
+        fdict=fdict, pdict=pdict, lcc_method = "abc") / network_sizes)
 
     print(n,SCurve(p, n, attack=attack, reverse=reverse,
-        fdict=fdict, pdict=pdict))
+        fdict=fdict, pdict=pdict, lcc_method = "abc"))
     return relS
 
 
