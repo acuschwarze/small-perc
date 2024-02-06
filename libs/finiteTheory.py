@@ -186,7 +186,10 @@ def raw_P(p, i, n):
     else:
         sum_P = 0
         for j in range(0, i + 1, 1):
-            sum_P += raw_P(p, j, n - i)
+            if j==i:
+                sum_P += .5*raw_P(p, j, n - i)
+            else:
+                sum_P += raw_P(p, j, n - i)
         P_tot = comb(n, i) * raw_f(p, i, n) * calculate_g(p, i, n) * sum_P
 
     return P_tot
@@ -239,6 +242,14 @@ def calculate_P(p, i, n, fdict={}, pdict={}): # find P with dictionary
         P_tot = calculate_f(p,n,n)
     else:
         sum_P = 0
+
+        # 1-sum (P(p,j,n)) for j=i+1 to n
+        # for j in range(i+1, n+1, 1):
+        #     sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
+        # P_tot = (scipy.special.comb(n, i) * calculate_f(p, i, n, fdict=fdict)
+        #          * calculate_g(p, i, n) * (1 - sum_P))  # * factor of ceiling(n/2)??
+        #
+        # normal way with j = 1 to i
         for j in range(1, i + 1, 1):
             if j==i:
                 sum_P += .5 * calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
@@ -336,6 +347,7 @@ def normalized(p,i,n):
 
   p_vals = np.zeros(n+1)
   for i_i in range(n+1):
+    print(i_i)
     if i_i == 0 and n == 0:
       P_tot = 1
     elif i_i > 0 and n == 0:
@@ -432,8 +444,9 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "abc"):
     elif lcc_method == ".5 factor":
         S = 0
         for k in range(1, n + 1):
-            if calculate_P(p, k, n, fdict=fdict, pdict=pdict) > 1:
-            S += calculate_P(p, k, n, fdict=fdict, pdict=pdict) * k
+            S += k*calculate_P(p,k,n)
+            #S += k*raw_P(p,k,n)
+        return S
 
     elif lcc_method == "normalized during":
         S = 0
@@ -441,9 +454,9 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "abc"):
         for k in range(1, n + 1):
             S += p_table[n, k] * k
         return S
-    return S
 
-def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method="abc"):
+
+def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="abc"):
     '''Sequence of the expected sizes of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
     removing nodes sequentially, either uniformly at random or (adaptively) 
@@ -487,7 +500,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method="ab
     current_p = p
     for i in range(n-1, -1, -1):
         # calculate S for each value <= n
-        S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict, lcc_method="abc")
+        S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict, lcc_method=lcc_method_Scurve)
         #S[i] = raw_S(current_p,i+1)
 
         if attack:
@@ -501,7 +514,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method="ab
     return S
 
 
-def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method = "abc"):
+def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_relS = "abc"):
     '''Sequence of the expected relative sizes of the largest connected 
     component of an Erdos--Renyi random graph with `n` nodes and edge 
     probability `p` when removing nodes sequentially, either uniformly at
@@ -546,10 +559,10 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method =
         network_sizes = network_sizes[::-1]
 
     relS = (SCurve(p, n, attack=attack, reverse=reverse,
-        fdict=fdict, pdict=pdict, lcc_method = "abc") / network_sizes)
+        fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS) / network_sizes)
 
     print(n,SCurve(p, n, attack=attack, reverse=reverse,
-        fdict=fdict, pdict=pdict, lcc_method = "abc"))
+        fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS))
     return relS
 
 

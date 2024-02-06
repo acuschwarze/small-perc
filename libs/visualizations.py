@@ -24,7 +24,7 @@ from scipy.signal import argrelextrema
 def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
     graph_types=['ER', 'SF'], remove_strategies=['random', 'attack'],
     performance='largest_connected_component', num_trials=100,
-    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method = "abc", savefig=''):
+    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method_main = "abc", savefig=''):
     '''Calculate edge probability in an Erdos--Renyi network with original size
     `n` and original edge probability `p` after removing the node with the
     highest degree.
@@ -129,7 +129,7 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
 
                         # get data from finite theory
                         finiteRelS = finiteTheory.relSCurve(p,n,
-                            attack=attack, fdict=fdict,pdict=pdict,lcc_method="abc")
+                            attack=attack, fdict=fdict,pdict=pdict,lcc_method_relS=lcc_method_main)
                         print(finiteRelS)
                         # plot data from finite theory
                         ax1.plot(removed_fraction, finiteRelS,

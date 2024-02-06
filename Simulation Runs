@@ -46,10 +46,10 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 #     performance='relative LCC', num_trials=10,
 #     smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
 #
-fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.05],
+fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.1],
     graph_types=['ER'], remove_strategies=['random'],
     performance='relative LCC', num_trials=100,
-    smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method = "abc", savefig='')
+    smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "abc", savefig='')
 fig.savefig("testfig.png")
 
 #print(calcA(.05,1,2))
@@ -69,7 +69,7 @@ fig.savefig("testfig.png")
 
 #calcC(.05,3)
 
-#c_graph([20,15,25],[.5,.8, 1],to_vary="n")
+#c_graph([20,15,25],[.05,.08, .1],to_vary="n")
 #c_graph([21,15,18],[.05,.08,.1],to_vary="p")
 
 def bump(n,i,p,para = "f"):
