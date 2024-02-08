@@ -383,6 +383,41 @@ def normalized_table(p,i,n):
   return p_table
 
 
+def alice_helper(p,i,n,k,fdict={},pdict={}):
+    # (n - k*i choose i) * f * g(p,i,n-k*i)
+    return scipy.special.comb(n-k*i,i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, n-k*i)
+
+def alice(p,i,n,fdict={},pdict={}):
+    if i == 0 and n == 0:
+        P_tot = 1
+    elif i > 0 and n == 0:
+        P_tot = 0
+    elif i > n or n < 0 or i <= 0:
+        P_tot = 0
+    elif i == 1 and n == 1:
+        P_tot = 1
+    elif i == 1 and n != 1:
+        P_tot = (1 - p) ** comb(n, 2)
+    elif i == n:
+        P_tot = calculate_f(p,n,n)
+    else:
+        P_tot = 0
+        for k in range(1,n//i + 1): # each exact number of lcc's to calculate P for
+
+            # find (n choose i)* f * g *(n-i choose i) * f * g etc...
+            product = 1
+            for k_2 in range(1,k+1):
+                product *= alice_helper(p,i,n,k_2,fdict=fdict,pdict=pdict)
+
+            # find P(lcc in other n-k*i nodes < i)
+            sum_less = 0
+            for j in range(1, i, 1):
+                sum_less += alice(p, j, n - k * i, fdict=fdict, pdict=pdict)
+
+            P_tot += 1/k * product * sum_less
+    return P_tot
+
+
 def raw_S(p, n):
     '''Compute the expected size of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
@@ -446,6 +481,12 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "abc"):
         for k in range(1, n + 1):
             S += k*calculate_P(p,k,n)
             #S += k*raw_P(p,k,n)
+        return S
+
+    elif lcc_method == "alice":
+        S=0
+        for m in range(1,n+1):
+            S+=m*alice(p,m,n,fdict=pdict,pdict=pdict)
         return S
 
     elif lcc_method == "normalized during":
