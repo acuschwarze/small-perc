@@ -385,7 +385,7 @@ def normalized_table(p,i,n):
 
 def alice_helper(p,i,n,k,fdict={},pdict={}):
     # (n - k*i choose i) * f * g(p,i,n-k*i)
-    return scipy.special.comb(n-k*i,i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, n-k*i)
+    return scipy.special.comb((n-(k-1)*i),i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, (n-(k-1)*i))
 
 def alice(p,i,n,fdict={},pdict={}):
     if i == 0 and n == 0:
@@ -412,7 +412,7 @@ def alice(p,i,n,fdict={},pdict={}):
             # find P(lcc in other n-k*i nodes < i)
             sum_less = 0
             for j in range(1, i, 1):
-                sum_less += alice(p, j, n - k * i, fdict=fdict, pdict=pdict)
+                sum_less += alice(p, j, n-k*i, fdict=fdict, pdict=pdict)
 
             P_tot += 1/k * product * sum_less
     return P_tot
