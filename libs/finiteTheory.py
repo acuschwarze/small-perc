@@ -32,6 +32,7 @@ import scipy.special
 from scipy.special import comb, factorial
 from libs.utils import *
 import matplotlib.pyplot as plt
+import math
 
 def raw_f(p, i, n):
     '''Compute f (i.e., the probability that a subgraph with `i` nodes of an 
@@ -55,12 +56,12 @@ def raw_f(p, i, n):
        The probability that a subgraph with `i` nodes of an Erdos--Renyi
        random graph with `n` nodes and edge probability `p` is connected.
     '''
-    if i == 0:
-        p_connect = 0
-    elif i == 1:
+    # if i == 0:
+    #     p_connect = 0
+    if i == 1:
         p_connect = 1
-    elif i > n:
-        p_connect = 0
+    # elif i > n:
+    #     p_connect = 0
     else:
         sum_f = 0
         for i_n in range(1, i, 1):
@@ -103,18 +104,18 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
                 return fdict[p][n][i]
 
     # if none is found start computation
-    if i == 0:
-        f = 0
-    elif i == 1:
-        f = 1
-    elif i>n:
-        f = 0
-    else:
-        sum_f = 0
-        for i_n in range(1, i, 1):
-            sum_f += (calculate_f(p, i_n, n, fdict=fdict) 
-                * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
-        f = 1 - sum_f
+    # if i == 0:
+    #     f = 0
+    # if i == 1:
+    #     f = 1
+    # # elif i>n:
+    # #     f = 0
+    # else:
+    sum_f = 0
+    for i_n in range(1, i, 1):
+        sum_f += (calculate_f(p, i_n, n, fdict=fdict)
+            * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
+    f = 1 - sum_f
 
     return f
 
@@ -171,18 +172,18 @@ def raw_P(p, i, n):
        The probability that an Erdos--Renyi random graph with `n` nodes and 
        edge probability `p` has a largest connected component of size `i`.
     '''
-    if i == 0 and n == 0:
-        P_tot = 1
-    elif i > 0 and n == 0:
-        P_tot = 0
-    elif i > n or n < 0 or i <= 0:
-        P_tot = 0
-    elif i == 1 and n == 1:
+    # if i == 0 and n == 0:
+    #     P_tot = 1
+    # if i > 0 and n == 0:
+    #     P_tot = 0
+    # if i > n or n < 0 or i <= 0:
+    #     P_tot = 0
+    if i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    elif i == n:
-        P_tot = raw_f(p,n,n)
+    # elif i == n:
+    #     P_tot = raw_f(p,n,n)
     else:
         sum_P = 0
         for j in range(0, i + 1, 1):
@@ -228,18 +229,18 @@ def calculate_P(p, i, n, fdict={}, pdict={}): # find P with dictionary
             if i in pdict[p][n]:
                 return pdict[p][n][i]
 
-    if i == 0 and n == 0:
-        P_tot = 1
-    elif i > 0 and n == 0:
-        P_tot = 0
-    elif i > n or n < 0 or i <= 0:
-        P_tot = 0
-    elif i == 1 and n == 1:
+    # if i == 0 and n == 0:
+    #     P_tot = 1
+    # if i > 0 and n == 0:
+    #     P_tot = 0
+    # if i > n or n < 0 or i <= 0:
+    #     P_tot = 0
+    if i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    elif i == n:
-        P_tot = calculate_f(p,n,n)
+    # elif i == n:
+    #     P_tot = calculate_f(p,n,n)
     else:
         sum_P = 0
 
@@ -348,16 +349,16 @@ def normalized(p,i,n):
   p_vals = np.zeros(n+1)
   for i_i in range(n+1):
     print(i_i)
-    if i_i == 0 and n == 0:
-      P_tot = 1
-    elif i_i > 0 and n == 0:
-          P_tot = 0
-    elif i_i > n or n < 0 or i_i <= 0:
-          P_tot = 0
-    elif i_i == 1 and n != 1:
+    # if i_i == 0 and n == 0:
+    #   P_tot = 1
+    # if i_i > 0 and n == 0:
+    #       P_tot = 0
+    # if i_i > n or n < 0 or i_i <= 0:
+    #       P_tot = 0
+    if i_i == 1 and n != 1:
           P_tot = (1 - p) ** comb(n, 2)
-    elif i_i == n:
-      P_tot = calculate_f(p,i_i,n)
+    # elif i_i == n:
+    #   P_tot = calculate_f(p,i_i,n)
     else:
       P_tot = 0
       for j in range(1,i_i+1):
@@ -388,18 +389,18 @@ def alice_helper(p,i,n,k,fdict={},pdict={}):
     return scipy.special.comb((n-(k-1)*i),i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, (n-(k-1)*i))
 
 def alice(p,i,n,fdict={},pdict={}):
-    if i == 0 and n == 0:
-        P_tot = 1
-    elif i > 0 and n == 0:
-        P_tot = 0
-    elif i > n or n < 0 or i <= 0:
-        P_tot = 0
-    elif i == 1 and n == 1:
+    # if i == 0 and n == 0:
+    #     P_tot = 1
+    # if i > 0 and n == 0:
+    #     P_tot = 0
+    # if i > n or n < 0 or i <= 0:
+    #     P_tot = 0
+    if i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    elif i == n:
-        P_tot = calculate_f(p,n,n)
+    # elif i == n:
+    #     P_tot = calculate_f(p,n,n)
     else:
         P_tot = 0
         for k in range(1,n//i + 1): # each exact number of lcc's to calculate P for
@@ -414,7 +415,8 @@ def alice(p,i,n,fdict={},pdict={}):
             for j in range(1, i, 1):
                 sum_less += alice(p, j, n-k*i, fdict=fdict, pdict=pdict)
 
-            P_tot += 1/k * product * sum_less
+            P_tot += 1/math.factorial(k) * product * sum_less
+            #scipy.special.comb(scipy.special.comb(n, i), k)
     return P_tot
 
 
