@@ -32,34 +32,6 @@ import scipy.special
 from scipy.special import comb, factorial
 from libs.utils import *
 import matplotlib.pyplot as plt
-import math, os
-#import cppimport.import_hook
-#import recursion
-
-#from glob import glob
-#from setuptools import setup
-#from pybind11.setup_helpers import Pybind11Extension
-
-import subprocess
-
-def execute_executable(executable_path):
-    # print('EE path', executable_path)
-    try:
-        # Run the executable and capture its output
-        result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
-        
-        # Extract the output
-        output = result.stdout.strip()
-        # rint("EE Output", output)
-        return output
-    except subprocess.CalledProcessError as e:
-        # Handle if the executable returns a non-zero exit code
-        print("Error: Executable returned non-zero exit code.")
-        return None
-    except FileNotFoundError:
-        # Handle if the executable file is not found
-        print("Error: Executable file not found.")
-        return None
 
 def raw_f(p, i, n):
     '''Compute f (i.e., the probability that a subgraph with `i` nodes of an 
@@ -83,12 +55,12 @@ def raw_f(p, i, n):
        The probability that a subgraph with `i` nodes of an Erdos--Renyi
        random graph with `n` nodes and edge probability `p` is connected.
     '''
-    # if i == 0:
-    #     p_connect = 0
-    if i == 1:
+    if i == 0:
+        p_connect = 0
+    elif i == 1:
         p_connect = 1
-    # elif i > n:
-    #     p_connect = 0
+    elif i > n:
+        p_connect = 0
     else:
         sum_f = 0
         for i_n in range(1, i, 1):
@@ -131,18 +103,18 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
                 return fdict[p][n][i]
 
     # if none is found start computation
-    # if i == 0:
-    #     f = 0
-    # if i == 1:
-    #     f = 1
-    # # elif i>n:
-    # #     f = 0
-    # else:
-    sum_f = 0
-    for i_n in range(1, i, 1):
-        sum_f += (calculate_f(p, i_n, n, fdict=fdict)
-            * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
-    f = 1 - sum_f
+    if i == 0:
+        f = 0
+    elif i == 1:
+        f = 1
+    elif i>n:
+        f = 0
+    else:
+        sum_f = 0
+        for i_n in range(1, i, 1):
+            sum_f += (calculate_f(p, i_n, n, fdict=fdict) 
+                * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
+        f = 1 - sum_f
 
     return f
 
@@ -199,18 +171,18 @@ def raw_P(p, i, n):
        The probability that an Erdos--Renyi random graph with `n` nodes and 
        edge probability `p` has a largest connected component of size `i`.
     '''
-    # if i == 0 and n == 0:
-    #     P_tot = 1
-    # if i > 0 and n == 0:
-    #     P_tot = 0
-    # if i > n or n < 0 or i <= 0:
-    #     P_tot = 0
-    if i == 1 and n == 1:
+    if i == 0 and n == 0:
+        P_tot = 1
+    elif i > 0 and n == 0:
+        P_tot = 0
+    elif i > n or n < 0 or i <= 0:
+        P_tot = 0
+    elif i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    # elif i == n:
-    #     P_tot = raw_f(p,n,n)
+    elif i == n:
+        P_tot = raw_f(p,n,n)
     else:
         sum_P = 0
         for j in range(0, i + 1, 1):
@@ -256,18 +228,18 @@ def calculate_P(p, i, n, fdict={}, pdict={}): # find P with dictionary
             if i in pdict[p][n]:
                 return pdict[p][n][i]
 
-    # if i == 0 and n == 0:
-    #     P_tot = 1
-    # if i > 0 and n == 0:
-    #     P_tot = 0
-    # if i > n or n < 0 or i <= 0:
-    #     P_tot = 0
-    if i == 1 and n == 1:
+    if i == 0 and n == 0:
+        P_tot = 1
+    elif i > 0 and n == 0:
+        P_tot = 0
+    elif i > n or n < 0 or i <= 0:
+        P_tot = 0
+    elif i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    # elif i == n:
-    #     P_tot = calculate_f(p,n,n)
+    elif i == n:
+        P_tot = calculate_f(p,n,n)
     else:
         sum_P = 0
 
@@ -376,16 +348,16 @@ def normalized(p,i,n):
   p_vals = np.zeros(n+1)
   for i_i in range(n+1):
     print(i_i)
-    # if i_i == 0 and n == 0:
-    #   P_tot = 1
-    # if i_i > 0 and n == 0:
-    #       P_tot = 0
-    # if i_i > n or n < 0 or i_i <= 0:
-    #       P_tot = 0
-    if i_i == 1 and n != 1:
+    if i_i == 0 and n == 0:
+      P_tot = 1
+    elif i_i > 0 and n == 0:
+          P_tot = 0
+    elif i_i > n or n < 0 or i_i <= 0:
+          P_tot = 0
+    elif i_i == 1 and n != 1:
           P_tot = (1 - p) ** comb(n, 2)
-    # elif i_i == n:
-    #   P_tot = calculate_f(p,i_i,n)
+    elif i_i == n:
+      P_tot = calculate_f(p,i_i,n)
     else:
       P_tot = 0
       for j in range(1,i_i+1):
@@ -409,42 +381,6 @@ def normalized_table(p,i,n):
     for i_i in range(i+1):
       p_table[i_n,i_i] = normalized(p,i_i,i_n)
   return p_table
-
-
-def alice_helper(p,i,n,k,fdict={},pdict={}):
-    # (n - k*i choose i) * f * g(p,i,n-k*i)
-    return scipy.special.comb((n-(k-1)*i),i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, (n-(k-1)*i))
-
-def alice(p,i,n,fdict={},pdict={}):
-    # if i == 0 and n == 0:
-    #     P_tot = 1
-    # if i > 0 and n == 0:
-    #     P_tot = 0
-    # if i > n or n < 0 or i <= 0:
-    #     P_tot = 0
-    if i == 1 and n == 1:
-        P_tot = 1
-    elif i == 1 and n != 1:
-        P_tot = (1 - p) ** comb(n, 2)
-    # elif i == n:
-    #     P_tot = calculate_f(p,n,n)
-    else:
-        P_tot = 0
-        for k in range(1,n//i + 1): # each exact number of lcc's to calculate P for
-
-            # find (n choose i)* f * g *(n-i choose i) * f * g etc...
-            product = 1
-            for k_2 in range(1,k+1):
-                product *= alice_helper(p,i,n,k_2,fdict=fdict,pdict=pdict)
-
-            # find P(lcc in other n-k*i nodes < i)
-            sum_less = 0
-            for j in range(1, i, 1):
-                sum_less += alice(p, j, n-k*i, fdict=fdict, pdict=pdict)
-
-            P_tot += 1/math.factorial(k) * product * sum_less
-            #scipy.special.comb(scipy.special.comb(n, i), k)
-    return P_tot
 
 
 def raw_S(p, n):
@@ -471,21 +407,6 @@ def raw_S(p, n):
         S += raw_P(p, k, n) * k
 
     return S
-
-def calculate_P_mult(p, i, n):
-
-    # Path to the executable
-    # pwd = os. getcwd()
-    executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
-
-    # Execute the executable and capture its output
-    # print(os. getcwd())
-    output = execute_executable([executable_path, str(p), str(i), str(n)])
-    # print("EEO output", output)
-    output = float(output)
-
-    # return
-    return output
 
 
 def calculate_S(p, n, fdict={}, pdict={},lcc_method = "abc"):
@@ -525,18 +446,6 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "abc"):
         for k in range(1, n + 1):
             S += k*calculate_P(p,k,n)
             #S += k*raw_P(p,k,n)
-        return S
-
-    elif lcc_method == "alice":
-        S=0
-        for m in range(1,n+1):
-            S+=m*alice(p,m,n,fdict=pdict,pdict=pdict)
-        return S
-
-    elif lcc_method == "pmult":
-        S=0
-        for m in range(1,n+1):
-            S+=m*calculate_P_mult(p,m,n)
         return S
 
     elif lcc_method == "normalized during":

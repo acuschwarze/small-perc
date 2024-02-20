@@ -75,11 +75,28 @@ def expectedNodeNumber(n, p, k):
 
 
 def expectedMaxDegree(n, p):
+    '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
+    with n nodes and edge probability p.
+
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
+
+    p : float
+       Edge probability in Erdos Renyi graph.
+
+    Returns
+    -------
+    mean_k_max (float)
+       The expected value of the maximum degree.
+    '''
     if n in [0, 1] or p == 0:
         return 0
 
     if n == 2:
         return p
+        
     k_max = 0
     probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])

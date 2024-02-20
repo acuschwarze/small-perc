@@ -63,9 +63,6 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
        
     pdict (default={})
        Dictionary of precomputed values of P.
-
-    lcc_method_main (default='abc')
-       # TODO: Add description.
        
     savefig : str (default='')
        If savefig is a non-empty string, save of copy of the figure to that
