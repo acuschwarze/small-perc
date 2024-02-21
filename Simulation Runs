@@ -46,62 +46,62 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 #     performance='relative LCC', num_trials=10,
 #     smooth_end=False, forbidden_values=[], fdict=fvals, pdict=pvals, savefig='')
 #
-# fig = plot_graphs(numbers_of_nodes=[10,12,14,16,18,20], edge_probabilities=[.05],
+# fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.05,.1,.15,.2],
 #     graph_types=['ER'], remove_strategies=['attack'],
 #     performance='relative LCC', num_trials=100,
 #     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "alice", savefig='')
 # fig.savefig("testfig.png")
 
-anenome_adj = np.zeros((11,11))
-anenome_adj[0,6] = 1
-anenome_adj[0,7] = 1
-anenome_adj[1,6] = 1
-anenome_adj[2,6] = 1
-anenome_adj[2,8] = 1
-anenome_adj[3,8] = 1
-anenome_adj[3,9] = 1
-anenome_adj[4,6] = 1
-anenome_adj[5,6] = 1
-anenome_adj[5,10] = 1
-anenome_G_0 = nx.from_numpy_array(anenome_adj)
-anenome_G = anenome_G_0.copy()
-# nx.draw(anenome_G)
-# plt.show()
-p = 10/55
-
-fig = plot_graphs(numbers_of_nodes=[11], edge_probabilities=[10/55],
-    graph_types=['ER'], remove_strategies=['random'],
-    performance='relative LCC', num_trials=100,
-    smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "alice", savefig='')
-
-x_array = np.linspace(0,1,12,endpoint=True)
-averaged_data = np.zeros(12)
-for j in range(100):
-    anenome_G = anenome_G_0.copy()
-    print(j)
-    data_array = np.zeros((2, 12), dtype=float)
-    data_array[1,0]=len(max(nx.connected_components(anenome_G), key=len))/11
-    # print("averaged data", averaged_data)
-    # print("data array", data_array)
-    for i in range(11):
-        # find a node to remove
-        if anenome_G.size() != 0:
-            v = choice(list(anenome_G.nodes()))
-            anenome_G.remove_node(v)
-            #v = sorted(anenome_G.degree, key=lambda x: x[1], reverse=True)[0][0]
-        # else:
-        #     print('Error: I dont know that mode of removing nodes')
-        #     v = None  # will this error?
-
-        #anenome_G.remove_node(v)
-
-        data_array[1, i+1] = len(max(nx.connected_components(anenome_G), key=len))/(11-i)
-    averaged_data+=data_array[1,:]
-    print("averaged data", averaged_data)
-    print("data array", data_array)
-averaged_data /= 100
-plt.plot(x_array,averaged_data,label="real")
-plt.legend()
+# anenome_adj = np.zeros((11,11))
+# anenome_adj[0,6] = 1
+# anenome_adj[0,7] = 1
+# anenome_adj[1,6] = 1
+# anenome_adj[2,6] = 1
+# anenome_adj[2,8] = 1
+# anenome_adj[3,8] = 1
+# anenome_adj[3,9] = 1
+# anenome_adj[4,6] = 1
+# anenome_adj[5,6] = 1
+# anenome_adj[5,10] = 1
+# anenome_G_0 = nx.from_numpy_array(anenome_adj)
+# anenome_G = anenome_G_0.copy()
+# # nx.draw(anenome_G)
+# # plt.show()
+# p = 10/55
+#
+# fig = plot_graphs(numbers_of_nodes=[11], edge_probabilities=[10/55],
+#     graph_types=['ER'], remove_strategies=['random'],
+#     performance='relative LCC', num_trials=100,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "alice", savefig='')
+#
+# x_array = np.linspace(0,1,12,endpoint=True)
+# averaged_data = np.zeros(12)
+# for j in range(100):
+#     anenome_G = anenome_G_0.copy()
+#     print(j)
+#     data_array = np.zeros((2, 12), dtype=float)
+#     data_array[1,0]=len(max(nx.connected_components(anenome_G), key=len))/11
+#     # print("averaged data", averaged_data)
+#     # print("data array", data_array)
+#     for i in range(11):
+#         # find a node to remove
+#         if anenome_G.size() != 0:
+#             v = choice(list(anenome_G.nodes()))
+#             anenome_G.remove_node(v)
+#             #v = sorted(anenome_G.degree, key=lambda x: x[1], reverse=True)[0][0]
+#         # else:
+#         #     print('Error: I dont know that mode of removing nodes')
+#         #     v = None  # will this error?
+#
+#         #anenome_G.remove_node(v)
+#
+#         data_array[1, i+1] = len(max(nx.connected_components(anenome_G), key=len))/(11-i)
+#     averaged_data+=data_array[1,:]
+#     print("averaged data", averaged_data)
+#     print("data array", data_array)
+# averaged_data /= 100
+# plt.plot(x_array,averaged_data,label="real")
+# plt.legend()
 
 # for i in range(11):
 #     # find a node to remove
@@ -127,7 +127,101 @@ plt.legend()
 #
 # return data_array
 
+# fig.savefig("testfig.png")
+
+
+file = open("taro.txt", "r")
+content=file.readlines()
+node_list=[]
+edge_list=np.empty(len(content),dtype=object)
+for i in range(len(content)):
+    edge = content[i].strip()
+    edge = edge.split(" ")
+    edge_list[i] = np.zeros(2)
+    edge_list[i][0] = int(edge[0])
+    edge_list[i][1] = int(edge[1])
+    for j in range(2):
+        node_list.append(int(edge[j]))
+n = max(node_list)+1
+adj=np.zeros((n,n))
+
+for k in range(len(edge_list)):
+    adj[int(edge_list[k][0]),int(edge_list[k][1])] = 1
+    adj[int(edge_list[k][1]),int(edge_list[k][0])] = 1
+
+G_0 = nx.from_numpy_array(adj)
+G = G_0.copy()
+#nx.draw(G)
+#plt.show()
+
+p = len(edge_list)/scipy.special.comb(n,2)
+
+fig = plot_graphs(numbers_of_nodes=[n], edge_probabilities=[p],
+    graph_types=['ER'], remove_strategies=['random'],
+    performance='relative LCC', num_trials=100,
+    smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "alice", savefig='')
 fig.savefig("testfig.png")
+
+x_array = np.arange(0,n+1)/n
+averaged_data = np.zeros(n+1)
+for j_2 in range(100):
+    G = G_0.copy()
+    #print(list(G.nodes()), "nodes")
+    data_array = np.zeros(n+1, dtype=float)
+    # print("averaged data", averaged_data)
+    # print("data array", data_array)
+    for i_2 in range(n):
+        data_array[i_2] = len(max(nx.connected_components(G), key=len)) / (n-i_2)
+        # find a node to remove
+        if G.size() != 0:
+            v = choice(list(G.nodes()))
+            #print(v)
+            G.remove_node(v)
+
+    averaged_data+=data_array
+    # print("averaged data", averaged_data)
+    # print("data array", data_array)
+print(x_array,"xarray")
+averaged_data /= 100
+plt.plot(x_array,averaged_data,label="real")
+plt.legend()
+fig.savefig("testfig.png")
+
+file.close()
+## the n+1 version
+# x_array = np.linspace(0,1,n+1,endpoint=True)
+# averaged_data = np.zeros(n+1)
+# for j_2 in range(100):
+#     G = G_0.copy()
+#     print(list(G.nodes()), "nodes")
+#     data_array = np.zeros(n+1, dtype=float)
+#     data_array[0]=len(max(nx.connected_components(G), key=len))/n
+#     # print("averaged data", averaged_data)
+#     # print("data array", data_array)
+#     for i_2 in range(n):
+#         # find a node to remove
+#         if G.size() != 0:
+#             v = choice(list(G.nodes()))
+#             print(v)
+#             G.remove_node(v)
+#         #     v = sorted(G.degree, key=lambda x: x[1], reverse=True)[0][0]
+#         # else:
+#         #     print('Error: I don't know that mode of removing nodes')
+#         #     v = None  # will this error?
+#
+#         #G.remove_node(v)
+#
+#         data_array[i_2+1] = len(max(nx.connected_components(G), key=len))/(n-i_2)
+#     averaged_data+=data_array
+#     print("averaged data", averaged_data)
+#     print("data array", data_array)
+# averaged_data /= 100
+# plt.plot(x_array,averaged_data,label="real")
+# plt.legend()
+# fig.savefig("testfig.png")
+#
+# file.close()
+
 
 #print(calcA(.05,1,2))
 #print(calcC(.05,2))
