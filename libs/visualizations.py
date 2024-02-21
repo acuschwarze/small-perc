@@ -148,7 +148,7 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
                         ax1.plot(removed_fraction, infiniteRelS,
                             ls='--', color=colors[line_index],
                             label="infinite th.")
-  
+                        print(removed_fraction,"sim x")
                     elif performance == "average small component size":
 
                         # get data from infinite theory
