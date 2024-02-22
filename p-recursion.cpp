@@ -104,7 +104,7 @@ int timer() { //toggle to main if needed
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
 
         // Output timing information
-        std::cout << "calculate_P_mult(0.2," << inputValue << "," << 2*inputValue << ") took " << duration.count() << " microseconds" << std::endl;
+        std::cout << "calculate_P_mult(0.2," << inputValue << "," << 2*inputValue << ") returned " << result <<" after " << duration.count() << " microseconds" << std::endl;
     }
 
     return 0;
