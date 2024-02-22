@@ -481,7 +481,7 @@ def calculate_P_mult(p, i, n):
     # Execute the executable and capture its output
     # print(os. getcwd())
     output = execute_executable([executable_path, str(p), str(i), str(n)])
-    # print("EEO output", output)
+    print("EEO output", output)
     output = float(output)
 
     # return
