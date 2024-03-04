@@ -202,7 +202,7 @@ def edge_files(removal = "random", nwks_list = ["AmadMyJn12-51.adj"]):
         file.close()
 
 #edge_files()
-#edge_files("attack")
+edge_files("random",["AmadMyJn12-20.adj"])
 
 # for adj matrix files
 def biadj_files(removal = "random", adj_list = ["Davidson & Fisher (1991) Plant-Ant.txt"]):

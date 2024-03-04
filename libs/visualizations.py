@@ -320,7 +320,7 @@ def plot_graphs2(numbers_of_nodes=[100], edge_probabilities=[0.1], vary_both=Fal
             ax1.set_title(str(performance) + " of " + str(graph_type) +
                           " graph, " + str(remove_strategy) + " removal")
             ax1.legend()
-            ax1.set_xlabel('n (number nodes removed)')
+            ax1.set_xlabel('n (percentage nodes removed)')
             ax1.set_ylabel(performance)
 
     # plt.subplots_adjust(left=None, bottom=None, right=2, top=2, wspace=None, hspace=None)

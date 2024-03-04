@@ -44,7 +44,7 @@
       <recent name="C:\Users\jj\Downloads\GitHub\small-perc\libs" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Simulation Runs (1)">
+  <component name="RunManager" selected="Python.Simulation Runs 2">
     <configuration name="Simulation Runs 2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="small-perc" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -173,8 +173,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.Simulation Runs (1)" />
         <item itemvalue="Python.Simulation Runs 2" />
+        <item itemvalue="Python.Simulation Runs (1)" />
         <item itemvalue="Python.bump test (1)" />
         <item itemvalue="Python.bump test (1)" />
         <item itemvalue="Python.bump test" />
