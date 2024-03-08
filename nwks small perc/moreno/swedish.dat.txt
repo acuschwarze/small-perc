@@ -1,0 +1,51 @@
+DL
+N=15
+FORMAT = FULLMATRIX DIAGONAL PRESENT
+ROW LABELS:
+"Bjornson"
+"Brandes"
+"Elster"
+"Geijer"
+"Goethe"
+"Ibsen"
+"Jacobsen"
+"Kieland"
+"Runneberg"
+"Rydberg"
+"Shakespeare"
+"Strindberg"
+"Tegner"
+"Turgenev"
+"Zola"
+COLUMN LABELS:
+"Bjornson"
+"Brandes"
+"Elster"
+"Geijer"
+"Goethe"
+"Ibsen"
+"Jacobsen"
+"Kieland"
+"Runneberg"
+"Rydberg"
+"Shakespeare"
+"Strindberg"
+"Tegner"
+"Turgenev"
+"Zola"
+DATA:
+ 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
+ 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0
+ 0 0 0 0 0 0 0 0 1 0 1 0 1 0 0
+ 1 0 0 0 0 0 1 1 0 0 1 0 0 1 1
+ 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
+ 1 0 1 0 0 1 0 0 0 0 0 1 0 0 1
+ 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0
+ 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0
+ 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0
+ 0 0 0 1 1 0 0 0 1 1 0 0 0 0 0
+ 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0
