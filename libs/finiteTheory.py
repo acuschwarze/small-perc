@@ -472,17 +472,17 @@ def raw_S(p, n):
 
     return S
 
-def calculate_P_mult(p, i, n):
+def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
 
     # Path to the executable
     # pwd = os. getcwd()
-    executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
+    #executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
 
     # Execute the executable and capture its output
     # print(os. getcwd())
-    output = execute_executable([executable_path, str(p), str(i), str(n)])
-    print("EEO output", output)
-    output = float(output)
+    output = float(execute_executable([executable_path, str(p), str(i), str(n)]))
+    #print("EEO output", output)
+    #output = float(output)
 
     # return
     return output
@@ -597,7 +597,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
         if attack:
             # update p only if nodes are removed by degree
             current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
-            print(current_p,i+1, S[i])
+            #print(current_p,i+1, S[i])
 
     if reverse:
         S = S[::-1]
@@ -652,8 +652,8 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_r
     relS = (SCurve(p, n, attack=attack, reverse=reverse,
         fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS) / network_sizes)
 
-    print(n,SCurve(p, n, attack=attack, reverse=reverse,
-        fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS))
+    #print(n,SCurve(p, n, attack=attack, reverse=reverse,
+    #    fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS))
     return relS
 
 
