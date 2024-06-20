@@ -25,7 +25,7 @@ from scipy.signal import argrelextrema
 def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
     graph_types=['ER', 'SF'], remove_strategies=['random', 'attack'],
     performance='largest_connected_component', num_trials=100,
-    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method_main = "abc", savefig=''):
+    smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method_main = "abc", savefig='', simbool = True):
     '''Calculate edge probability in an Erdos--Renyi network with original size
     `n` and original edge probability `p` after removing the node with the
     highest degree.
@@ -123,10 +123,11 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
                     removed_fraction = np.arange(n)/n
                     line_data = np.nanmean(data_array,axis=0)
 
-                    ax1.plot(removed_fraction, line_data,
-                        'o', color=colors[line_index], 
-                        label="n={} , p={}".format(n , p))
-  
+                    if simbool:
+                        ax1.plot(removed_fraction, line_data,
+                            'o', color=colors[line_index],
+                            label="n={} , p={}".format(n , p))
+
                     if performance=='relative LCC':
 
                         attack = (remove_strategy=='attack')

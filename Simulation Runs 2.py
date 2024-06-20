@@ -28,7 +28,53 @@ from finiteTheory import *
 fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
+def one_perc_thresh(threshold=.5, nodes=[10,20,30,40,50,60], removal = ["attack"]):
+    if removal == ["random"]:
+        remove_bool = False
+    elif removal == ["attack"]:
+        remove_bool = True
+    percthresh = threshold
+    nodes_array = nodes
+    prob_array = np.zeros(len(nodes_array))
+    for i in range(len(nodes_array)):
+        prob_array[i] = 1/(percthresh*(nodes_array[i]-1))
+    print(prob_array)
+    fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
+                      graph_types=['ER'], remove_strategies=removal,
+                      performance='relative LCC', num_trials=10,
+                      smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
+                      simbool=True)
+    for j in range(len(nodes_array)):
+        plt.plot(np.arange(nodes_array[j])/nodes_array[j],finiteTheory.relSCurve(prob_array[j],nodes_array[j],
+                                attack=remove_bool, fdict=fvals,pdict=pvals,lcc_method_relS="pmult"), label = "n: "+str(nodes_array[j]))
+    plt.legend()
+    fig.savefig("testfig.png")
 
+#one_perc_thresh(.2 ,[10,20,30,40,50,60])
+
+# import ast
+# df = pd.read_csv("fullData.csv")
+# aucftr = df["fin theory rand auc"].values
+# node_list = df["nodes"].values
+# tot_networks = len(df)
+# max_netwk = node_list.max()
+# aucftr_avg = np.zeros(max_netwk,dtype=object)
+# for k1 in range(max_netwk):
+#     aucftr_avg[k1] = np.zeros(k1)
+# for k in range(tot_networks):
+#     size = node_list[k]
+#     print(aucftr[k])
+#     newauc = aucftr[k]
+#     newauc = newauc.strip('][').split(', ')
+#     print(newauc)
+#     newauc = np.asarray(newauc, dtype=float)
+#     print(type(newauc))
+#     print(newauc)
+#     aucftr_avg[size] += newauc
+#
+# print(aucftr_avg)
+
+#one_perc_thresh(.5,[10,20])
 #fig, (ax1, ax2) = plt.subplots(1, 2)
 # ax1 = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.1,.2,.5],
 #     graph_types=['ER'], remove_strategies=['attack'],
@@ -523,6 +569,9 @@ def table_info(theory=False, nwks_list=["dolphin.adj"]):
                   "fin theory rand auc", "fin theory attack auc"]
     return df
 
+
+print(table_info(False, ["AmadMyJn12-20.adj"]))
+# print("done")
 from fnmatch import fnmatch
 
 root = r'C:\Users\jj\Downloads\GitHub\small-perc\nwks small perc'
