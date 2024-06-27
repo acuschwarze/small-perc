@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b01b2a3a-36d7-4b79-98e7-1d2100c6dbc6" name="Changes" comment="" />
+    <list default="true" id="b01b2a3a-36d7-4b79-98e7-1d2100c6dbc6" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Davidson &amp; Fisher (1991) Plant-Ant.png" beforeDir="false" afterPath="$PROJECT_DIR$/Davidson &amp; Fisher (1991) Plant-Ant.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Simulation Runs 2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation Runs 2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libs/finiteTheory.py" beforeDir="false" afterPath="$PROJECT_DIR$/libs/finiteTheory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libs/visualizations.py" beforeDir="false" afterPath="$PROJECT_DIR$/libs/visualizations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/realnwks.png" beforeDir="false" afterPath="$PROJECT_DIR$/realnwks.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/taro.png" beforeDir="false" afterPath="$PROJECT_DIR$/taro.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testfig.png" beforeDir="false" afterPath="$PROJECT_DIR$/testfig.png" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -191,6 +200,18 @@
       <updated>1681326330287</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
