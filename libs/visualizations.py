@@ -108,7 +108,6 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
             for i_nn, n in enumerate(numbers_of_nodes):
                 print(n)
                 for i_ep, p in enumerate(edge_probabilities):
-                    print(p)
                     # get relevant slice of simulated data
                     data_array = np.array(sim_data[i_gt][i_nn][i_ep][i_rs])
                     # exclude the first row, because it is the number of nodes

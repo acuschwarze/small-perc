@@ -179,13 +179,13 @@ def getRCSet(n=100, p=0.1, num_trials=10, graph_type='ER',
         g = sampleNetwork(n, p, graph_type=graph_type)
         c = averageDegree(g)
         if c == 0:
-            percolation_threshold = 0 # AS: Is this the right choice?
+            percolation_threshold = 0 # AS: Is this the right choice? #JJ: I think it may be 1. above 1 has giant component, below has none
         else:
             #not sure why both are here? Maybe to calculate percolation with two different methods?
             # AS: One of these lines is redundant?
             # AS: It doesn't seem like this calculation has to happen in the loop is networks are generated correctly?
             percolation_threshold = 1 / c
-            percolation_threshold = 1 / n + (n - 1) / (c * n)
+            # i think this is incorrect percolation_threshold = 1 / n + (n - 1) / (c * n)
 
         # get robustness curve for graph g
         data = robustnessCurve(g, remove_nodes=remove_nodes, 
@@ -259,5 +259,4 @@ def completeRCData(numbers_of_nodes=[100], edge_probabilities=[0.1],
 
                     # collect data in list
                     res[i_gt][i_nn][i_ep][i_rs] = np.copy(data)
-
     return res
