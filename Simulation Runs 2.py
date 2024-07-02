@@ -28,7 +28,43 @@ from finiteTheory import *
 fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
-def one_perc_thresh(threshold=.5, nodes=[10,20,30,40,50,60], removal = ["attack"]):
+
+
+#print(finiteTheory.relSCurve(.0505, 100, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
+#print(finiteTheory.relSCurve(.06756, 75, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
+print(finiteTheory.relSCurve(.06756, 75, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="alice"))
+
+def rel_LCC_table(np_list):
+    table = np.zeros((len(np_list), 6), dtype=object)
+    for i in range(len(np_list)):
+        table[i][0] = np_list[i][0]
+        table[i][1] = np_list[i][1]
+        table[i][2] = finiteTheory.relSCurve(np_list[i][1], np_list[i][0], attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+        table[i][3] = finiteTheory.relSCurve(np_list[i][1], np_list[i][0], attack=True, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+        table[i][4] = finiteTheory.relSCurve(np_list[i][1], np_list[i][0], attack=False, fdict=fvals, pdict=pvals,
+                                             lcc_method_relS="alice")
+        table[i][5] = finiteTheory.relSCurve(np_list[i][1], np_list[i][0], attack=True, fdict=fvals, pdict=pvals,
+                                             lcc_method_relS="alice")
+
+    df = pd.DataFrame(table)
+    df.columns = ["nodes", "prob", "rand pmult", "attack pmult", "rand alice",
+                  "attack alice"]
+    return df
+
+glitch_fix = rel_LCC_table([[75,.06756],[100,.0505]])
+glitch_fix.to_pickle("relLCCtable.p")
+
+
+
+
+#
+# fig = plot_graphs(numbers_of_nodes=[100], edge_probabilities=[.1],
+#     graph_types=['ER'], remove_strategies=['random'],
+#     performance='relative LCC', num_trials=10,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "pmult", savefig='')
+# fig.savefig("testfig.png")
+
+def one_perc_thresh(threshold=.2, nodes=[10,20,30,40,50,60], removal = ["random"]):
     if removal == ["random"]:
         remove_bool = False
     elif removal == ["attack"]:
@@ -37,9 +73,10 @@ def one_perc_thresh(threshold=.5, nodes=[10,20,30,40,50,60], removal = ["attack"
     nodes_array = nodes
     prob_array = np.zeros(len(nodes_array))
     colors = ["red", "orange","yellow","green","purple","magenta","cyan"]
+
     for i in range(len(nodes_array)):
         prob_array[i] = 1/(percthresh*(nodes_array[i]-1))
-    print(prob_array)
+
     fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
                       graph_types=['ER'], remove_strategies=removal,
                       performance='relative LCC', num_trials=100,
@@ -47,6 +84,8 @@ def one_perc_thresh(threshold=.5, nodes=[10,20,30,40,50,60], removal = ["attack"
                       simbool=True)
 
     for j in range(len(nodes_array)-1):
+        print(finiteTheory.relSCurve(prob_array[j + 1], nodes_array[j + 1],
+                                     attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
         sim_data = completeRCData(numbers_of_nodes=[nodes_array[j+1]],
                                   edge_probabilities=[prob_array[j+1]], num_trials=100,
                                   performance='relative LCC', graph_types=['ER'],
@@ -69,11 +108,59 @@ def one_perc_thresh(threshold=.5, nodes=[10,20,30,40,50,60], removal = ["attack"
         plt.plot(np.arange(nodes_array[j+1])/nodes_array[j+1],finiteTheory.relSCurve(prob_array[j+1],nodes_array[j+1],
                                 attack=remove_bool, fdict=fvals,pdict=pvals,lcc_method_relS="pmult"),
                                 label = "n: "+str(nodes_array[j+1]), color = colors[j])
+
     plt.legend()
     fig.savefig("testfig.png")
 
+#one_perc_thresh(threshold=.2, nodes=[100], removal = ["random"])
 
-one_perc_thresh(.2 ,[10,15,25,50,75,100], ["random"])
+def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=["attack"]):
+    one_perc_table = np.zeros((len(nodes), 5), dtype=object)
+
+    if removal == ["random"]:
+        remove_bool = False
+    elif removal == ["attack"]:
+        remove_bool = True
+    percthresh = threshold
+    nodes_array = nodes
+    prob_array = np.zeros(len(nodes_array))
+    colors = ["red", "orange", "yellow", "green", "purple", "magenta", "cyan"]
+
+    for i in range(len(nodes_array)):
+        prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
+
+
+    for j in range(len(nodes_array)):
+        sim_data = completeRCData(numbers_of_nodes=[nodes_array[j]],
+                                  edge_probabilities=[prob_array[j]], num_trials=100,
+                                  performance='relative LCC', graph_types=['ER'],
+                                  remove_strategies=removal)
+        data_array = np.array(sim_data[0][0][0][0])
+
+        # exclude the first row, because it is the number of nodes
+        data_array = data_array[1:]
+
+        # this can prevent some sort of bug about invalid values
+        for val in []:
+            data_array[data_array == val] = np.nan
+
+        # plot simulated data
+        removed_fraction = np.arange(nodes_array[j]) / nodes_array[j]
+        line_data = np.nanmean(data_array, axis=0)
+
+        one_perc_table[j][0] == nodes_array[j]
+        one_perc_table[j][1] == removed_fraction
+        one_perc_table[j][2] == line_data
+        one_perc_table[j][3] == finiteTheory.relSCurve(prob_array[j], nodes_array[j],
+                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+    df = pd.DataFrame(one_perc_table)
+    return df
+
+#testtable = one_perc_thresh_table(.2, [10,15], ['random'])
+#testtable.to_pickle('./oneperctable.pkl')
+
+
+#one_perc_thresh(.2 ,[10,15,25,50,75,100], ["random"])
 
 
 
@@ -608,77 +695,138 @@ def mega_file_reader(theory = False, removal = "random", adj_list = ["taro.txt"]
 # df = pd.read_pickle("fullData.csv")
 # print(type(df.iloc[0][3]))
 #
-# # same node average
+# # # same node average
+# #
+# # import ast
+# # df = pd.read_pickle("fullData.csv")
+# # aucftr = df["fin theory rand auc"].values
+# # node_list = df["nodes"].values
+# # tot_networks = len(df)
+# # max_netwk = node_list.max()
+# # aucftr_avg = np.zeros(max_netwk,dtype=object)
+# # for k1 in range(max_netwk):
+# #     aucftr_avg[k1] = np.zeros(k1)
+# # for k in range(tot_networks):
+# #     size = node_list[k]
+# #     print(aucftr[k])
+# #     newauc = aucftr[k]
+# #     newauc = newauc.strip('][').split(', ')
+# #     print(newauc)
+# #     newauc = np.asarray(newauc, dtype=float)
+# #     print(type(newauc))
+# #     print(newauc)
+# #     aucftr_avg[size] += newauc
+# #
+# # print(aucftr_avg)
 #
-# import ast
-# df = pd.read_pickle("fullData.csv")
-# aucftr = df["fin theory rand auc"].values
-# node_list = df["nodes"].values
-# tot_networks = len(df)
-# max_netwk = node_list.max()
-# aucftr_avg = np.zeros(max_netwk,dtype=object)
-# for k1 in range(max_netwk):
-#     aucftr_avg[k1] = np.zeros(k1)
-# for k in range(tot_networks):
-#     size = node_list[k]
-#     print(aucftr[k])
-#     newauc = aucftr[k]
-#     newauc = newauc.strip('][').split(', ')
-#     print(newauc)
-#     newauc = np.asarray(newauc, dtype=float)
-#     print(type(newauc))
-#     print(newauc)
-#     aucftr_avg[size] += newauc
 #
-# print(aucftr_avg)
-
-
-
-# binning
-
-from ast import literal_eval
-# fig = plt.figure(figsize=(8, 8))
-# df = pd.read_csv("fullData.csv")
+#
+# # binning
+#
+# # from ast import literal_eval
+# # fig = plt.figure(figsize=(8, 8))
+# # df = pd.read_csv("fullData.csv")
+# # # for i in range(len(df)):
+# # #     hist, bins = np.histogram(literal_eval(df.iloc[i][5]), bins=4) # fin theory random
+# # #     hist2, bins2 = np.histogram(literal_eval(df.iloc[i][6]), bins=4) # fin theory attack
+# # #     hist3, bins3 = np.histogram(np.linspace(0,1,literal_eval(df.iloc[i][1])), bins = 4) # percent nodes removed
+# # # plt.plot(bins3,bins,label = "random")
+# # # plt.plot(bins3,bins2, label = "attack")
+# # # fig.savefig("testfig.png")
+# #
+# # fig = plt.figure(figsize=(8, 8))
+# # df = pd.read_pickle("fullData.csv")
+# # bin_array1 = []
+# # bin_array2 = []
+# # bin_array3 = []
+# # bin_array4 = []
+# # nodes_array = np.zeros(len(df))
+# # for i in range(len(df)):
+# #     nodes_array[i] = float(df.iloc[i][1])
+# #
+# # hist, bins = np.histogram(nodes_array, bins=4)
+# # print("Bin edges", bins)
+# # for j in range(len(nodes_array)):
+# #     counter = 0
+# #     while nodes_array[j] > bins[counter]:
+# #         counter += 1
+# #     if counter == 0:
+# #         bin_array1.append(j)
+# #     elif counter == 1:
+# #         bin_array2.append(j)
+# #     elif counter == 2:
+# #         bin_array3.append(j)
+# #     else:
+# #         bin_array4.append(j)
+# # print(bin_array1)
+# # print(bin_array2)
+# # print(bin_array3)
+# # print(bin_array4)
+#
+#
+# df = pd.read_csv("AUC.csv")
+# x = np.zeros(len(df))
+# rauc = np.zeros(len(df))
+# tauc = np.zeros(len(df))
+# densities = np.zeros(len(df))
 # for i in range(len(df)):
-#     hist, bins = np.histogram(literal_eval(df.iloc[i][5]), bins=4) # fin theory random
-#     hist2, bins2 = np.histogram(literal_eval(df.iloc[i][6]), bins=4) # fin theory attack
-#     hist3, bins3 = np.histogram(np.linspace(0,1,literal_eval(df.iloc[i][1])), bins = 4) # percent nodes removed
-# plt.plot(bins3,bins,label = "random")
-# plt.plot(bins3,bins2, label = "attack")
-# fig.savefig("testfig.png")
-
-# fig = plt.figure(figsize=(8, 8))
-# df = pd.read_pickle("fullData.csv")
-# bin_array1 = []
-# bin_array2 = []
-# bin_array3 = []
-# bin_array4 = []
-# nodes_array = np.zeros(len(df))
-# for i in range(len(df)):
-#     nodes_array[i] = float(df.iloc[i][1])
+#     n = df.iloc[i][1]
+#     x[i] = n
+#     rauc[i] = df.iloc[i][4]
+#     tauc[i] = df.iloc[i][6]
+#     densities[i] = df.iloc[i][2] / (n*(n-1)/2)
 #
-# hist, bins = np.histogram(nodes_array, bins=4)
-# print("Bin edges", bins)
-# for j in range(len(nodes_array)):
-#     counter = 0
-#     while nodes_array[j] > bins[counter]:
-#         counter += 1
-#     if counter == 0:
-#         bin_array1.append(j)
-#     elif counter == 1:
-#         bin_array2.append(j)
-#     elif counter == 2:
-#         bin_array3.append(j)
-#     else:
-#         bin_array4.append(j)
-# print(bin_array1)
-# print(bin_array2)
-# print(bin_array3)
-# print(bin_array4)
+# rbin_means,rbin_edges, rbinnumber = scipy.stats.binned_statistic(x, rauc, statistic='mean', bins=10, range=None)
+# tbin_means, tbin_edges, tbinnumber = scipy.stats.binned_statistic(x, tauc, statistic='mean', bins=10, range=None)
+# drbin_means, drbin_edges, drbinnumber = scipy.stats.binned_statistic(densities, rauc, statistic='mean', bins=10, range=None)
+# dtbin_means, dtbin_edges, dtbinnumber = scipy.stats.binned_statistic(densities, tauc, statistic='mean', bins=10, range=None)
+#
+# # plt.plot(x, rauc,'o')
+# # plt.hlines(rbin_means, rbin_edges[:-1], rbin_edges[1:], colors='g', lw=2,
+# #            label='binned statistic of data')
+#
+# # plt.plot(x, tauc,'o')
+# # plt.hlines(tbin_means, tbin_edges[:-1], tbin_edges[1:], colors='g', lw=2,
+# #            label='binned statistic of data')
+#
+# # plt.xlabel("nodes")
+# # plt.ylabel("auc")
+#
+# plt.plot(densities, rauc,'o')
+# plt.hlines(drbin_means, drbin_edges[:-1], drbin_edges[1:], colors='g', lw=2,
+#            label='binned statistic of data')
+#
+# # plt.plot(densities, tauc,'o')
+# # plt.hlines(dtbin_means, dtbin_edges[:-1], dtbin_edges[1:], colors='g', lw=2,
+# #            label='binned statistic of data')
+#
+# plt.xlabel("density")
+# plt.ylabel("auc")
+# plt.show()
+# #
+# # def bin_average(bin_array, attack=False):
+# #     average = 0
+# #     for i in bin_array:
+# #         if attack == False:
+# #             average += df.iloc[i][5]
+# #         else:
+# #             average += df.iloc[i][6]
+# #     average /= len(bin_array)
+# #     return average
+# #
+# # auc_plot = np.zeros(4)
+# # bins = [bin_array1, bin_array2, bin_array3, bin_array4]
+# # for ib in range(len(bins)):
+# #     auc_plot[ib] = bin_average(bins[ib])
+# # print(auc_plot)
+# #
+# # plt.plot()
+# #
+# #
+# # # hist, bins = np.histogram(np.linspace(0,1,literal_eval(df.iloc[i][1])), bins = 4) # percent nodes removed
+# # # hist, bins = np.histogram(literal_eval(df.iloc[i][5]), bins=4)  # fin theory random
+# # # hist2, bins2 = np.histogram(literal_eval(df.iloc[i][6]), bins=4)  # fin theory attack
+# # # plt.plot(bins3,bins,label = "random")
+# # # plt.plot(bins3,bins2, label = "attack")
+# # # fig.savefig("testfig.png")
 
-# hist, bins = np.histogram(np.linspace(0,1,literal_eval(df.iloc[i][1])), bins = 4) # percent nodes removed
-# hist, bins = np.histogram(literal_eval(df.iloc[i][5]), bins=4)  # fin theory random
-# hist2, bins2 = np.histogram(literal_eval(df.iloc[i][6]), bins=4)  # fin theory attack
-# plt.plot(bins3,bins,label = "random")
-# plt.plot(bins3,bins2, label = "attack")
-# fig.savefig("testfig.png")

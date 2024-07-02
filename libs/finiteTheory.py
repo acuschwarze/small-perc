@@ -83,12 +83,10 @@ def raw_f(p, i, n):
        The probability that a subgraph with `i` nodes of an Erdos--Renyi
        random graph with `n` nodes and edge probability `p` is connected.
     '''
-    # if i == 0:
-    #     p_connect = 0
+
     if i == 1:
         p_connect = 1
-    # elif i > n:
-    #     p_connect = 0
+
     else:
         sum_f = 0
         for i_n in range(1, i, 1):
@@ -130,14 +128,6 @@ def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
             if i in fdict[p][n]:
                 return fdict[p][n][i]
 
-    # if none is found start computation
-    # if i == 0:
-    #     f = 0
-    # if i == 1:
-    #     f = 1
-    # # elif i>n:
-    # #     f = 0
-    # else:
     sum_f = 0
     for i_n in range(1, i, 1):
         sum_f += (calculate_f(p, i_n, n, fdict=fdict)
@@ -199,18 +189,12 @@ def raw_P(p, i, n):
        The probability that an Erdos--Renyi random graph with `n` nodes and 
        edge probability `p` has a largest connected component of size `i`.
     '''
-    # if i == 0 and n == 0:
-    #     P_tot = 1
-    # if i > 0 and n == 0:
-    #     P_tot = 0
-    # if i > n or n < 0 or i <= 0:
-    #     P_tot = 0
+
     if i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    # elif i == n:
-    #     P_tot = raw_f(p,n,n)
+
     else:
         sum_P = 0
         for j in range(0, i + 1, 1):
@@ -256,28 +240,14 @@ def calculate_P(p, i, n, fdict={}, pdict={}): # find P with dictionary
             if i in pdict[p][n]:
                 return pdict[p][n][i]
 
-    # if i == 0 and n == 0:
-    #     P_tot = 1
-    # if i > 0 and n == 0:
-    #     P_tot = 0
-    # if i > n or n < 0 or i <= 0:
-    #     P_tot = 0
     if i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    # elif i == n:
-    #     P_tot = calculate_f(p,n,n)
+
     else:
         sum_P = 0
 
-        # 1-sum (P(p,j,n)) for j=i+1 to n
-        # for j in range(i+1, n+1, 1):
-        #     sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
-        # P_tot = (scipy.special.comb(n, i) * calculate_f(p, i, n, fdict=fdict)
-        #          * calculate_g(p, i, n) * (1 - sum_P))  # * factor of ceiling(n/2)??
-        #
-        # normal way with j = 1 to i
         for j in range(1, i + 1, 1):
             if j==i:
                 sum_P += .5 * calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
@@ -296,18 +266,11 @@ def alice_helper(p,i,n,k,fdict={},pdict={}):
     return scipy.special.comb((n-(k-1)*i),i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, (n-(k-1)*i))
 
 def alice(p,i,n,fdict={},pdict={}):
-    # if i == 0 and n == 0:
-    #     P_tot = 1
-    # if i > 0 and n == 0:
-    #     P_tot = 0
-    # if i > n or n < 0 or i <= 0:
-    #     P_tot = 0
     if i == 1 and n == 1:
         P_tot = 1
     elif i == 1 and n != 1:
         P_tot = (1 - p) ** comb(n, 2)
-    # elif i == n:
-    #     P_tot = calculate_f(p,n,n)
+
     else:
         P_tot = 0
         for k in range(1,n//i + 1): # each exact number of lcc's to calculate P for
@@ -361,7 +324,7 @@ def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
     # Execute the executable and capture its output
     # print(os. getcwd())
     output = float(execute_executable([executable_path, str(p), str(i), str(n)]))
-    #print("EEO output", output)
+    print("EEO output", output)
     #output = float(output)
 
     # return

@@ -22,7 +22,7 @@ from scipy.signal import argrelextrema
 # WORKS
 def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
     graph_types=['ER', 'SF'], remove_strategies=['random', 'attack'],
-    performance='largest_connected_component', num_trials=100,
+    performance='relative LCC', num_trials=100,
     smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method_main = "pmult", savefig='', simbool = True):
     '''Calculate edge probability in an Erdos--Renyi network with original size
     `n` and original edge probability `p` after removing the node with the
