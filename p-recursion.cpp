@@ -10,9 +10,9 @@
 //namespace py = pybind11;
 
 // Function to calculate the factorial
-int factorial(int n) {
-    if (n <= 1)
-        return 1;
+double factorial(int n) {
+    if (n <= 1) 
+        return 1.0;
     return n * factorial(n - 1);
 }
 
@@ -23,9 +23,9 @@ double comb_old(int n, int r) {
 }
 
 // Function to calculate the combination
-long long comb(long long n, long long r) 
+double comb(long long n, long long r) 
 {
-    long long f = 1; 
+    double f = 1; 
     for(auto i = 0; i < r;i++)
         f = (f * (n - i)) / (i + 1);
     return f ; 
