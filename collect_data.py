@@ -10,7 +10,7 @@ data = []
 
 # Loop through all files in the folder
 for i in range(1609):
-    file_path = os.path.join(folder_path, f'fulldata-{}.txt'.format(i))
+    file_path = os.path.join(folder_path, 'fulldata-{}.txt'.format(i))
     
     with open(file_path, 'r') as file:
         # Read the first line and split it into components

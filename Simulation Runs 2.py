@@ -967,6 +967,7 @@ def gradient(nodenumber, probsnumber):
             # heatmap_array[i_p][i_n] = scipy.integrate.simpson(rline_data, dx=1 / nodes[i_n])
             heatmap_array[i_p][i_n] = grid_table[counter][2]
             counter += 1
+            print("counter",counter)
     heatmap_array = heatmap_array.tolist()
 
     # nodes have to be 1,1,1,...,2,2,2...etc
