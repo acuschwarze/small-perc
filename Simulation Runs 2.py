@@ -84,8 +84,6 @@ def one_perc_thresh(threshold=.2, nodes=[10,20,30,40,50,60], removal = ["random"
                       simbool=True)
 
     for j in range(len(nodes_array)-1):
-        print(finiteTheory.relSCurve(prob_array[j + 1], nodes_array[j + 1],
-                                     attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
         sim_data = completeRCData(numbers_of_nodes=[nodes_array[j+1]],
                                   edge_probabilities=[prob_array[j+1]], num_trials=100,
                                   performance='relative LCC', graph_types=['ER'],
@@ -115,7 +113,7 @@ def one_perc_thresh(threshold=.2, nodes=[10,20,30,40,50,60], removal = ["random"
 #one_perc_thresh(threshold=.2, nodes=[100], removal = ["random"])
 
 def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=["attack"]):
-    one_perc_table = np.zeros((len(nodes), 5), dtype=object)
+    one_perc_table = np.zeros((len(nodes), 4), dtype=object)
 
     if removal == ["random"]:
         remove_bool = False
@@ -129,6 +127,11 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     for i in range(len(nodes_array)):
         prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
 
+    fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
+                      graph_types=['ER'], remove_strategies=removal,
+                      performance='relative LCC', num_trials=100,
+                      smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
+                      simbool=True)
 
     for j in range(len(nodes_array)):
         sim_data = completeRCData(numbers_of_nodes=[nodes_array[j]],
@@ -148,19 +151,31 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
         removed_fraction = np.arange(nodes_array[j]) / nodes_array[j]
         line_data = np.nanmean(data_array, axis=0)
 
-        one_perc_table[j][0] == nodes_array[j]
-        one_perc_table[j][1] == removed_fraction
-        one_perc_table[j][2] == line_data
-        one_perc_table[j][3] == finiteTheory.relSCurve(prob_array[j], nodes_array[j],
+        one_perc_table[j][0] = nodes_array[j]
+        one_perc_table[j][1] = prob_array[j]
+        one_perc_table[j][2] = line_data
+        one_perc_table[j][3] = finiteTheory.relSCurve(prob_array[j], nodes_array[j],
                                         attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+        if j != 0:
+            plt.plot(removed_fraction, line_data,
+                     'o', label="n={} , p={}".format(nodes_array[j], prob_array[j]), color=colors[j])
+            plt.plot(np.arange(nodes_array[j]) / nodes_array[j],
+                     finiteTheory.relSCurve(prob_array[j], nodes_array[j],
+                                            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"),
+                     label="n: " + str(nodes_array[j]), color=colors[j])
+
+    plt.legend()
+    fig.savefig("testfig.png")
     df = pd.DataFrame(one_perc_table)
+    df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
     return df
 
-#testtable = one_perc_thresh_table(.2, [10,15], ['random'])
-#testtable.to_pickle('./oneperctable.pkl')
 
+big_graph_r = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["random"])
+big_graph_r.to_pickle("percolation_random")
 
-#one_perc_thresh(.2 ,[10,15,25,50,75,100], ["random"])
+big_graph_t = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
+big_graph_t.to_pickle("percolation_attack")
 
 
 
@@ -782,6 +797,7 @@ for i in range(len(df)):
     rlsqr[i] = (df.iloc[i][5] - df.iloc[i][3])**2
     tlsqr[i] = (df.iloc[i][6] - df.iloc[i][4])**2
     # if densities[i] > .9 and real_rauc[i] < .6:
+    #     print("weird")
     #     p = df.iloc[i][2] / scipy.special.comb(n, 2)
     #     fig = plot_graphs(numbers_of_nodes=[n], edge_probabilities=[p],
     #         graph_types=['ER'], remove_strategies=['random'],
@@ -893,29 +909,29 @@ def gradient(nodenumber, probsnumber):
             grid_table[counter][0] = nodes[i_n]
             grid_table[counter][1] = probs[i_p]
 
-            rfin_curve = finiteTheory.relSCurve(probs[i_p],nodes[i_n],
-                               attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+            # rfin_curve = finiteTheory.relSCurve(probs[i_p],nodes[i_n],
+            #                    attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
             # tfin_curve = finiteTheory.relSCurve(probs[i_p],nodes[i_n],
             #                    attack=True, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
-            # rinf_curve = infiniteTheory.relSCurve(nodes[i_n],probs[i_p],
-            #                     attack=False, smooth_end=False)
+            rinf_curve = infiniteTheory.relSCurve(nodes[i_n],probs[i_p],
+                                 attack=False, smooth_end=False)
             # tinf_curve = infiniteTheory.relSCurve(nodes[i_n],probs[i_p],
             #                     attack=True, smooth_end=False)
-            rsim_data = completeRCData(numbers_of_nodes=[nodes[i_n]],
-                                       edge_probabilities=[probs[i_p]], num_trials=100,
-                                       performance='relative LCC', graph_types=['ER'],
-                                       remove_strategies=["random"])
-
-            rdata_array = np.array(rsim_data[0][0][0][0])
-
-            # exclude the first row, because it is the number of nodes
-            rdata_array = rdata_array[1:]
-
-            # this can prevent some sort of bug about invalid values
-            for val in []:
-                rdata_array[rdata_array == val] = np.nan
-
-            rline_data = np.nanmean(rdata_array,axis=0)
+            # rsim_data = completeRCData(numbers_of_nodes=[nodes[i_n]],
+            #                            edge_probabilities=[probs[i_p]], num_trials=100,
+            #                            performance='relative LCC', graph_types=['ER'],
+            #                            remove_strategies=["random"])
+            #
+            # rdata_array = np.array(rsim_data[0][0][0][0])
+            #
+            # # exclude the first row, because it is the number of nodes
+            # rdata_array = rdata_array[1:]
+            #
+            # # this can prevent some sort of bug about invalid values
+            # for val in []:
+            #     rdata_array[rdata_array == val] = np.nan
+            #
+            # rline_data = np.nanmean(rdata_array,axis=0)
             #
             # tsim_data = completeRCData(numbers_of_nodes=[nodes[i_n]],
             #                            edge_probabilities=[probs[i_p]], num_trials=100,
@@ -934,14 +950,14 @@ def gradient(nodenumber, probsnumber):
             # tline_data = np.nanmean(tdata_array, axis=0)
 
             # grid_table[counter][2] = scipy.integrate.simpson(rfin_curve, dx=1 / nodes[i_n])
-            grid_table[counter][2] = ((rfin_curve - rline_data) ** 2).mean()
+            # grid_table[counter][2] = ((rfin_curve - rline_data) ** 2).mean()
             # grid_table[counter][3] = rfin_curve
             # frauc[counter] = grid_table[counter][2]
             # grid_table[counter][4] = scipy.integrate.simpson(tfin_curve, dx=1 / nodes[i_n])
             # grid_table[counter][4] = ((tfin_curve - tline_data) ** 2).mean()
             # grid_table[counter][5] = tfin_curve
             # ftauc[counter] = grid_table[counter][4]
-            # grid_table[counter][6] = scipy.integrate.simpson(rinf_curve, dx=1 / nodes[i_n])
+            grid_table[counter][6] = scipy.integrate.simpson(rinf_curve, dx=1 / nodes[i_n])
             # grid_table[counter][6] = ((rinf_curve - rline_data) ** 2).mean()
             # grid_table[counter][7] = rinf_curve
             # irauc[counter] = grid_table[counter][6]
@@ -965,7 +981,7 @@ def gradient(nodenumber, probsnumber):
             #                      attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"), dx=1 / nodes[i1]) - scipy.integrate.simpson(infiniteTheory.relSCurve(nodes[i1], probs[i2],
             #                                                                          attack=False, smooth_end=False))
             # heatmap_array[i_p][i_n] = scipy.integrate.simpson(rline_data, dx=1 / nodes[i_n])
-            heatmap_array[i_p][i_n] = grid_table[counter][2]
+            heatmap_array[i_p][i_n] = grid_table[counter][6]
             counter += 1
             print("counter",counter)
     heatmap_array = heatmap_array.tolist()
@@ -1014,31 +1030,100 @@ def gradient(nodenumber, probsnumber):
     df = pd.DataFrame(grid_table)
     return df
 
-output = gradient(50,10)
-#output = gradient(5,5)
-output.to_pickle("gradient 50n 10p fin")
-#
-# x = [1, 2, 3, 4, 5]
-# y = [0.1, 0.2, 0.3, 0.4, 0.5]
-#
-# intensity = [
-#     [5, 10, 15, 20, 25],
-#     [30, 35, 40, 45, 50],
-#     [55, 60, 65, 70, 75],
-#     [80, 85, 90, 95, 100],
-#     [105, 110, 115, 120, 125]
-# ]
-#
-# #setup the 2D grid with Numpy
-# x, y = np.meshgrid(x, y)
-#
-# #convert intensity (list of lists) to a numpy array for plotting
-# intensity = np.array(intensity)
-#
-# #now just plug the data into pcolormesh, it's that easy!
-# plt.pcolormesh(x, y, intensity)
-# plt.colorbar() #need a colorbar to show the intensity scale
-# plt.show() #boom
+
+def gradient(nodenumber, probsnumber, removal, mse_type):
+    nodes = np.arange(1, nodenumber + 1, 1)
+    probs = np.linspace(0, 1, num=probsnumber + 1)  # probsnumber = 10 means gaps of .1
+    grid_table = np.zeros((nodenumber, probsnumber + 1), dtype=object)
+    heatmap_array = np.zeros((probsnumber + 1, nodenumber), dtype=object)
+
+    if removal == "random":
+        remove_bool = False
+    elif removal == "attack":
+        remove_bool = True
+
+    for i_n in range(nodenumber):
+        for i_p in range(probsnumber):
+            sim_data = completeRCData(numbers_of_nodes=[nodes[i_n]],
+                                      edge_probabilities=[probs[i_p]], num_trials=100,
+                                      performance='relative LCC', graph_types=['ER'],
+                                      remove_strategies=[removal])
+            rdata_array = np.array(sim_data[0][0][0][0])
+            rdata_array = rdata_array[1:]
+            for val in []:
+                rdata_array[rdata_array == val] = np.nan
+
+            line_data = np.nanmean(rdata_array, axis=0)
+
+            if mse_type == "simulations":
+                heatmap_array[i_p][i_n] = scipy.integrate.simpson(line_data, dx=1 / (nodes[i_n] - 1))
+                grid_table[i_n][i_p] = line_data
+            elif mse_type == "finite":
+                fin_curve = finiteTheory.relSCurve(probs[i_p], nodes[i_n],
+                                                   attack=remove_bool, fdict=fvals, pdict=pvals,
+                                                   lcc_method_relS="pmult")
+                heatmap_array[i_p][i_n] = ((fin_curve - line_data) ** 2).mean()
+                grid_table[i_n][i_p] = np.zeros(2,dtype=object)
+                grid_table[i_n][i_p][0] = line_data
+                grid_table[i_n][i_p][1] = fin_curve
+            elif mse_type == "infinite":
+                inf_curve = infiniteTheory.relSCurve(nodes[i_n], probs[i_p],
+                                                     attack=remove_bool, smooth_end=False)
+                heatmap_array[i_p][i_n] = ((inf_curve - line_data) ** 2).mean()
+                grid_table[i_n][i_p] = np.zeros(2,dtype=object)
+                grid_table[i_n][i_p][0] = line_data
+                grid_table[i_n][i_p][1] = inf_curve
+            elif mse_type == "difference":
+                fin_curve = finiteTheory.relSCurve(probs[i_p], nodes[i_n],
+                                                   attack=remove_bool, fdict=fvals, pdict=pvals,
+                                                   lcc_method_relS="pmult")
+                inf_curve = infiniteTheory.relSCurve(nodes[i_n], probs[i_p],
+                                                     attack=remove_bool, smooth_end=False)
+                heatmap_array[i_p][i_n] = ((inf_curve - line_data) ** 2).mean() - ((fin_curve - line_data) ** 2).mean()
+                grid_table[i_n][i_p] = np.zeros(3,dtype=object)
+                grid_table[i_n][i_p][0] = line_data
+                grid_table[i_n][i_p][1] = fin_curve
+                grid_table[i_n][i_p][2] = inf_curve
+
+    heatmap_array = heatmap_array.tolist()
+
+    xnodes, yprobs = np.meshgrid(nodes, probs)
+
+    plt.pcolormesh(xnodes, yprobs, heatmap_array)
+    plt.xlabel("nodes")
+    plt.ylabel("probability")
+    plt.title("heatmap of AUC MSE")
+    plt.colorbar()  # need a colorbar to show the intensity scale
+    plt.show()
+    df = pd.DataFrame(grid_table)
+    return df
+
+#output = gradient(50,10,"random", "finite")
+#output = gradient(5,5,"random", "finite")
+#output.to_pickle("gradient 50n 10p fin")
+
+
+# obj = pd.read_pickle(r'gradient 50n 10p fin')
+# n = int(obj.iloc[-1][0])
+# print(n)
+# p = int(len(obj) / n)
+# print(p)
+# nodes = np.arange(1,n+1,1)
+# probs = np.linspace(0,1,p+1)
+# x,y = np.meshgrid(nodes,probs)
+# heatmap_array = np.zeros((len(probs), len(nodes)), dtype=object)
+# counter = 0
+# for i in range(n):
+#     for j in range(p):
+#         #print(i*p+j-1)
+#         print(obj.iloc[i*p+j-1][2])
+#         heatmap_array[j][i] = obj.iloc[i*p+j-1][2]
+# print(heatmap_array)
+# heatmap_array = heatmap_array.tolist()
+# plt.pcolormesh(x,y,heatmap_array,cmap = "Reds")
+# print("done")
+# plt.savefig("colormap.png")
+
 
 def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplot = False):
     if theory == True:
@@ -1118,9 +1203,13 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
             print("d",d)
             product *= scipy.special.comb(n-1,d)*(p**d)*(1-p)**(n-1-d)
             print("i_d",i_d)
-        #nx.draw(G_0)
-        #plt.show()
-    print("end")
+        nx.draw(G_0)
+        plt.show()
+    freq = nx.degree_histogram(G_0)
+    print(freq)
+    for f in freq:
+        product /= math.factorial(f)
+    product = product * math.factorial(n)
     return product
 
-#print(bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplot = False))
+print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
