@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b01b2a3a-36d7-4b79-98e7-1d2100c6dbc6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/MSE colormaps.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MSE colormaps.py" beforeDir="false" afterPath="$PROJECT_DIR$/MSE colormaps.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Simulation Runs 2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation Runs 2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testfig.png" beforeDir="false" afterPath="$PROJECT_DIR$/testfig.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +48,7 @@
       <recent name="C:\Users\jj\Downloads\GitHub\small-perc\libs" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.MSE colormaps">
+  <component name="RunManager" selected="Python.Simulation Runs 2">
     <configuration name="MSE colormaps" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="small-perc" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -178,8 +177,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.MSE colormaps" />
         <item itemvalue="Python.Simulation Runs 2" />
+        <item itemvalue="Python.MSE colormaps" />
         <item itemvalue="Python.collect_data" />
         <item itemvalue="Python.Simulation Runs (1)" />
         <item itemvalue="Python.bump test (1)" />

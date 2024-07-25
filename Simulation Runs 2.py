@@ -171,11 +171,11 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     return df
 
 
-big_graph_r = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["random"])
-big_graph_r.to_pickle("percolation_random")
-
-big_graph_t = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
-big_graph_t.to_pickle("percolation_attack")
+# big_graph_r = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["random"])
+# big_graph_r.to_pickle("percolation_random")
+#
+# big_graph_t = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
+# big_graph_t.to_pickle("percolation_attack")
 
 
 
@@ -293,18 +293,18 @@ def table_info(theory=False, nwks_list=["dolphin.adj"]):
 # print("done")
 from fnmatch import fnmatch
 
-# root = r'C:\Users\jj\Downloads\GitHub\small-perc\nwks small perc'
-# pattern = "*.adj"
-# pattern2 = "*.arc"
-# nwks_list2 = []
-#
-# for path, subdirs, files in os.walk(root):
-#     for name in files:
-#         if fnmatch(name, pattern):
-#             # print(os.path.join(path, name))
-#             nwks_list2.append(os.path.join(path, name))
-        # elif fnmatch(name, pattern2):
-        #     nwks_list2.append(os.path.join(path, name))
+root = r'C:\Users\jj\Downloads\GitHub\small-perc\nwks small perc'
+pattern = "*.adj"
+pattern2 = "*.arc"
+nwks_list2 = []
+
+for path, subdirs, files in os.walk(root):
+    for name in files:
+        if fnmatch(name, pattern):
+            # print(os.path.join(path, name))
+            nwks_list2.append(os.path.join(path, name))
+        elif fnmatch(name, pattern2):
+            nwks_list2.append(os.path.join(path, name))
 
 # main?
 #
@@ -318,13 +318,18 @@ from fnmatch import fnmatch
 
 def nodecount_edge(file_name = ""):
     file = open(file_name, "r")
-    content = file.readlines()
+    #content = file.readlines()
+    content = (line.rstrip() for line in file)  # All lines including the blank ones
+    content = list(line for line in content if line)
+    print(content)
     node_list = []
     edge_list = np.empty(len(content), dtype=object)
     for i in range(len(content)):
         edge = content[i].strip()
         edge = edge.split(" ")
         edge_list[i] = np.zeros(2)
+        print("i", i)
+        print("edge[0]",edge[0])
         edge_list[i][0] = int(edge[0])
         edge_list[i][1] = int(edge[1])
         for j in range(2):
@@ -1124,6 +1129,19 @@ def gradient(nodenumber, probsnumber, removal, mse_type):
 # print("done")
 # plt.savefig("colormap.png")
 
+def check_space(string):
+    # counter
+    count = 0
+
+    # loop for search each index
+    for i in range(0, len(string)):
+
+        # Check each char
+        # is blank or not
+        if string[i] == " ":
+            count += 1
+
+    return count
 
 def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplot = False):
     if theory == True:
@@ -1134,15 +1152,17 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
     else:
         fig = plt.figure(figsize=(8, 8))
     for file_name in adj_list:
-        print(file_name)
+        print(str(file_name))
         file = open(file_name, "r")
-        content=file.readlines()
+        #content = file.readlines()
+        content = (line.rstrip() for line in file)  # All lines including the blank ones
+        content = list(line for line in content if line)
 
         if len(content) == 0:
             file.close()
         # identify type of file (biadjacency matrix, edge list)
             # edge list
-        elif len(content[0]) == 4 and (len(content) == 1 or len(content) > 2):
+        elif check_space(content[0])==1 and (len(content) == 1 or len(content) > 2):
             print('edge file')
             if nodecount_edge(file_name) > 100:
                 file.close()
@@ -1164,13 +1184,32 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 for k in range(len(edge_list)):
                     adj[int(edge_list[k][0]), int(edge_list[k][1])] = 1
                     adj[int(edge_list[k][1]), int(edge_list[k][0])] = 1
+                G_0 = nx.from_numpy_array(adj)
+                p = len(edge_list) / scipy.special.comb(n, 2)
+                degrees = list(G_0.degree())
+                product = 1
+                for i_d in range(len(degrees)):
+                    d = degrees[i_d][1]
+                    print("d", d)
+                    product *= scipy.special.comb(n - 1, d) * (p ** d) * (1 - p) ** (n - 1 - d)
+                    print("i_d", i_d)
+                nx.draw(G_0)
+                # plt.show()
+                freq = nx.degree_histogram(G_0)
+                print(freq)
+                for f in freq:
+                    product /= math.factorial(f)
+                product = product * math.factorial(n)
+                return product
 
             #biadjacency matrix
         elif len(content[0]) > 4 or (len(content[0]) == 4 and len(content) == 2):
             print("biadj file")
             if nodecount_bi(file_name) > 100:
                 file.close()
+
             else:
+                print("else")
                 edge_list = np.empty(len(content), dtype=object)
                 # edge1 = content[0].strip()
                 # edge1 = edge1.split("\t")
@@ -1178,6 +1217,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 n = len(content) + k
                 adj1 = np.zeros((len(content), k))
                 adj = np.zeros((n, n))
+                print("adj beg", adj)
 
                 for i in range(len(content)):
                     edge = content[i].strip()
@@ -1193,23 +1233,104 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                             adj[j + len(content), i] = 1
                         else:
                             adj1[i, j] = 0
-        print("check2")
-        G_0 = nx.from_numpy_array(adj)
-        p = len(edge_list) / scipy.special.comb(n, 2)
-        degrees = list(G_0.degree())
-        product = 1
-        for i_d in range(len(degrees)):
-            d = degrees[i_d][1]
-            print("d",d)
-            product *= scipy.special.comb(n-1,d)*(p**d)*(1-p)**(n-1-d)
-            print("i_d",i_d)
-        nx.draw(G_0)
-        plt.show()
-    freq = nx.degree_histogram(G_0)
-    print(freq)
-    for f in freq:
-        product /= math.factorial(f)
-    product = product * math.factorial(n)
-    return product
+                print("adj", adj)
+                print("check2")
+                print(adj)
+                G_0 = nx.from_numpy_array(adj)
+                p = len(edge_list) / scipy.special.comb(n, 2)
+                degrees = list(G_0.degree())
+                product = 1
+                for i_d in range(len(degrees)):
+                    d = degrees[i_d][1]
+                    print("d",d)
+                    product *= scipy.special.comb(n-1,d)*(p**d)*(1-p)**(n-1-d)
+                    print("i_d",i_d)
+                nx.draw(G_0)
+                #plt.show()
+                freq = nx.degree_histogram(G_0)
+                print(freq)
+                for f in freq:
+                    product /= math.factorial(f)
+                product = product * math.factorial(n)
+                return product
 
-print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
+#print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
+bayesian_array = np.zeros(len(nwks_list2))
+counter=0
+for nwk in nwks_list2:
+    print(nwk)
+    bayesian_array[counter] = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
+bayesian = pd.DataFrame(bayesian_array)
+#bayesian.to_pickle("bayesian array")
+median = np.median(bayesian_array)
+small = []
+big = []
+for i in range(len(nwks_list2)):
+    if bayesian_array[i] >= median:
+        small.append(nwks_list2[i])
+    else:
+        big.append(nwks_list2[i])
+print(small)
+small_df = pd.DataFrame(small)
+small_df.to_pickle("small array")
+print(big)
+big_df = pd.DataFrame(big)
+big_df.to_pickle("big array")
+
+def std_bins(nodes = [10,15,20,25], probs = np.linspace(0,1,11), removal = "random", trials = 100):
+    n = len(nodes)
+    p = len(probs)
+    rlcc_table = np.zeros((n, p), dtype=object)
+
+    if removal == "random":
+        remove_bool = False
+    elif removal == "attack":
+        remove_bool = True
+
+    fig = plt.figure(figsize=(8, 8))
+
+    for i_p in range(p):
+        auc_theory = np.zeros(n)
+        auc_simy = np.zeros(n)
+        std_table = np.zeros(n)
+
+        for i_n in range(n):
+            auc_theory[i_n] = scipy.integrate.simpson(finiteTheory.relSCurve(probs[i_p], nodes[i_n],
+                                   attack=remove_bool, fdict=fvals, pdict=pvals,
+                                   lcc_method_relS="pmult"), dx=1/(nodes[i_n]-1))
+            rlcc_table[i_n][i_p] = np.zeros(trials, dtype=object)
+
+            auc_sim = np.zeros(trials)
+            for i_s in range(trials):
+                # rlcc_table[i_n][i_p][i_s] = np.zeros(n)
+                sim_data = completeRCData(numbers_of_nodes=[nodes[i_n]],
+                                          edge_probabilities=[probs[i_p]], num_trials=1,
+                                          performance='relative LCC', graph_types=['ER'],
+                                          remove_strategies=[removal])
+                rdata_array = np.array(sim_data[0][0][0][0])
+                rdata_array = rdata_array[1:]
+                for val in []:
+                    rdata_array[rdata_array == val] = np.nan
+
+                line_data = np.nanmean(rdata_array, axis=0)
+                rlcc_table[i_n][i_p][i_s] = line_data
+                auc_sim[i_s] = scipy.integrate.simpson(line_data, dx=1/(nodes[i_n]-1))
+
+            auc_simy[i_n] = np.nanmean(auc_sim)
+            std = np.std(auc_sim)
+            std_table[i_n] = std
+
+            # avg = np.reshape(rlcc_table[i_n][i_p], (trials, nodes[i_n]))
+            # avg = np.nanmean(avg, axis=0)
+        plt.plot(nodes,auc_theory,label = str(probs[i_p]))
+        plt.errorbar(x=nodes, y=auc_simy, yerr = 2*std_table)
+    plt.xlabel("nodes")
+    plt.ylabel("AUC")
+    plt.show()
+    df = pd.DataFrame(rlcc_table)
+    return df
+
+# std_bins([10,15,20,25],probs=[.1,.125,.15,.175,.2],removal = "random", trials=100)
+#std_bins([10,12,15,20,25,35,50],probs=[.1],removal = "random", trials=100)
+std_output = std_bins([50],probs=[.05,.08,.1],removal = "random", trials=100)
+std_output.to_pickle("std n=50,p=.05 .08 .1")

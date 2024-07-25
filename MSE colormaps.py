@@ -104,3 +104,11 @@ output2.to_pickle("gradient 50n 10p inf")
 output3 = gradient(50, 10, "random", "difference")
 output3.to_pickle("gradient 50n 10p diff")
 
+
+output1 = gradient(50, 10, "attack", "finite")
+output1.to_pickle("gradient 50n 10p fin")
+output2 = gradient(50, 10, "attack", "infinite")
+output2.to_pickle("gradient 50n 10p inf")
+output3 = gradient(50, 10, "attack", "difference")
+output3.to_pickle("gradient 50n 10p diff")
+
