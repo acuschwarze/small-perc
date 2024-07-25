@@ -1324,7 +1324,7 @@ def std_bins(nodes = [10,15,20,25], probs = np.linspace(0,1,11), removal = "rand
             # avg = np.reshape(rlcc_table[i_n][i_p], (trials, nodes[i_n]))
             # avg = np.nanmean(avg, axis=0)
         plt.plot(nodes,auc_theory,label = str(probs[i_p]))
-        plt.errorbar(x=nodes, y=auc_simy, yerr = 2*std_table)
+        plt.errorbar(x=nodes, y=auc_simy, yerr = std_table)
     plt.xlabel("nodes")
     plt.ylabel("AUC")
     plt.show()
