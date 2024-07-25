@@ -1213,3 +1213,5 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
     return product
 
 print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
+
+# hello it's jj
