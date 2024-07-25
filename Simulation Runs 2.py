@@ -1233,6 +1233,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                             adj[j + len(content), i] = 1
                         else:
                             adj1[i, j] = 0
+                            
                 print("adj", adj)
                 print("check2")
                 print(adj)
