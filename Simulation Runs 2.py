@@ -1273,11 +1273,12 @@ counter=0
 for nwk in nwks_list2:
     data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
     if data == ("None", "None"):
-        counter += 1
+        bayesian_array.pop(counter)
+        nodes_array.pop(counter)
     else:
         bayesian_array[counter] = data[0]
         nodes_array[counter] = data[1]
-        counter += 1
+    counter += 1
 bayesian = pd.DataFrame(bayesian_array)
 bayesian.to_pickle("bayesian array")
 bayesian_nodes = pd.DataFrame(nodes_array)
@@ -1288,6 +1289,8 @@ plt.ylabel("bayesian prob")
 plt.plot(nodes_array,bayesian_array)
 plt.savefig("bayesian plot")
 
+
+# python3 "Simulation Runs 2.py" for jupyterlab command
 
 # median = np.median(bayesian_array)
 # small = []
