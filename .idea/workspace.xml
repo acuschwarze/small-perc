@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b01b2a3a-36d7-4b79-98e7-1d2100c6dbc6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MSE colormaps.py" beforeDir="false" afterPath="$PROJECT_DIR$/MSE colormaps.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Simulation Runs 2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation Runs 2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

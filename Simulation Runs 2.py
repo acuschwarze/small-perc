@@ -1144,13 +1144,6 @@ def check_space(string):
     return count
 
 def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplot = False):
-    if theory == True:
-        fig = plot_graphs(numbers_of_nodes=[n], edge_probabilities=[p],
-                          graph_types=['ER'], remove_strategies=[removal],
-                          performance='relative LCC', num_trials=100,
-                          smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="alice", savefig='')
-    else:
-        fig = plt.figure(figsize=(8, 8))
     for file_name in adj_list:
         print(str(file_name))
         file = open(file_name, "r")
@@ -1159,13 +1152,19 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
         content = list(line for line in content if line)
 
         if len(content) == 0:
+            product = "None"
+            n = "None"
             file.close()
+
         # identify type of file (biadjacency matrix, edge list)
             # edge list
         elif check_space(content[0])==1 and (len(content) == 1 or len(content) > 2):
             print('edge file')
             if nodecount_edge(file_name) > 100:
+                product = "None"
+                n = "None"
                 file.close()
+
             else:
                 node_list = []
                 edge_list = np.empty(len(content), dtype=object)
@@ -1200,13 +1199,18 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 for f in freq:
                     product /= math.factorial(f)
                 product = product * math.factorial(n)
-                return product
+                #print("product", product)
+                #print("n", n)
+                return product,n
 
             #biadjacency matrix
         elif len(content[0]) > 4 or (len(content[0]) == 4 and len(content) == 2):
             print("biadj file")
             if nodecount_bi(file_name) > 100:
+                product = "None"
+                n = "None"
                 file.close()
+
 
             else:
                 print("else")
@@ -1253,30 +1257,65 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 for f in freq:
                     product /= math.factorial(f)
                 product = product * math.factorial(n)
-                return product
+                #print("product",product)
+                #print("n",n)
+                return product,n
+    product = "None"
+    n = "None"
+    return product,n
+
+
 
 #print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
-bayesian_array = np.zeros(len(nwks_list2))
+bayesian_array = np.zeros(len(nwks_list2),dtype=object)
+nodes_array = np.zeros(len(nwks_list2),dtype=object)
 counter=0
 for nwk in nwks_list2:
-    print(nwk)
-    bayesian_array[counter] = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
-bayesian = pd.DataFrame(bayesian_array)
-#bayesian.to_pickle("bayesian array")
-median = np.median(bayesian_array)
-small = []
-big = []
-for i in range(len(nwks_list2)):
-    if bayesian_array[i] >= median:
-        small.append(nwks_list2[i])
+    data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
+    if data == ("None", "None"):
+        bayesian_array.pop(counter)
+        nodes_array.pop(counter)
     else:
-        big.append(nwks_list2[i])
-print(small)
-small_df = pd.DataFrame(small)
-small_df.to_pickle("small array")
-print(big)
-big_df = pd.DataFrame(big)
-big_df.to_pickle("big array")
+        bayesian_array[counter] = data[0]
+        nodes_array[counter] = data[1]
+    counter += 1
+bayesian = pd.DataFrame(bayesian_array)
+bayesian.to_pickle("bayesian array")
+bayesian_nodes = pd.DataFrame(nodes_array)
+bayesian_nodes.to_pickle("bayesian  nodes")
+
+plt.xlabel('nodes')
+plt.ylabel("bayesian prob")
+plt.plot(nodes_array,bayesian_array)
+plt.savefig("bayesian plot")
+
+
+# python3 "Simulation Runs 2.py" for jupyterlab command
+
+# median = np.median(bayesian_array)
+# small = []
+# big = []
+# for i in range(len(nwks_list2)):
+#     if bayesian_array[i] >= median:
+#         small.append(nwks_list2[i])
+#     else:
+#         big.append(nwks_list2[i])
+# print(small)
+# small_df = pd.DataFrame(small)
+# small_df.to_pickle("small array")
+# print(big)
+# big_df = pd.DataFrame(big)
+# big_df.to_pickle("big array")
+
+# l = len(nwks_list2)
+# bayes = pd.read_pickle(r'bayesian array')
+# full = pd.read_csv(r"fullData.csv")
+# nodes = np.zeros(l)
+#
+# for i in range(len(nwks_list2)):
+#     nodes[i] = int(full.iloc[i][1])
+# plt.plot(nodes,bayes)
+# plt.show()
 
 def std_bins(nodes = [10,15,20,25], probs = np.linspace(0,1,11), removal = "random", trials = 100):
     n = len(nodes)
@@ -1324,7 +1363,7 @@ def std_bins(nodes = [10,15,20,25], probs = np.linspace(0,1,11), removal = "rand
             # avg = np.reshape(rlcc_table[i_n][i_p], (trials, nodes[i_n]))
             # avg = np.nanmean(avg, axis=0)
         plt.plot(nodes,auc_theory,label = str(probs[i_p]))
-        plt.errorbar(x=nodes, y=auc_simy, yerr = 2*std_table)
+        plt.errorbar(x=nodes, y=auc_simy, yerr = std_table)
     plt.xlabel("nodes")
     plt.ylabel("AUC")
     plt.show()
@@ -1335,3 +1374,5 @@ def std_bins(nodes = [10,15,20,25], probs = np.linspace(0,1,11), removal = "rand
 #std_bins([10,12,15,20,25,35,50],probs=[.1],removal = "random", trials=100)
 std_output = std_bins([50],probs=[.05,.08,.1],removal = "random", trials=100)
 std_output.to_pickle("std n=50,p=.05 .08 .1")
+
+# put graphs in a doc, make a list of all of
