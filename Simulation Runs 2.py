@@ -30,7 +30,7 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
 
-#print(finiteTheory.relSCurve(.0505, 100, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
+#print(finiteTheory.relSCurve(.0505, 100, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\p-recursion.exe"))
 #print(finiteTheory.relSCurve(.06756, 75, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
 #print(finiteTheory.relSCurve(.06756, 75, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="alice"))
 #
@@ -110,7 +110,7 @@ def one_perc_thresh(threshold=.2, nodes=[10,20,30,40,50,60], removal = ["random"
     plt.legend()
     fig.savefig("testfig.png")
 
-#one_perc_thresh(threshold=.2, nodes=[100], removal = ["random"])
+#one_perc_thresh(threshold=.2, nodes=[10,20], removal = ["random"])
 
 def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=["attack"]):
     one_perc_table = np.zeros((len(nodes), 4), dtype=object)
@@ -170,7 +170,7 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
     return df
 
-
+#one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50], removal=["random"])
 # big_graph_r = one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50, 75, 100], removal=["random"])
 # big_graph_r.to_pickle("percolation_random")
 #
@@ -1154,6 +1154,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
         if len(content) == 0:
             product = "None"
             n = "None"
+            p = "None"
             file.close()
 
         # identify type of file (biadjacency matrix, edge list)
@@ -1163,6 +1164,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
             if nodecount_edge(file_name) > 100:
                 product = "None"
                 n = "None"
+                p = "None"
                 file.close()
 
             else:
@@ -1201,7 +1203,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 product = product * math.factorial(n)
                 #print("product", product)
                 #print("n", n)
-                return product,n
+                return product,n,p
 
             #biadjacency matrix
         elif len(content[0]) > 4 or (len(content[0]) == 4 and len(content) == 2):
@@ -1259,34 +1261,42 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 product = product * math.factorial(n)
                 #print("product",product)
                 #print("n",n)
-                return product,n
+                return product,n,p
     product = "None"
     n = "None"
-    return product,n
+    p = "None"
+    return product,n,p
 
 
 
 #print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
 # bayesian_array = np.zeros(len(nwks_list2),dtype=object)
 # nodes_array = np.zeros(len(nwks_list2),dtype=object)
-# counter=0
-# for nwk in nwks_list2:
-#     print(nwk)
-#     data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
-#     if data == ("None", "None"):
-#         bayesian_array = np.delete(bayesian_array,counter)
-#         nodes_array = np.delete(nodes_array,counter)
-#         counter -= 1
-#     else:
-#         bayesian_array[counter] = data[0]
-#         nodes_array[counter] = data[1]
-#     counter += 1
+probs_array = np.zeros(len(nwks_list2),dtype=object)
+counter=0
+for nwk in nwks_list2:
+    print(nwk)
+    data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
+    if data == ("None", "None","None"):
+        # bayesian_array = np.delete(bayesian_array,counter)
+        # nodes_array = np.delete(nodes_array,counter)
+        probs_array = np.delete(probs_array,counter)
+        counter -= 1
+    else:
+        # bayesian_array[counter] = data[0]
+        # nodes_array[counter] = data[1]
+        probs_array[counter] = data[2]
+    counter += 1
+probs = pd.DataFrame(probs_array)
+probs.to_pickle("bayesian probs")
+print("done")
 # bayesian = pd.DataFrame(bayesian_array)
 # bayesian.to_pickle("bayesian array")
 # bayesian_nodes = pd.DataFrame(nodes_array)
 # bayesian_nodes.to_pickle("bayesian nodes")
 #
-# bayesian_array = pd.read_pickle("bayesian array")
+#bayesian_array = pd.read_pickle("bayesian array")
+#print(bayesian_array)
 # nodes_array = pd.read_pickle("bayesian nodes")
 #
 # plt.xlabel('nodes')
