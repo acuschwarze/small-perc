@@ -97,18 +97,41 @@ def gradient(nodenumber, probsnumber, removal, mse_type):
     return df
 
 
-output1 = gradient(50, 10, "random", "finite")
-output1.to_pickle("gradient 50n 10p fin")
-output2 = gradient(50, 10, "random", "infinite")
-output2.to_pickle("gradient 50n 10p inf")
-output3 = gradient(50, 10, "random", "difference")
-output3.to_pickle("gradient 50n 10p diff")
+# output1 = gradient(50, 10, "random", "finite")
+# output1.to_pickle("gradient 50n 10p fin")
+# output2 = gradient(50, 10, "random", "infinite")
+# output2.to_pickle("gradient 50n 10p inf")
+# output3 = gradient(50, 10, "random", "difference")
+# output3.to_pickle("gradient 50n 10p diff")
+#
+#
+# output1 = gradient(50, 10, "attack", "finite")
+# output1.to_pickle("gradient 50n 10p fin")
+# output2 = gradient(50, 10, "attack", "infinite")
+# output2.to_pickle("gradient 50n 10p inf")
+# output3 = gradient(50, 10, "attack", "difference")
+# output3.to_pickle("gradient 50n 10p diff")
 
 
-output1 = gradient(50, 10, "attack", "finite")
-output1.to_pickle("gradient 50n 10p fin")
-output2 = gradient(50, 10, "attack", "infinite")
-output2.to_pickle("gradient 50n 10p inf")
-output3 = gradient(50, 10, "attack", "difference")
-output3.to_pickle("gradient 50n 10p diff")
+graph1 = pd.read_pickle("gradient 50n 10p fin")
+n = len(graph1)
+p = len(graph1[0])
+heatmap1 = np.zeros((p,n))
+nodes_array = np.arange(1,n,1)
+probs_array = np.linspace(0,1,p+1)
+for i_n in range(n):
+    for i_p in range(p):
+        fin = graph1[i_n][i_p][0]
+        sim = graph1[i_n][i_p][1]
+        heatmap1[i_p][i_n] = ((fin-sim)**2).mean()
+
+heatmap1 = heatmap1.tolist()
+xnodes, yprobs = np.meshgrid(nodes_array, probs_array)
+
+plt.pcolormesh(xnodes, yprobs, heatmap1)
+plt.xlabel("nodes")
+plt.ylabel("probability")
+plt.title("heatmap of AUC MSE")
+plt.colorbar()
+plt.savefig("mse finite")
 
