@@ -5,7 +5,7 @@ param (
 $env:path += ';C:\Users\f00689q\AppData\Local\miniforge3\envs\mathai\'
 
 # Define the input parameters
-$inputParameters = 41..100 | ForEach-Object {$_ * 0.01 }
+$inputParameters = 1..100 | ForEach-Object {$_ * 0.01 }
 
 # Array to hold job objects
 $jobs = @()

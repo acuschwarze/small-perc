@@ -25,8 +25,8 @@ from performanceMeasures import *
 from infiniteTheory import *
 from finiteTheory import *
 
-fvals = pickle.load(open('data/fvalues.p', 'rb'))
-pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+#fvals = pickle.load(open('data/fvalues.p', 'rb'))
+#pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
 
@@ -36,10 +36,10 @@ nodes = perc_rand.nodes.values
 data = perc_rand.loc[:,"fin theory RLCC"]
 n = len(perc_rand.nodes.values)
 for j in range(n):
-    nodes_array = np.arange(nodes[j])
+    nodes_array = np.arange(nodes[j], dtype=float)
     nodes_array -= n
     nodes_array *= -1
-    nodes_array /= n
+    nodes_array /= float(n)
     plt.plot(nodes_array, data[j])
 plt.savefig("one_perc_graph_random")
 

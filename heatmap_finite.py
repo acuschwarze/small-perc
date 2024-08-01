@@ -22,7 +22,7 @@ pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
 
 # get p from command line
 p = float(sys.argv[1])
-attack = False
+attack = True
 
 path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'heatmaps', 'p{:.2f}'.format(p))
 if not os.path.exists(path):
