@@ -36,7 +36,11 @@ nodes = perc_rand.nodes.values
 data = perc_rand.loc[:,"fin theory RLCC"]
 n = len(perc_rand.nodes.values)
 for j in range(n):
-    plt.plot(np.arange((n-nodes[j])/n), data[j])
+    nodes_array = np.arange(nodes[j])
+    nodes_array -= n
+    nodes_array *= -1
+    nodes_array /= n
+    plt.plot(nodes_array, data[j])
 plt.savefig("one_perc_graph_random")
 
 
