@@ -1267,29 +1267,37 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 
 
 #print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
-bayesian_array = np.zeros(len(nwks_list2),dtype=object)
-nodes_array = np.zeros(len(nwks_list2),dtype=object)
-counter=0
-for nwk in nwks_list2:
-    data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
-    if data == ("None", "None"):
-        bayesian_array.pop(counter)
-        nodes_array.pop(counter)
-    else:
-        bayesian_array[counter] = data[0]
-        nodes_array[counter] = data[1]
-    counter += 1
-bayesian = pd.DataFrame(bayesian_array)
-bayesian.to_pickle("bayesian array")
-bayesian_nodes = pd.DataFrame(nodes_array)
-bayesian_nodes.to_pickle("bayesian  nodes")
-
-plt.xlabel('nodes')
-plt.ylabel("bayesian prob")
-plt.plot(nodes_array,bayesian_array)
-plt.savefig("bayesian plot")
-
-
+# bayesian_array = np.zeros(len(nwks_list2),dtype=object)
+# nodes_array = np.zeros(len(nwks_list2),dtype=object)
+# counter=0
+# for nwk in nwks_list2:
+#     print(nwk)
+#     data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
+#     if data == ("None", "None"):
+#         bayesian_array = np.delete(bayesian_array,counter)
+#         nodes_array = np.delete(nodes_array,counter)
+#         counter -= 1
+#     else:
+#         bayesian_array[counter] = data[0]
+#         nodes_array[counter] = data[1]
+#     counter += 1
+# bayesian = pd.DataFrame(bayesian_array)
+# bayesian.to_pickle("bayesian array")
+# bayesian_nodes = pd.DataFrame(nodes_array)
+# bayesian_nodes.to_pickle("bayesian nodes")
+#
+# bayesian_array = pd.read_pickle("bayesian array")
+# nodes_array = pd.read_pickle("bayesian nodes")
+#
+# plt.xlabel('nodes')
+# plt.ylabel("bayesian prob")
+# plt.plot(nodes_array,bayesian_array,'o')
+# plt.legend()
+# plt.savefig("bayesian plot")
+# print('bayesian array')
+# print(bayesian_array)
+# print('nodes array')
+# print(nodes_array)
 # python3 "Simulation Runs 2.py" for jupyterlab command
 
 # median = np.median(bayesian_array)
@@ -1372,7 +1380,15 @@ def std_bins(nodes = [10,15,20,25], probs = np.linspace(0,1,11), removal = "rand
 
 # std_bins([10,15,20,25],probs=[.1,.125,.15,.175,.2],removal = "random", trials=100)
 #std_bins([10,12,15,20,25,35,50],probs=[.1],removal = "random", trials=100)
-std_output = std_bins([50],probs=[.05,.08,.1],removal = "random", trials=100)
-std_output.to_pickle("std n=50,p=.05 .08 .1")
+
+#std_output = std_bins([50],probs=[.05,.08,.1],removal = "random", trials=100)
+#std_output.to_pickle("std n=50,p=.05 .08 .1")
 
 # put graphs in a doc, make a list of all of
+
+
+# big graph
+
+
+#perc_attack = pd.read_pickle("percolation_attack")
+#print(perc_rand)
