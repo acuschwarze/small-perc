@@ -22,7 +22,7 @@ pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
 
 # get p from command line
 p = float(sys.argv[1])
-attack = False
+attack = True
 
 if attack:
     remove_strategies = ['attack']

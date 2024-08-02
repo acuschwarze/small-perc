@@ -26,7 +26,7 @@ foreach ($param in $inputParameters) {
     $jobs += Start-Job -ScriptBlock {
         param ($param)
         # Path to your script
-        & python "C:\Users\f00689q\My Drive\jupyter\small-perc\heatmap_finite.py" $param
+        & python "C:\Users\f00689q\My Drive\jupyter\small-perc\heatmap_sim.py" $param
     } -ArgumentList $param
 }
 # Wait for all jobs to complete
