@@ -1,3 +1,3 @@
 
 data/heatmaps/p*/sim*.npy
-data/heatmaps/sim*.npy
+#data/heatmaps/sim*.npy
