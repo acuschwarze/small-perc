@@ -1272,33 +1272,41 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 #print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
 # bayesian_array = np.zeros(len(nwks_list2),dtype=object)
 # nodes_array = np.zeros(len(nwks_list2),dtype=object)
-probs_array = np.zeros(len(nwks_list2),dtype=object)
-counter=0
-for nwk in nwks_list2:
-    print(nwk)
-    data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
-    if data == ("None", "None","None"):
-        # bayesian_array = np.delete(bayesian_array,counter)
-        # nodes_array = np.delete(nodes_array,counter)
-        probs_array = np.delete(probs_array,counter)
-        counter -= 1
-    else:
-        # bayesian_array[counter] = data[0]
-        # nodes_array[counter] = data[1]
-        probs_array[counter] = data[2]
-    counter += 1
-probs = pd.DataFrame(probs_array)
-probs.to_pickle("bayesian probs")
-print("done")
+# probs_array = np.zeros(len(nwks_list2),dtype=object)
+# counter=0
+# for nwk in nwks_list2:
+#     print(nwk)
+#     data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
+#     if data == ("None", "None","None"):
+#         # bayesian_array = np.delete(bayesian_array,counter)
+#         # nodes_array = np.delete(nodes_array,counter)
+#         probs_array = np.delete(probs_array,counter)
+#         counter -= 1
+#     else:
+#         # bayesian_array[counter] = data[0]
+#         # nodes_array[counter] = data[1]
+#         probs_array[counter] = data[2]
+#     counter += 1
+# probs = pd.DataFrame(probs_array)
+# probs.to_pickle("bayesian probs")
+
 # bayesian = pd.DataFrame(bayesian_array)
 # bayesian.to_pickle("bayesian array")
 # bayesian_nodes = pd.DataFrame(nodes_array)
 # bayesian_nodes.to_pickle("bayesian nodes")
 #
-#bayesian_array = pd.read_pickle("bayesian array")
+bayesian_array = pd.read_pickle("bayesian array")
 #print(bayesian_array)
 # nodes_array = pd.read_pickle("bayesian nodes")
 #
+fig = plt.figure(figsize=(8, 8))
+probs_array = pd.read_pickle("bayesian probs")
+print(probs_array)
+plt.xlabel("probs")
+plt.ylabel("bayesian prob")
+plt.plot(probs_array,bayesian_array,'o')
+plt.legend()
+plt.savefig("bayesian probs plot")
 # plt.xlabel('nodes')
 # plt.ylabel("bayesian prob")
 # plt.plot(nodes_array,bayesian_array,'o')
