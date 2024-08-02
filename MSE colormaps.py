@@ -113,25 +113,70 @@ def gradient(nodenumber, probsnumber, removal, mse_type):
 # output3.to_pickle("gradient 50n 10p diff")
 
 
-graph1 = pd.read_pickle("gradient 50n 10p fin")
-n = len(graph1)
-p = len(graph1[0])
-heatmap1 = np.zeros((p,n))
-nodes_array = np.arange(1,n,1)
-probs_array = np.linspace(0,1,p+1)
+# graph1 = pd.read_pickle("gradient 50n 10p fin")
+# #print(graph1)
+# n = len(graph1)
+# p = len(graph1.columns)
+# # print('n')
+# # print(n)
+# # print('p')
+# # print(p)
+# print(graph1.iloc[10])
+# heatmap1 = np.zeros((p,n))
+# nodes_array = np.arange(1,n+1,1)
+# probs_array = np.linspace(0,1,p)
+# #print(probs_array)
+# print("here")
+# print(graph1.iloc[11][0])
+# for i_n in range(n):
+#     for i_p in range(p):
+#         if type(graph1.iloc[i_n][i_p]) == int:
+#             break
+        
+#         # print("start",graph1[i_n][i_p])
+#         # print("i_n",i_n)
+#         # print("i_p",i_p)
+#         fin = graph1.iloc[i_n][i_p][0]
+#         sim = graph1.iloc[i_n][i_p][1]
+#         heatmap1[i_p][i_n] = ((fin-sim)**2).mean()
+
+# heatmap1 = heatmap1.tolist()
+# xnodes, yprobs = np.meshgrid(nodes_array, probs_array)
+
+# plt.pcolormesh(xnodes, yprobs, heatmap1)
+# plt.xlabel("nodes")
+# plt.ylabel("probability")
+# plt.title("heatmap of AUC MSE")
+# plt.colorbar()
+# plt.savefig("mse finite")
+
+graph2 = pd.read_pickle("gradient 50n 10p inf")
+#print(graph1)
+n = len(graph2)
+p = len(graph2.columns)
+
+heatmap2 = np.zeros((p,n))
+nodes_array = np.arange(1,n+1,1)
+probs_array = np.linspace(0,1,p)
+print(graph2.iloc[11][0])
 for i_n in range(n):
     for i_p in range(p):
-        fin = graph1[i_n][i_p][0]
-        sim = graph1[i_n][i_p][1]
-        heatmap1[i_p][i_n] = ((fin-sim)**2).mean()
+        if type(graph2.iloc[i_n][i_p]) == int:
+            break
+        
+        # print("start",graph1[i_n][i_p])
+        # print("i_n",i_n)
+        # print("i_p",i_p)
+        fin = graph2.iloc[i_n][i_p][0]
+        sim = graph2.iloc[i_n][i_p][1]
+        heatmap2[i_p][i_n] = ((fin-sim)**2).mean()
 
-heatmap1 = heatmap1.tolist()
+heatmap2 = heatmap2.tolist()
 xnodes, yprobs = np.meshgrid(nodes_array, probs_array)
 
-plt.pcolormesh(xnodes, yprobs, heatmap1)
+plt.pcolormesh(xnodes, yprobs, heatmap2)
 plt.xlabel("nodes")
 plt.ylabel("probability")
 plt.title("heatmap of AUC MSE")
 plt.colorbar()
-plt.savefig("mse finite")
-
+plt.savefig("mse infinite")
