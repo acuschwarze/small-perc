@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
+//#include <quadmath.h> // for double
 #include <cstdlib> // for command line input
 #include <string> // for std::string
 #include <sstream> // for std::stringstream
@@ -10,51 +11,51 @@
 //namespace py = pybind11;
 
 // Function to calculate the factorial
-double factorial(int n) {
+__float128 factorial(int n) {
     if (n <= 1) 
         return 1.0;
     return n * factorial(n - 1);
 }
 
 // Function to calculate the combination (old)
-double comb_old(int n, int r) {
+__float128 comb_old(int n, int r) {
     std::cout << "comb" << n << r << std::endl;
     return factorial(n) / (factorial(r) * factorial(n - r));
 }
 
 // Function to calculate the combination
-double comb(long long n, long long r) 
+__float128 comb(long long n, long long r) 
 {
-    double f = 1; 
+    __float128 f = 1; 
     for(auto i = 0; i < r;i++)
         f = (f * (n - i)) / (i + 1);
     return f ; 
 }
 
 //Calculate g(p,i,n) for calculate_P_mult
-double calculate_g(double p, int i, int n) {
-    double g = pow(1 - p, i * (n - i));
+__float128 calculate_g(double p, int i, int n) {
+    __float128 g = pow(1 - p, i * (n - i));
     return g;
 }
 
 //Calculate f(p,i,n) for calculate_P_mult
-double calculate_f(double p, int i, int n, std::unordered_map<double, std::unordered_map<int, std::unordered_map<int, double>>>& fdict) {
+__float128 calculate_f(double p, int i, int n, std::unordered_map<double, std::unordered_map<int, std::unordered_map<int, double>>>& fdict) {
     if (fdict.find(p) != fdict.end() && fdict[p].find(n) != fdict[p].end() && fdict[p][n].find(i) != fdict[p][n].end()) {
         return fdict[p][n][i];
     } else {
-        double sum_f = 0;
+        __float128 sum_f = 0;
         for (int i_n = 1; i_n < i; ++i_n) {
             sum_f += (calculate_f(p, i_n, n, fdict) * comb(i - 1, i_n - 1) * pow(1 - p, i_n * (i - i_n)));
         }
-        double f = 1 - sum_f;
+        __float128 f = 1 - sum_f;
         fdict[p][n][i] = f; // does that change the original?
         return f;
     }
 }
 
 // Calculate h(p,i,n,k) for calculate_P_mult
-double calculate_h(double p, int i, int n, int k, std::unordered_map<double, std::unordered_map<int, std::unordered_map<int, double>>>& fdict) {
-    double h = comb((n - (k - 1) * i), i) * calculate_f(p, i, n, fdict) * calculate_g(p, i, (n - (k - 1) * i));
+__float128 calculate_h(double p, int i, int n, int k, std::unordered_map<double, std::unordered_map<int, std::unordered_map<int, double>>>& fdict) {
+    __float128 h = comb((n - (k - 1) * i), i) * calculate_f(p, i, n, fdict) * calculate_g(p, i, (n - (k - 1) * i));
     return h;
 }
 
@@ -65,21 +66,22 @@ double calculate_P_mult(double p, int i, int n, std::unordered_map<double, std::
     } else if (i == 1 && n != 1) {
         return pow(1 - p, comb(n, 2));
     } else {
-        double P_tot = 0;
+        __float128 P_tot = 0;
         for (int k = 1; k <= n / i; ++k) {
-            double product = 1;
+            __float128 product = 1;
             for (int k_2 = 1; k_2 <= k; ++k_2) {
                 product *= calculate_h(p, i, n, k_2, fdict);
             }
 
-            double sum_less = 0;
+            __float128 sum_less = 0;
             for (int j = 1; j < i; ++j) {
                 sum_less += calculate_P_mult(p, j, n - k * i, fdict, pdict);
             }
 
             P_tot += 1.0 / factorial(k) * product * sum_less;
         }
-        return P_tot;
+        double output = static_cast<double>(P_tot);
+        return output;
     }
 }
 
