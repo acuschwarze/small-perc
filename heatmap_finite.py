@@ -38,7 +38,7 @@ for i in range(0,100,1):
 
     fin_curve = relSCurve(p, n,
         attack=attack, fdict=fvals, pdict=pvals,
-        lcc_method_relS="pmult", executable_path="C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\p-recursion.exe")
+        lcc_method_relS="pmult", executable_path="C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\libs\\p-recursion.exe")
 
     np.save(os.path.join(path,'{}.npy'.format(name)), fin_curve)
 
