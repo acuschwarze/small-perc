@@ -70,6 +70,115 @@ double calculate_P_mult(double p, int i, int n, std::unordered_map<double, std::
     }
 }
 
+
+#include <cmath>
+#include <stdio.h>
+
+double binomial(int n, int k, double p){
+    double p; 
+    int k;
+    int n;
+
+    scanf("%d%d", &n, &k);
+    scanf("%lf", &p);
+
+    if (k > n) return 1;
+    if (p > 1 || p < 0) return 1;
+
+    double w = 1;   //neutral element of multiplication
+
+    // n choose k part
+    for (int i = n - k + 1; i <= n; ++i) w = w * i;
+    for (int i = 1; i <= k; ++i) w = w / i;
+
+    // p^k * (1-p)^(n-k) part
+    w = w * pow(p, k) * pow(1.0 - p, n - k);
+
+    printf("%lf\n", w);
+    return w;
+}
+
+double cdf(int n, int k, double p){
+    double b = 0
+    double for(int i = 0; int i < k+1, int i++) {
+        b = b+binomial(n,i,p)
+    }
+    return b
+}
+
+
+
+double expectedMaxDegree(int n, double p) {
+    if (n in [0, 1] or p == 0) {
+        return 0
+    }
+    if (n == 2) {
+        return p
+    }
+    int k_max = 0
+
+    xt::xarray<double> probs_k_or_less = xt::xarray<double>(n)
+
+    for(int i = 0; int i < n; int i++) {
+        probs_k_or_less[i] == cdf(n-1,i,p)
+    }
+    
+    xt::xarray<double> probs_at_least_k = xt::concatenate(xtuple({1}, , c), 1)
+    probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
+    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
+    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+
+    # every node has at least degree zero
+    #probs_at_least_one_node[0] = 1
+    # at least one node has degree 1 if the graph is not empty
+    #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
+
+    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+    probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
+    mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
+
+    return mean_k_max
+}
+
+
+def edgeProbabilityAfterTargetedAttack(n, p):
+    '''Calculate edge probability in an Erdos--Renyi network with original size
+    `n` and original edge probability `p` after removing the node with the
+    highest degree.
+
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
+    
+    p : float
+       Edge probability in Erdos Renyi graph.
+       
+    Returns
+    -------
+    new_p (float)
+       Updated edge probability.
+    '''
+    if n <=2:
+        new_p = 0
+
+    else:
+        emd = expectedMaxDegree(n, p)
+        new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+        new_p = max([new_p, 0])
+
+    return new_p
+
+
+
+
+
+
+
+
+
+
+
 int main() {
     // Example usage
     std::unordered_map<double, std::unordered_map<int, std::unordered_map<int, double>>> fdict, pdict;
