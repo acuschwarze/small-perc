@@ -183,7 +183,7 @@ def gradient(nodenumber, probsnumber, removal, mse_type):
 
 # p = 1/(.2*99)
 # print(finiteTheory.relSCurve(p,100,
-#                                  attack=True, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\p-recursion-float128.exe"))
+#                                  attack=True, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\libs\\p-recursion-float128.exe"))
 
 
 #[ 9.93882333e-01  9.92612841e-01  9.91094892e-01  9.89279175e-01

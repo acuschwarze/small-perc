@@ -30,7 +30,7 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
 
-#print(finiteTheory.relSCurve(.0505, 100, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\p-recursion.exe"))
+#print(finiteTheory.relSCurve(.0505, 100, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\libs\\p-recursion.exe"))
 #print(finiteTheory.relSCurve(.06756, 75, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"))
 #print(finiteTheory.relSCurve(.06756, 75, attack=False, fdict=fvals, pdict=pvals, lcc_method_relS="alice"))
 #
