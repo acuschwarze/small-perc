@@ -13,6 +13,7 @@
 #
 ###############################################################################
 
+import os
 import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomialDistribution
