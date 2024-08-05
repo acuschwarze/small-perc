@@ -1,3 +1,5 @@
+# collect data from simulating node removal on 1600+ networks
+
 import os
 import pandas as pd
 import numpy as np

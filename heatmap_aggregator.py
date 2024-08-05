@@ -1,3 +1,5 @@
+# aggregate data from 2d parameter sweep for finite theory and simulations
+
 import os
 import numpy as np
 

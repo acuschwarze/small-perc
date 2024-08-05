@@ -1,3 +1,6 @@
+# conduct a 2d parameter sweep for n and p of the expected LCC size under node removal
+# expected LCC size is computed using the finite theory
+
 import sys, pickle, time, os
 sys.path.insert(0, "C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\libs")
 
