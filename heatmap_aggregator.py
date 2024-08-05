@@ -3,9 +3,9 @@
 import os
 import numpy as np
 
-def aggregate_data(num_nodes, attack_flag):
-    base_dir = "data/heatmaps"
-    result_dir = "data/heatmaps"
+def aggregate_data(num_nodes, attack_flag, finite=True):
+    base_dir = "data/synthetic_data"
+    result_dir = "data/synthetic_data"
     
     # Prepare the result array
     result_array = np.zeros((100, num_nodes))
@@ -17,7 +17,12 @@ def aggregate_data(num_nodes, attack_flag):
         if not os.path.exists(subfolder):
             continue
 
-        filename = f"relSCurve_attack{attack_flag}_n{num_nodes}_p{probability:.2f}.npy"
+        if finite:
+            fstring = "relSCurve"
+        else:
+            fstring = f"infRelSCurve"
+
+        filename = f"{fstring}_attack{attack_flag}_n{num_nodes}_p{probability:.2f}.npy"
         file_path = os.path.join(subfolder, filename)
         
         if not os.path.isfile(file_path):
@@ -29,14 +34,14 @@ def aggregate_data(num_nodes, attack_flag):
     
     
     # Save the aggregated array
-    result_filename = f"relSCurve_attack{attack_flag}_n{num_nodes}.npy"
+    result_filename = f"{fstring}_attack{attack_flag}_n{num_nodes}.npy"
     result_filepath = os.path.join(result_dir, result_filename)
     np.save(result_filepath, result_array)
     print(f"Aggregated data saved to {result_filepath}")
 
 def aggregate_data_2d(num_nodes, attack_flag):
-    base_dir = "data/heatmaps"
-    result_dir = "data/heatmaps"
+    base_dir = "data/synthetic_data"
+    result_dir = "data/synthetic_data"
     
     # Prepare the result array
     result_array = np.zeros((100, num_nodes,100))
@@ -69,12 +74,17 @@ def aggregate_data_2d(num_nodes, attack_flag):
     np.save(result_filepath, result_array)
     print(f"Aggregated data saved to {result_filepath}")
 
-if True:
+if False:
     for i in range(1,101):
         aggregate_data_2d(i, True)
         aggregate_data_2d(i, False)
 
-if True:
+if False:
     for i in range(1,101):
         aggregate_data(i, True)
         aggregate_data(i, False)
+
+if True:
+    for i in range(1,101):
+        aggregate_data(i, True, finite=False)
+        aggregate_data(i, False, finite=False)
