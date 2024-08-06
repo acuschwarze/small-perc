@@ -116,7 +116,9 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 #                                  attack=True, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\p-recursion.exe"))
 #one_perc_thresh_table(threshold=.4, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
 
-root = r'C:\Users\jj\Downloads\GitHub\small-perc\nwks small perc'
+from fnmatch import fnmatch
+
+root = r'C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks'
 pattern = "*.adj"
 pattern2 = "*.arc"
 nwks_list2 = []
@@ -131,3 +133,5 @@ for path, subdirs, files in os.walk(root):
 
 df = pd.DataFrame(nwks_list2)
 df.to_csv("nwks_list2")
+print("nwks2")
+print(nwks_list2)

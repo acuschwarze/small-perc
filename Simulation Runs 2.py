@@ -306,6 +306,10 @@ for path, subdirs, files in os.walk(root):
         elif fnmatch(name, pattern2):
             nwks_list2.append(os.path.join(path, name))
 
+df = pd.DataFrame(nwks_list2)
+df.to_csv("nwks_list2")
+print("nwks2")
+print(nwks_list2)
 # main?
 #
 # import time
