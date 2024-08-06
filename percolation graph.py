@@ -114,4 +114,20 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 # p=1/(.4*9)
 # print(finiteTheory.relSCurve(p,10,
 #                                  attack=True, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\p-recursion.exe"))
-one_perc_thresh_table(threshold=.4, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
+#one_perc_thresh_table(threshold=.4, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
+
+root = r'C:\Users\jj\Downloads\GitHub\small-perc\nwks small perc'
+pattern = "*.adj"
+pattern2 = "*.arc"
+nwks_list2 = []
+
+for path, subdirs, files in os.walk(root):
+    for name in files:
+        if fnmatch(name, pattern):
+            # print(os.path.join(path, name))
+            nwks_list2.append(os.path.join(path, name))
+        elif fnmatch(name, pattern2):
+            nwks_list2.append(os.path.join(path, name))
+
+df = pd.DataFrame(nwks_list2)
+df.to_csv("nwks_list2")
