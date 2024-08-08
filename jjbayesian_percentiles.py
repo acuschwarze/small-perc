@@ -286,36 +286,39 @@ y_array_t = np.zeros(len(top20_i))
 import os
 
 indices = pd.read_pickle("bayesian indices")
-print("indices")
-print(indices)
-print(indices[0])
-print('iloc')
-print(indices.iloc[0][0])
-for i_b in bottom20_i:
-    new_ib = indices.iloc[i_b][0]
-    #print("file1",nwks_list2.iloc[i_b][1])
-    file = nwks_list2.iloc[new_ib][1]
-    #file2 = file2.replace("C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks", '')
-    #print("file2",file)
-    #file = file[60:]
-    #print("file3",file2)
-    values = mega_file_reader2(removal = "random", adj_list = [file])
-    print(file)
-    print("val",values)
-    print("averaged data",values[0])
-    print("fin", values[1])
-    y = ((values[0]- values[1]) ** 2).mean()
-    y_array_b[i_b] = y
+# print("indices")
+# print(indices)
+# print(indices[0])
+# print('iloc')
+# print(indices.iloc[0][0])
 
-y_array_bdf = pd.DataFrame(y_array_b)
-y_array_bdf.to_pickle("bayesian mse bottom 20")
+# for i_b in range(len(bottom20_i)):
+#     new_ib = indices.iloc[bottom20_i[i_b]][0]
+#     #print("file1",nwks_list2.iloc[i_b][1])
+#     file = nwks_list2.iloc[new_ib][1]
+#     if nodecount_edge(file_name = file) <= 30:
+#     #file2 = file2.replace("C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks", '')
+#     #print("file2",file)
+#     #file = file[60:]
+#     #print("file3",file2)
+#       values = mega_file_reader2(removal = "random", adj_list = [file])
+#       print(file)
+#       print("val",values)
+#       print("averaged data",values[0])
+#       print("fin", values[1])
+#       y = ((values[0]- values[1]) ** 2).mean()
+#       y_array_b[i_b] = y
 
-for i_t in top20_i:
-    new_it = indices.iloc[i_t]
+# y_array_bdf = pd.DataFrame(y_array_b)
+# y_array_bdf.to_pickle("bayesian mse bottom 20")
+
+for i_t in range(len(top20_i)):
+    new_it = indices.iloc[top20_i[i_t]][0]
     file = nwks_list2.iloc[new_it][1]
-    values = mega_file_reader2(removal = "random", adj_list = [nwks_list2.iloc[i_t]])
-    y = ((values[0]- values[1]) ** 2).mean()
-    y_array_t[i_t] = y
+    if nodecount_edge(file_name = file) <= 30:
+      values = mega_file_reader2(removal = "random", adj_list = [file])
+      y = ((values[0]- values[1]) ** 2).mean()
+      y_array_t[i_t] = y
 
 y_array_tdf = pd.DataFrame(y_array_t)
 y_array_tdf.to_pickle("bayesian mse top 20")
