@@ -331,7 +331,7 @@ def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
     return output
 
 
-def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path=None):
+def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path='p-recursion.exe'):
     '''Load or compute the expected size of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
     equations for percolation in finite networks.
@@ -369,7 +369,7 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path=N
         return S
 
 
-def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path=None):
+def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path='p-recursion.exe'):
     '''Sequence of the expected sizes of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
     removing nodes sequentially, either uniformly at random or (adaptively) 
@@ -427,7 +427,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
     return S
 
 
-def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_relS = "pmult", executable_path=None):
+def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_relS = "pmult", executable_path='p-recursion.exe'):
     '''Sequence of the expected relative sizes of the largest connected 
     component of an Erdos--Renyi random graph with `n` nodes and edge 
     probability `p` when removing nodes sequentially, either uniformly at

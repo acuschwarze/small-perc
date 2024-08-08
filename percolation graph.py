@@ -130,11 +130,11 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     for i in range(len(nodes_array)):
         prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
 
-    fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
-                      graph_types=['ER'], remove_strategies=removal,
-                      performance='relative LCC', num_trials=100,
-                      smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
-                      simbool=True)
+    #fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
+    #                  graph_types=['ER'], remove_strategies=removal,
+    #                  performance='relative LCC', num_trials=100,
+    #                  smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
+    #                  simbool=True)
 
     for j in range(len(nodes_array)):
         sim_data = completeRCData(numbers_of_nodes=[nodes_array[j]],
@@ -158,19 +158,28 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
         one_perc_table[j][1] = prob_array[j]
         one_perc_table[j][2] = line_data
         one_perc_table[j][3] = finiteTheory.relSCurve(prob_array[j], nodes_array[j],
-                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion.exe')
         if j != 0:
             plt.plot(removed_fraction, line_data,
                      'o', label="n={} , p={}".format(nodes_array[j], prob_array[j]), color=colors[j])
             plt.plot(np.arange(nodes_array[j]) / nodes_array[j],
                      finiteTheory.relSCurve(prob_array[j], nodes_array[j],
-                                            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"),
+                                            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion.exe'),
                      label="n: " + str(nodes_array[j]), color=colors[j])
 
-    plt.legend()
-    fig.savefig("percolation_graph"+str(percthresh)+ ".png")
+    #plt.legend()
+    #fig.savefig("percolation_graph"+str(percthresh)+ ".png")
     df = pd.DataFrame(one_perc_table)
     df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
     return df
 
-one_perc_thresh_table(threshold=.4, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
+
+n = int(sys.argv[1])
+threshold = float(sys.argv[2])
+r = sys.argv[3]
+
+df = one_perc_thresh_table(threshold=threshold, 
+                           nodes=[n], #[10, 15, 25, 50, 75, 100], 
+                           removal=[r])
+
+df.to_pickle('percolation_{}_n{}_t{}.p'.format(r, n, threshold))
