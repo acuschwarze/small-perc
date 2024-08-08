@@ -293,7 +293,7 @@ def table_info(theory=False, nwks_list=["dolphin.adj"]):
 # print("done")
 from fnmatch import fnmatch
 
-root = r'C:\Users\jj\Downloads\GitHub\small-perc\nwks small perc'
+root = r'C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks'
 pattern = "*.adj"
 pattern2 = "*.arc"
 nwks_list2 = []
@@ -524,6 +524,9 @@ def mega_file_reader(theory = False, removal = "random", adj_list = ["taro.txt"]
 
 
 # plot some together with similar sizes
+nwks_list2 = pd.read_csv("nwks_list2")
+cwd = os.getcwd() 
+print("Current working directory:", cwd) 
 
 
 
@@ -1148,7 +1151,9 @@ def check_space(string):
     return count
 
 def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplot = False):
+
     for file_name in adj_list:
+        #file_name = open(os.path.join(file_path,file_name), "r")
         print(str(file_name))
         file = open(file_name, "r")
         #content = file.readlines()
@@ -1195,13 +1200,13 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 product = 1
                 for i_d in range(len(degrees)):
                     d = degrees[i_d][1]
-                    print("d", d)
+                    #print("d", d)
                     product *= scipy.special.comb(n - 1, d) * (p ** d) * (1 - p) ** (n - 1 - d)
-                    print("i_d", i_d)
+                    #print("i_d", i_d)
                 nx.draw(G_0)
                 # plt.show()
                 freq = nx.degree_histogram(G_0)
-                print(freq)
+                #print(freq)
                 for f in freq:
                     product /= math.factorial(f)
                 product = product * math.factorial(n)
@@ -1227,13 +1232,13 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 n = len(content) + k
                 adj1 = np.zeros((len(content), k))
                 adj = np.zeros((n, n))
-                print("adj beg", adj)
+                #print("adj beg", adj)
 
                 for i in range(len(content)):
                     edge = content[i].strip()
                     edge = edge.split("\t")
-                    print("edge")
-                    print(edge)
+                    #print("edge")
+                    #print(edge)
 
                     for j in range(len(edge)):
                         e = int(float(edge[j]))
@@ -1244,18 +1249,18 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                         else:
                             adj1[i, j] = 0
                             
-                print("adj", adj)
-                print("check2")
-                print(adj)
+                #print("adj", adj)
+                #print("check2")
+                #print(adj)
                 G_0 = nx.from_numpy_array(adj)
                 p = len(edge_list) / scipy.special.comb(n, 2)
                 degrees = list(G_0.degree())
                 product = 1
                 for i_d in range(len(degrees)):
                     d = degrees[i_d][1]
-                    print("d",d)
+                    #print("d",d)
                     product *= scipy.special.comb(n-1,d)*(p**d)*(1-p)**(n-1-d)
-                    print("i_d",i_d)
+                    #print("i_d",i_d)
                 nx.draw(G_0)
                 #plt.show()
                 freq = nx.degree_histogram(G_0)
@@ -1277,11 +1282,28 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 # bayesian_array = np.zeros(len(nwks_list2),dtype=object)
 # nodes_array = np.zeros(len(nwks_list2),dtype=object)
 # probs_array = np.zeros(len(nwks_list2),dtype=object)
-# counter=0
+nwks_list2 = pd.read_csv("nwks_list2")
+bayesian_indices = []
+counter=0
 # for nwk in nwks_list2:
-#     print(nwk)
-#     data = bayesian(theory=False, removal = "random", adj_list = [nwk], oneplot = False)
+# #     print(nwk)
+#     nwkname = nwks_list2.iloc[counter][1]
+#     data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
 #     if data == ("None", "None","None"):
+#         counter+=1
+#     else:
+#         bayesian_indices.append(counter)
+#         print("add", counter)
+#         counter+=1
+        
+for i in range(len(nwks_list2)):
+    nwkname = nwks_list2.iloc[i][1]
+    data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
+    if data != ("None", "None","None"):
+        bayesian_indices.append(i)
+        #print("add", counter)
+        
+
 #         # bayesian_array = np.delete(bayesian_array,counter)
 #         # nodes_array = np.delete(nodes_array,counter)
 #         probs_array = np.delete(probs_array,counter)
@@ -1291,6 +1313,8 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 #         # nodes_array[counter] = data[1]
 #         probs_array[counter] = data[2]
 #     counter += 1
+indices = pd.DataFrame(bayesian_indices)
+indices.to_pickle("bayesian indices")
 # probs = pd.DataFrame(probs_array)
 # probs.to_pickle("bayesian probs")
 
@@ -1299,18 +1323,23 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 # bayesian_nodes = pd.DataFrame(nodes_array)
 # bayesian_nodes.to_pickle("bayesian nodes")
 #
-bayesian_array = pd.read_pickle("bayesian array")
-#print(bayesian_array)
-# nodes_array = pd.read_pickle("bayesian nodes")
-#
-fig = plt.figure(figsize=(8, 8))
-probs_array = pd.read_pickle("bayesian probs")
-print(probs_array)
-plt.xlabel("probs")
-plt.ylabel("bayesian prob")
-plt.plot(probs_array,bayesian_array,'o')
-plt.legend()
-plt.savefig("bayesian probs plot")
+
+# commented out 8/8
+# bayesian_array = pd.read_pickle("bayesian array")
+# #print(bayesian_array)
+# # nodes_array = pd.read_pickle("bayesian nodes")
+# #
+# fig = plt.figure(figsize=(8, 8))
+# probs_array = pd.read_pickle("bayesian probs")
+# print(probs_array)
+# plt.xlabel("probs")
+# plt.ylabel("bayesian prob")
+# plt.plot(probs_array,bayesian_array,'o')
+# plt.legend()
+# plt.savefig("bayesian probs plot")
+
+
+
 # plt.xlabel('nodes')
 # plt.ylabel("bayesian prob")
 # plt.plot(nodes_array,bayesian_array,'o')
