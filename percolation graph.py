@@ -114,24 +114,63 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 # p=1/(.4*9)
 # print(finiteTheory.relSCurve(p,10,
 #                                  attack=True, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",executable_path = "C:\\Users\\jj\\Downloads\\GitHub\\small-perc\\p-recursion.exe"))
-#one_perc_thresh_table(threshold=.4, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])
 
-from fnmatch import fnmatch
+def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=["attack"]):
+    one_perc_table = np.zeros((len(nodes), 4), dtype=object)
 
-root = r'C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks'
-pattern = "*.adj"
-pattern2 = "*.arc"
-nwks_list2 = []
+    if removal == ["random"]:
+        remove_bool = False
+    elif removal == ["attack"]:
+        remove_bool = True
+    percthresh = threshold
+    nodes_array = nodes
+    prob_array = np.zeros(len(nodes_array))
+    colors = ["red", "orange", "yellow", "green", "purple", "magenta", "cyan"]
 
-for path, subdirs, files in os.walk(root):
-    for name in files:
-        if fnmatch(name, pattern):
-            # print(os.path.join(path, name))
-            nwks_list2.append(os.path.join(path, name))
-        elif fnmatch(name, pattern2):
-            nwks_list2.append(os.path.join(path, name))
+    for i in range(len(nodes_array)):
+        prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
 
-df = pd.DataFrame(nwks_list2)
-df.to_csv("nwks_list2")
-print("nwks2")
-print(nwks_list2)
+    fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
+                      graph_types=['ER'], remove_strategies=removal,
+                      performance='relative LCC', num_trials=100,
+                      smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
+                      simbool=True)
+
+    for j in range(len(nodes_array)):
+        sim_data = completeRCData(numbers_of_nodes=[nodes_array[j]],
+                                  edge_probabilities=[prob_array[j]], num_trials=100,
+                                  performance='relative LCC', graph_types=['ER'],
+                                  remove_strategies=removal)
+        data_array = np.array(sim_data[0][0][0][0])
+
+        # exclude the first row, because it is the number of nodes
+        data_array = data_array[1:]
+
+        # this can prevent some sort of bug about invalid values
+        for val in []:
+            data_array[data_array == val] = np.nan
+
+        # plot simulated data
+        removed_fraction = np.arange(nodes_array[j]) / nodes_array[j]
+        line_data = np.nanmean(data_array, axis=0)
+
+        one_perc_table[j][0] = nodes_array[j]
+        one_perc_table[j][1] = prob_array[j]
+        one_perc_table[j][2] = line_data
+        one_perc_table[j][3] = finiteTheory.relSCurve(prob_array[j], nodes_array[j],
+                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult")
+        if j != 0:
+            plt.plot(removed_fraction, line_data,
+                     'o', label="n={} , p={}".format(nodes_array[j], prob_array[j]), color=colors[j])
+            plt.plot(np.arange(nodes_array[j]) / nodes_array[j],
+                     finiteTheory.relSCurve(prob_array[j], nodes_array[j],
+                                            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult"),
+                     label="n: " + str(nodes_array[j]), color=colors[j])
+
+    plt.legend()
+    fig.savefig("percolation_graph"+str(percthresh)+ ".png")
+    df = pd.DataFrame(one_perc_table)
+    df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
+    return df
+
+one_perc_thresh_table(threshold=.4, nodes=[10, 15, 25, 50, 75, 100], removal=["attack"])

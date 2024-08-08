@@ -165,7 +165,7 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
                      label="n: " + str(nodes_array[j]), color=colors[j])
 
     plt.legend()
-    fig.savefig("testfig.png")
+    fig.savefig("percolation_graph"+str(percthresh)+ ".png")
     df = pd.DataFrame(one_perc_table)
     df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
     return df

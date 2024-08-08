@@ -382,3 +382,4 @@ bottom20x = list(filter(lambda x : x <= 30, bottom20x1))
 
 plt.plot(top20x,y_array_t, marker = "x", color = "red")
 plt.plot(bottom20x,y_array_b, marker = "x", color = "green")
+
