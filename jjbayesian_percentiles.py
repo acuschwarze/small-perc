@@ -29,6 +29,8 @@ fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 nwks_list2 = pd.read_csv("nwks_list2")
+print(len(nwks_list2))
+
 print(nwks_list2.iloc[0])
 cwd = os.getcwd() 
 print("Current working directory:", cwd) 
@@ -280,34 +282,37 @@ top20_i =[   8,   17,   25,   26,   27,   28,   29,   30,   37,   59,   62,   63
  1518, 1519, 1520, 1521, 1522, 1526, 1543, 1544, 1561, 1562, 1582, 1583, 1584, 1585,
  1586, 1587]
  
-y_array_b = np.zeros(len(bottom20_i))
-y_array_t = np.zeros(len(top20_i))
+y_array_b = []
+y_array_t = []
+bottom_nodes = []
+top_nodes = []
 
 import os
 
 indices = pd.read_pickle("bayesian indices")
-# print("indices")
-# print(indices)
-# print(indices[0])
-# print('iloc')
-# print(indices.iloc[0][0])
+print("indices")
+print(indices)
+print(indices[0])
+print('iloc')
+print(indices.iloc[0][0])
 
 # for i_b in range(len(bottom20_i)):
 #     new_ib = indices.iloc[bottom20_i[i_b]][0]
 #     #print("file1",nwks_list2.iloc[i_b][1])
 #     file = nwks_list2.iloc[new_ib][1]
 #     if nodecount_edge(file_name = file) <= 30:
-#     #file2 = file2.replace("C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks", '')
-#     #print("file2",file)
-#     #file = file[60:]
-#     #print("file3",file2)
+    #file2 = file2.replace("C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks", '')
+    #print("file2",file)
+    #file = file[60:]
+    #print("file3",file2)
+      # bottom_nodes.append(nodecount_edge(file_name=file))
 #       values = mega_file_reader2(removal = "random", adj_list = [file])
 #       print(file)
 #       print("val",values)
 #       print("averaged data",values[0])
 #       print("fin", values[1])
 #       y = ((values[0]- values[1]) ** 2).mean()
-#       y_array_b[i_b] = y
+#       y_array_b.append(y)
 
 # y_array_bdf = pd.DataFrame(y_array_b)
 # y_array_bdf.to_pickle("bayesian mse bottom 20")
@@ -316,15 +321,55 @@ indices = pd.read_pickle("bayesian indices")
 #     new_it = indices.iloc[top20_i[i_t]][0]
 #     file = nwks_list2.iloc[new_it][1]
 #     if nodecount_edge(file_name = file) <= 30:
+#       top_nodes.append(nodecount_edge(file_name=file))
 #       values = mega_file_reader2(removal = "random", adj_list = [file])
 #       y = ((values[0]- values[1]) ** 2).mean()
-#       y_array_t[i_t] = y
+#       y_array_t.append(y)
 
 # y_array_tdf = pd.DataFrame(y_array_t)
 # y_array_tdf.to_pickle("bayesian mse top 20")
 
+# bottom_nodesdf = pd.DataFrame(bottom_nodes)
+# bottom_nodesdf.to_pickle("bottom nodes")
+
+# top_nodesdf = pd.DataFrame(top_nodes)
+# top_nodesdf.to_pickle("top nodes")
+
 top_indices = pd.read_pickle("bayesian mse top 20")
 bottom_indices = pd.read_pickle("bayesian mse bottom 20")
+
+bottom = pd.read_pickle("bottom nodes")
+top = pd.read_pickle('top nodes')
+
+xb = np.zeros(len(bottom))
+xt = np.zeros(len(top))
+
+print("lenbottom",len(bottom))
+for k in range(len(bottom)):  
+  print(bottom.iloc[k][0])
+  xb[k] = bottom.iloc[k][0]
+
+for l in range(len(top)):
+    xt[l] = top.iloc[l][0]
+
+
+
+top_y = np.zeros(len(top_indices))
+bot_y = np.zeros(len(bottom_indices))
+
+
+print('bot')
+print(bottom_indices.iloc[0][0])
+
+for i in range(len(top_indices)):
+  top_y[i] = top_indices.iloc[i][0]
+
+
+for j in range(len(bottom_indices)):
+  bot_y[j] = bottom_indices.iloc[j][0]
+
+print("boty")
+print(bot_y)
 
 
 top20x1 = [ 45.,  28.,  40.,  62.,  67.,  49.,  50.,  50.,  49.,  71.,  75.,  74.,   4.,  40.,
@@ -352,6 +397,7 @@ top20x1 = [ 45.,  28.,  40.,  62.,  67.,  49.,  50.,  50.,  49.,  71.,  75.,  74
   38.,  24.]
 
 top20x = list(filter(lambda x : x <= 30, top20x1))
+#print("top20x",top20x)
 
 bottom20x1 = [ 16.,  75.,  34.,  92.,  92.,  64.,  43.,  28.,  86.,  43.,  34.,  27.,  44.,  28.,
   16.,  15.,  25.,  13.,  48.,  38.,  45.,  23.,  16.,  27.,  23.,  32.,  63.,  59.,
@@ -379,7 +425,182 @@ bottom20x1 = [ 16.,  75.,  34.,  92.,  92.,  64.,  43.,  28.,  86.,  43.,  34., 
   27.,  25.]
 
 bottom20x = list(filter(lambda x : x <= 30, bottom20x1))
+# print("bottom20x",bottom20x)
+# print(len(bottom20x))
+bottom20x = np.array(bottom20x)
+bot_y = np.array(bot_y)
 
-plt.plot(top20x,y_array_t, marker = "x", color = "red")
-plt.plot(bottom20x,y_array_b, marker = "x", color = "green")
+print("bot20x",bottom20x.shape)
+print("boty",(bot_y.shape))
+print(bottom20x)
 
+plt.plot(xt,top_y,'x',color= "red", label="top 20")
+plt.plot(xb,bot_y,'x',color= "blue", label="bottom 20")
+plt.xlabel("nodes")
+plt.ylabel('mse')
+plt.legend()
+#plt.show()
+# plt.plot(top20x,top_y, marker = "x", color = "red")
+# plt.plot(bottom20x,bot_y, marker = "x", color = "green")
+
+# bnodes = pd.read_pickle("bottom nodes")
+# print("bnodes",bnodes)
+# print(bnodes.iloc[1])
+# tnodes = pd.read_pickle("top nodes")
+# print("tnodes",tnodes)
+# print("1st",tnodes.iloc[1])
+
+
+# 16
+# 28
+# 27
+# 28
+# 16
+# 15
+# 25
+# 13
+# 23
+# 16
+# 27
+# 23
+# 18
+# 15
+# 24
+# 18
+# 15
+# 24
+# 27
+# 20
+# 30
+# 16
+# 18
+# 10
+# 17
+# 29
+# 19
+# 12
+# 12
+# 8
+# 17
+# 22
+# 23
+# 23
+# 27
+# 13
+# 19
+# 19
+# 22
+# 23
+# 25
+# 25
+# 27
+# 15
+# 21
+# 25
+# 23
+# 22
+# 23
+# 29
+# 16
+# 13
+# 30
+# 29
+# 28
+# 25
+# 24
+# 24
+# 23
+# 17
+# 16
+# 26
+# 15
+# 16
+# 16
+# 14
+# 8
+# 23
+# 14
+# 14
+# 30
+# 28
+# 13
+# 16
+# 26
+# 19
+# 23
+# 23
+# 24
+# 27
+# 28
+# 20
+# 20
+# 20
+# 21
+# 21
+# 29
+# 29
+# 29
+# 24
+# 24
+# 24
+# 24
+# 24
+# 13
+# 12
+# 21
+# 12
+# 16
+# 24
+# 20
+# 20
+# 30
+# 27
+# 12
+# 26
+# 26
+# 20
+# 20
+# 30
+# 12
+# 12
+# 11
+# 14
+# 16
+# 12
+# 30
+# 22
+# 22
+# 24
+# 24
+# 16
+# 24
+# 12
+# 18
+# 10
+# 11
+# 19
+# 24
+# 27
+# 16
+# 18
+# 24
+# 12
+# 18
+# 12
+# 18
+# 24
+# 24
+# 30
+# 12
+# 30
+# 24
+# 24
+# 24
+# 19
+# 9
+# 16
+# 25
+# 9
+# 29
+# 27
+# 25

@@ -211,3 +211,6 @@ def gradient(nodenumber, probsnumber, removal, mse_type):
 #   8.33333333e-02  9.09090909e-02  1.00000000e-01  1.11111111e-01
 #   1.25000000e-01  1.42857143e-01  1.66666667e-01  2.00000000e-01
 #   2.50000000e-01  3.33333333e-01  5.00000000e-01  1.00000000e+00]
+
+print(finiteTheory.relSCurve(.3,4,attack=False, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",
+                                       executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"))

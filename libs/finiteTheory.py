@@ -50,7 +50,7 @@ def execute_executable(executable_path):
         
         # Extract the output
         output = result.stdout.strip()
-        print("EE Output", output)
+        #print("EE Output", output)
         return output
     except subprocess.CalledProcessError as e:
         # Handle if the executable returns a non-zero exit code
