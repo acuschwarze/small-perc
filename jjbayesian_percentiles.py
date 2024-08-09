@@ -430,15 +430,15 @@ bottom20x = list(filter(lambda x : x <= 30, bottom20x1))
 bottom20x = np.array(bottom20x)
 bot_y = np.array(bot_y)
 
-print("bot20x",bottom20x.shape)
-print("boty",(bot_y.shape))
-print(bottom20x)
+# print("bot20x",bottom20x.shape)
+# print("boty",(bot_y.shape))
+# print(bottom20x)
 
-plt.plot(xt,top_y,'x',color= "red", label="top 20")
-plt.plot(xb,bot_y,'x',color= "blue", label="bottom 20")
-plt.xlabel("nodes")
-plt.ylabel('mse')
-plt.legend()
+# plt.plot(xt,top_y,'x',color= "red", label="top 20")
+# plt.plot(xb,bot_y,'x',color= "blue", label="bottom 20")
+# plt.xlabel("nodes")
+# plt.ylabel('mse')
+# plt.legend()
 #plt.show()
 # plt.plot(top20x,top_y, marker = "x", color = "red")
 # plt.plot(bottom20x,bot_y, marker = "x", color = "green")
@@ -449,6 +449,13 @@ plt.legend()
 # tnodes = pd.read_pickle("top nodes")
 # print("tnodes",tnodes)
 # print("1st",tnodes.iloc[1])
+mean_top = np.mean(top_y)
+print(mean_top)
+mean_bottom = np.mean(bot_y)
+print(mean_bottom)
+
+
+
 
 
 # 16
