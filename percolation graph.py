@@ -158,13 +158,13 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
         one_perc_table[j][1] = prob_array[j]
         one_perc_table[j][2] = line_data
         one_perc_table[j][3] = finiteTheory.relSCurve(prob_array[j], nodes_array[j],
-                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion.exe')
+                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
         if j != 0:
             plt.plot(removed_fraction, line_data,
                      'o', label="n={} , p={}".format(nodes_array[j], prob_array[j]), color=colors[j])
             plt.plot(np.arange(nodes_array[j]) / nodes_array[j],
                      finiteTheory.relSCurve(prob_array[j], nodes_array[j],
-                                            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion.exe'),
+                                            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe'),
                      label="n: " + str(nodes_array[j]), color=colors[j])
 
     #plt.legend()
