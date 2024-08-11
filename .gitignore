@@ -1,3 +1,5 @@
 
 data/heatmaps/p*/sim*.npy
 #data/heatmaps/sim*.npy
+*.pyc
+/libs/__pycache__

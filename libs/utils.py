@@ -18,6 +18,11 @@ import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomialDistribution
 
+def string2array(s, sep=" "):
+    list_of_nums = [float(x) for x in s.strip('[] ').split(sep)]
+    return np.array(list_of_nums)
+
+
 def degreeFraction(k, G):
     '''Return the value of the fraction of nodes in the graph G that have 
     degree k.
