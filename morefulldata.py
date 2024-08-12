@@ -235,8 +235,8 @@ with open(r'fullData.csv', 'a', newline='') as csvfile:
         if file not in list_names:
             nwks_notdone.append(file)
 
-newdata = fullDataTable(nwks_notdone, num_tries=100, max_size=100, min_counter=0)
-newdata.to_csv("fullData2.csv")
+#newdata = fullDataTable(nwks_notdone, num_tries=100, max_size=100, min_counter=0)
+#newdata.to_csv("fullData2.csv")
 
 
 # with open(r'fullData.csv', 'a', newline='') as csvfile:

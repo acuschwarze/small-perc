@@ -19,7 +19,7 @@ import numpy as np
 from scipy.stats import binom as binomialDistribution
 
 def string2array(s, sep=" "):
-    list_of_nums = [float(x) for x in s.strip('[] ').split(sep)]
+    list_of_nums = [float(x) for x in s.strip('[] ').split(sep) if x != '']
     return np.array(list_of_nums)
 
 

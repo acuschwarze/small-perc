@@ -174,12 +174,62 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     return df
 
 
-n = int(sys.argv[1])
-threshold = float(sys.argv[2])
-r = sys.argv[3]
+# n = int(sys.argv[1])
+# threshold = float(sys.argv[2])
+# r = sys.argv[3]
 
-df = one_perc_thresh_table(threshold=threshold, 
-                           nodes=[n], #[10, 15, 25, 50, 75, 100], 
-                           removal=[r])
+# df = one_perc_thresh_table(threshold=threshold, 
+#                            nodes=[n], #[10, 15, 25, 50, 75, 100], 
+#                            removal=[r])
 
-df.to_pickle('percolation_{}_n{}_t{}.p'.format(r, n, threshold))
+# df.to_pickle('percolation_{}_n{}_t{}.p'.format(r, n, threshold))
+
+
+# colors = ['red','blue','orange','green','purple','cyan']
+# fig = plt.figure(figsize=(8, 8))
+# perc_rand = pd.read_pickle("percolation_random")
+# nodes = perc_rand.nodes.values
+# data = perc_rand.loc[:,"fin theory RLCC"]
+# sim = perc_rand.loc[:,'simulated RLCC']
+# n = len(perc_rand.nodes.values)
+# for j in range(n):
+#     nodes_array = np.arange(nodes[j], dtype=float)/nodes[j]
+#     plt.plot(nodes_array, data[j], color = colors[j])
+#     plt.plot(nodes_array,sim[j],'o',color = colors[j])
+# p = 1/(.2*(100-1))
+# plt.plot(nodes_array, infiniteTheory.relSCurve(100, p,
+#                             attack=False, smooth_end=False), label = "inf theory")
+# plt.xlabel("percent nodes removed")
+# plt.ylabel("relative LCC")
+# plt.title("relative LCC over nodes removed randomly")
+# plt.savefig("one_perc_graph_random")
+
+
+colors = ['red','blue','orange','green','purple','cyan']
+fig = plt.figure(figsize=(8, 8))
+
+pa_10 = pd.read_pickle("percolation_attack_n10_t0.4.p" )
+pa_15 = pd.read_pickle("percolation_attack_n15_t0.4.p" )
+pa_25 = pd.read_pickle("percolation_attack_n25_t0.4.p")
+pa_50 = pd.read_pickle("percolation_attack_n50_t0.4.p" )
+pa_75 = pd.read_pickle("percolation_attack_n75_t0.4.p" )
+pa_100 = pd.read_pickle("percolation_attack_n100_t0.4.p" )
+list_files = [pa_10,pa_15,pa_25,pa_50,pa_75,pa_100]
+
+for i in range(len(list_files)):
+    n = list_files[i].iloc[0][0]
+    nodes_array = np.arange(n) / n
+    sim = list_files[i].iloc[0][2]
+    fin = list_files[i].iloc[0][3]
+    plt.plot(nodes_array, fin, color = colors[i])
+    plt.plot(nodes_array, sim,'o',color = colors[i])
+
+p = 1/(.4*(100-1))
+plt.plot(nodes_array, infiniteTheory.relSCurve(100, p,
+                            attack=True, smooth_end=False), label = "inf theory")
+plt.xlabel("percent nodes removed")
+plt.ylabel("relative LCC")
+plt.title("relative LCC over nodes removed targeted")
+plt.savefig("one_perc_graph_attack_pointfour")
+
+
