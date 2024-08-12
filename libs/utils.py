@@ -300,7 +300,7 @@ def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finit
     data_array = np.load(file_path)
 
     # Calculate the row index k
-    k = int(round(p / 0.01))
+    k = int(round(p / 0.01))-1
 
     # Retrieve the k-th row from the data array
     if k < 0 or k >= data_array.shape[0]:

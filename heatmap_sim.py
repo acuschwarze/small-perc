@@ -22,14 +22,14 @@ pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
 
 # get p from command line
 p = float(sys.argv[1])
-attack = True
+attack = False
 
 if attack:
     remove_strategies = ['attack']
 else:
     remove_strategies = ['random']
 
-path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'heatmaps', 'p{:.2f}'.format(p))
+path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'synthetic_data', 'p{:.2f}'.format(p))
 if not os.path.exists(path):
     os.mkdir(path)
 
@@ -41,8 +41,10 @@ for i in range(0,100,1):
 
     print ('Number of nodes:', n)
     data = completeRCData(numbers_of_nodes=[n], edge_probabilities=[p],
-        num_trials=100, performance='largest_connected_component',
-        graph_types=['ER'], remove_strategies=remove_strategies)
+        num_trials=100, performance='relative LCC',
+        graph_types=['ER'], remove_strategies=remove_strategies)[0][0][0][0][1:]
+    #data = 
+    print('data', np.array(data).shape)
 
     np.save(os.path.join(path,'{}.npy'.format(name)), data)
 

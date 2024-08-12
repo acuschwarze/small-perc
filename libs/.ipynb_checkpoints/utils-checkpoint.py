@@ -13,9 +13,15 @@
 #
 ###############################################################################
 
+import os
 import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomialDistribution
+
+def string2array(s, sep=" "):
+    list_of_nums = [float(x) for x in s.strip('[] ').split(sep) if x != '']
+    return np.array(list_of_nums)
+
 
 def degreeFraction(k, G):
     '''Return the value of the fraction of nodes in the graph G that have 
@@ -248,3 +254,58 @@ def getLCC(G):
     g = G.subgraph(lcc_set).copy()
 
     return g
+
+
+def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True):
+    """
+    Retrieve the finite percolation data from precalculated files for network 
+    sizes 1 to 100 and probabilities between 0.01 and 1.00 (in steps of 0.01).
+
+    If `simulated` is `False`, this function retrieves k-th row of data from
+    the 2D numpy array stored in the file 
+    "data/synthetic_data/relSCurve_attack{targeted_removal}_n{n}.npy"
+    where k is the closest integer to p/0.01.
+
+    If `simulated` is `True`, this function retrieves k-th slice of data from
+    the 3D numpy array stored in the file 
+    "data/synthetic_data/simRelSCurve_attack{targeted_removal}_n{n}.npy"
+    where k is the closest integer to p/0.01.
+
+    Parameters:
+    - n (int): The number of nodes.
+    - p (float): The probability value.
+    - targeted_removal (bool, optional): Whether the removal is targeted. 
+        Default is False.
+    - simulated (bool, optional): Whether to retrieve simulated data. 
+        Default is False.
+
+    Returns:
+    - numpy.ndarray: 1D of length n+1 or 2D array of shape (n+1,100)
+    """
+
+    # Define the path to the data file
+    if simulated:
+        fstring = "simRelSCurve"
+    elif finite:
+        fstring = "relSCurve"
+    else:
+        fstring = "infRelSCurve"
+
+    file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
+
+      
+    file_path = os.path.join("data", "synthetic_data", file_name)
+
+    # Load the numpy array from the file
+    data_array = np.load(file_path)
+
+    # Calculate the row index k
+    k = int(round(p / 0.01))-1
+
+    # Retrieve the k-th row from the data array
+    if k < 0 or k >= data_array.shape[0]:
+        shape = data_array.shape
+        verr = "p={} is out of bounds for array with shape {}".format(p,shape)
+        raise ValueError(verr)
+
+    return data_array[k]
