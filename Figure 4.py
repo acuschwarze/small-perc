@@ -74,5 +74,6 @@ ax = plt.axes(projection ='3d')
 #ax.scatter(nodes_array, probs_array, mse_array)
 tri = mtri.Triangulation(nodes_array, probs_array)
 ax.plot_trisurf(nodes_array, probs_array, mse_array, triangles=tri.triangles, cmap=plt.cm.Spectral)
+
 ax.set_title('MSE over n and p')
 plt.show()

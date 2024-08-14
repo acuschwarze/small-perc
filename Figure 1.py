@@ -29,13 +29,13 @@ fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 # random removals
-n=50
+n=20
 nodes = np.arange(n)/n
 p=.08
 p_index = int(p/.01 - 1)
 
 
-fig, axs = plt.subplots(1, 2)
+fig, axs = plt.subplots(1,2, figsize = [7,3.5])
 
 remove_bools = [False,True]
 
@@ -56,7 +56,7 @@ for i in range(len(remove_bools)):
 
     inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=False)
 
-    fin_path = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
+    fin_path = "{}_attack{}_n{}.npy".format("RelSCurve", remove_bool, n)
     fin_path = os.path.join("data", "synthetic_data", fin_path)
     all_fin = np.load(fin_path)
     fin = all_fin[p_index]
@@ -70,15 +70,22 @@ for i in range(len(remove_bools)):
             sim_data[i_nums] = data[j][i_nums]
         std = np.std(sim_data)
         #print(std)
-        std_table[j] = std
+        std_table[j] = std / 10 # 10 for standard error (sqrt100)
         sim_y[j] = np.nanmean(sim_data)
 
-    axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, label = "simulations")
-    axs[i].plot(nodes, inf, label = "infinite theory")
-    axs[i].plot(nodes, fin, label = "finite theory")
-    axs[i].set_title("Fin/Inf Theory: n=" + str(n) + ", p=" + str(p) + ", removal " + str(remove))
-    axs[i].set(xlabel='% nodes removed', ylabel='Rel LCC')
+    axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, label = "simulations", lw=1, color = "red")
+    axs[i].plot(nodes, inf, label = "infinite theory", color = "orange")
+    axs[i].plot(nodes, fin, label = "finite theory", color = "blue")
+    #axs[i].set_title("Fin/Inf Theory: n=" + str(n) + ", p=" + str(p) + ", removal " + str(remove))
+    axs[i].set(xlabel= r'$f$')
+    if i==0:
+        axs[i].set(ylabel= r'$\langle S \rangle $')
+    else:
+        axs[i].set_yticklabels([])
 
+axs[i].legend()
+
+plt.subplots_adjust(left=0.08, right=0.99, bottom=.15, top=0.99, wspace=.1)
 plt.savefig("Fig 1 final")
 
 # inf_rand_path = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
