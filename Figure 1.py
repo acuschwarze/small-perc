@@ -29,9 +29,9 @@ fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 # random removals
-n=20
+n=50
 nodes = np.arange(n)/n
-p=.08
+p=.06
 p_index = int(p/.01 - 1)
 
 

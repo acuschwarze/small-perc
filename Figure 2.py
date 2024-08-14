@@ -68,6 +68,7 @@ for i_n in range(len(nodes_list)):
 
 nodes_list = [10,15,25,50]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
+print(probs_list)
 remove_bool = True
 
 for i_n in range(len(nodes_list)):
