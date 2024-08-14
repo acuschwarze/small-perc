@@ -179,4 +179,4 @@ axs[1,1].set(xlabel='nodes', ylabel='MSE')
 # for ax in axs.flat:
 #     ax.label_outer()
 
-plt.savefig("MSE Final")
+plt.savefig("Fig 3 Final")
