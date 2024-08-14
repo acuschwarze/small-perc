@@ -212,9 +212,9 @@ pa_10 = pd.read_pickle("percolation_attack_n10_t0.4.p" )
 pa_15 = pd.read_pickle("percolation_attack_n15_t0.4.p" )
 pa_25 = pd.read_pickle("percolation_attack_n25_t0.4.p")
 pa_50 = pd.read_pickle("percolation_attack_n50_t0.4.p" )
-pa_75 = pd.read_pickle("percolation_attack_n75_t0.4.p" )
-pa_100 = pd.read_pickle("percolation_attack_n100_t0.4.p" )
-list_files = [pa_10,pa_15,pa_25,pa_50,pa_75,pa_100]
+#pa_75 = pd.read_pickle("percolation_attack_n75_t0.4.p" )
+#pa_100 = pd.read_pickle("percolation_attack_n100_t0.4.p" )
+list_files = [pa_10,pa_15,pa_25,pa_50]
 
 for i in range(len(list_files)):
     n = list_files[i].iloc[0][0]
@@ -224,8 +224,10 @@ for i in range(len(list_files)):
     plt.plot(nodes_array, fin, color = colors[i])
     plt.plot(nodes_array, sim,'o',color = colors[i])
 
-p = 1/(.4*(100-1))
-plt.plot(nodes_array, infiniteTheory.relSCurve(100, p,
+n = 50
+p = 1/(.4*(n-1))
+nodes_array = np.arange(n) / n
+plt.plot(nodes_array, infiniteTheory.relSCurve(n, p,
                             attack=True, smooth_end=False), label = "inf theory")
 plt.xlabel("percent nodes removed")
 plt.ylabel("relative LCC")

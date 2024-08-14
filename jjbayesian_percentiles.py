@@ -754,13 +754,25 @@ print('iloc')
 print(indices.iloc[0][0])
 
 fullData = pd.read_csv("fullData.csv")
-counter_100 = 0
+#counter_100 = 0
+
+
+nwks_100 = []
+for i in range(len(nwks_list2)):
+    if nwks_list2.iloc[i][1] == 100:
+        nwks_100.append(i)
+
+print(nwks_100)
 
 for i_b in range(len(bottom20_i)):
+    counter_100 = 0
+    for j in nwks_100:
+        if j < i_b:
+            counter_100 += 1
     new_ib = indices.iloc[bottom20_i[i_b]-counter_100][0]
     #print("file1",nwks_list2.iloc[i_b][1])
     file = nwks_list2.iloc[new_ib][1]
-    if nodecount_edge(file_name = file) == 100:
+    if nodecount_edge(file_name = file) >= 100:
         counter_100 += 1
     elif nodecount_edge(file_name = file) < 100:
         #file2 = file.replace("C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks", '')
@@ -773,9 +785,13 @@ for i_b in range(len(bottom20_i)):
     #   print("val",values)
     #   print("averaged data",values[0])
     #   print("fin", values[1])
-        print("nodes")
-        print(fullData.iloc[bottom20_i[i_b]-counter_100][1])
-        nodecount_edge(file_name=file)
+        #print("nodes")
+        #print(fullData.iloc[bottom20_i[i_b]-counter_100][1])
+        #print(nodecount_edge(file_name=file))
+        if fullData.iloc[bottom20_i[i_b]-counter_100][1] == nodecount_edge(file_name=file):
+            print("nodes")
+            print(fullData.iloc[bottom20_i[i_b]-counter_100][1])
+            print(nodecount_edge(file_name=file))
         sim = string2array(fullData.iloc[bottom20_i[i_b]-counter_100][3], sep=" ")
         fin = string2array(fullData.iloc[bottom20_i[i_b]-counter_100][5], sep=" ")
         y = ((fin - sim) ** 2).mean()
@@ -785,19 +801,25 @@ y_array_bdf = pd.DataFrame(y_array_b)
 y_array_bdf.to_pickle("bayesian mse bottom 20 (n=100)")
 
 for i_t in range(len(top20_i)):
+    counter_100 = 0
+    for j in nwks_100:
+        if j < i_b:
+            counter_100 += 1
     new_it = indices.iloc[top20_i[i_t]-counter_100][0]
     file = nwks_list2.iloc[new_it][1]
-    if nodecount_edge(file_name = file) == 100:
+    if nodecount_edge(file_name = file) >= 100:
         counter_100 += 1
     elif nodecount_edge(file_name = file) < 100:
-      top_nodes.append(nodecount_edge(file_name=file))
       sim = string2array(fullData.iloc[top20_i[i_t]-counter_100][3], sep=" ")
       fin = string2array(fullData.iloc[top20_i[i_t]-counter_100][5], sep=" ")
-      print("nodes")
-      print(fullData.iloc[top20_i[i_t]-counter_100][1])
-      nodecount_edge(file_name=file)
+      if fullData.iloc[top20_i[i_t]-counter_100][1] == nodecount_edge(file_name=file):
+          print("nodes")
+          print(fullData.iloc[top20_i[i_t]-counter_100][1])
+          print(nodecount_edge(file_name=file))
       y = ((fin - sim) ** 2).mean()
-      y_array_t.append(y)
+      if y < 100:
+        y_array_t.append(y)
+        top_nodes.append(nodecount_edge(file_name=file))
 
 y_array_tdf = pd.DataFrame(y_array_t)
 y_array_tdf.to_pickle("bayesian mse top 20 (n=100)")
