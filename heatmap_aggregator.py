@@ -39,12 +39,12 @@ def aggregate_data(num_nodes, attack_flag, finite=True):
     np.save(result_filepath, result_array)
     print(f"Aggregated data saved to {result_filepath}")
 
-def aggregate_data_2d(num_nodes, attack_flag):
+def aggregate_data_2d(num_nodes, attack_flag, num_trials=100):
     base_dir = "data/synthetic_data"
     result_dir = "data/synthetic_data"
     
     # Prepare the result array
-    result_array = np.zeros((100, num_nodes,100))
+    result_array = np.zeros((100, num_nodes,num_trials))
 
     for i in range(1, 101):
         probability = i / 100
@@ -53,7 +53,8 @@ def aggregate_data_2d(num_nodes, attack_flag):
         if not os.path.exists(subfolder):
             continue
 
-        filename = f"simRelSCurve_attack{attack_flag}_n{num_nodes}_p{probability:.2f}.npy"
+        #filename = f"simRelSCurve_attack{attack_flag}_n{num_nodes}_p{probability:.2f}.npy"
+        filename = f"simRelSCurve{num_trials}_attack{attack_flag}_n{num_nodes}_p{probability:.2f}.npy"
         file_path = os.path.join(subfolder, filename)
         
         if not os.path.isfile(file_path):
@@ -70,15 +71,16 @@ def aggregate_data_2d(num_nodes, attack_flag):
     
     
     # Save the aggregated array
-    result_filename = f"simRelSCurve_attack{attack_flag}_n{num_nodes}.npy"
+    #result_filename = f"simRelSCurve_attack{attack_flag}_n{num_nodes}.npy"
+    result_filename = f"simRelSCurve{num_trials}_attack{attack_flag}_n{num_nodes}.npy"
     result_filepath = os.path.join(result_dir, result_filename)
     np.save(result_filepath, result_array)
     print(f"Aggregated data saved to {result_filepath}")
 
 if True:
     for i in range(1,101):
-        aggregate_data_2d(i, True)
-        aggregate_data_2d(i, False)
+        aggregate_data_2d(i, True, num_trials=1000)
+        aggregate_data_2d(i, False, num_trials=1000)
 
 if False:
     for i in range(1,101):
