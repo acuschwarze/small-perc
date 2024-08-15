@@ -69,11 +69,24 @@ for j in range(num_nwks):
 
 fig = plt.figure()
  
-ax = plt.axes(projection ='3d')
+## 2D stuff
+max = np.max(mse_array)
+print(max)
+med = np.median(mse_array)
+print(med)
+
+    # n vs p with mse as colors
+plt.scatter(nodes_array, probs_array , c=mse_array, s=20, vmin = -.05, vmax = .1, cmap = "Reds")
+
+## 3D stuff
+#ax = plt.axes(projection ='3d')
  
 #ax.scatter(nodes_array, probs_array, mse_array)
-tri = mtri.Triangulation(nodes_array, probs_array)
-ax.plot_trisurf(nodes_array, probs_array, mse_array, triangles=tri.triangles, cmap=plt.cm.Spectral)
 
-ax.set_title('MSE over n and p')
+#tri = mtri.Triangulation(nodes_array, probs_array)
+#ax.plot_trisurf(nodes_array, probs_array, mse_array, triangles=tri.triangles, cmap=plt.cm.Spectral)
+
+#ax.set_title('MSE over n and p')
+
 plt.show()
+

@@ -212,5 +212,33 @@ def gradient(nodenumber, probsnumber, removal, mse_type):
 #   1.25000000e-01  1.42857143e-01  1.66666667e-01  2.00000000e-01
 #   2.50000000e-01  3.33333333e-01  5.00000000e-01  1.00000000e+00]
 
-print(finiteTheory.relSCurve(.3,4,attack=False, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",
-                                       executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"))
+# print(finiteTheory.relSCurve(.3,4,attack=False, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",
+#                                        executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"))
+
+[0.5555555555555556, 0.3571428571428571, 0.20833333333333331, 0.1020408163265306]
+
+fig = plot_graphs(numbers_of_nodes=[10], edge_probabilities=[.56],
+    graph_types=['ER'], remove_strategies=['attack'],
+    performance='relative LCC', num_trials=100,
+    smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "pmult", savefig='')
+plt.plot(np.arange(15)/15,finiteTheory.relSCurve(.36,15,attack=False, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",
+                                        executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"),label="15")
+plt.plot(np.arange(25)/25,finiteTheory.relSCurve(.21,25,attack=False, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",
+                                        executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"),label="25")
+plt.plot(np.arange(50)/50,finiteTheory.relSCurve(.1,50,attack=False, fdict=fvals,pdict=pvals,lcc_method_relS="pmult",
+                                        executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"),label="50")
+# fig = plot_graphs(numbers_of_nodes=[15], edge_probabilities=[.36],
+#     graph_types=['ER'], remove_strategies=['attack'],
+#     performance='relative LCC', num_trials=100,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "pmult", savefig='')
+# plt.show()
+# fig = plot_graphs(numbers_of_nodes=[25], edge_probabilities=[.21],
+#     graph_types=['ER'], remove_strategies=['attack'],
+#     performance='relative LCC', num_trials=100,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "pmult", savefig='')
+# plt.show()
+# fig = plot_graphs(numbers_of_nodes=[50], edge_probabilities=[.1],
+#     graph_types=['ER'], remove_strategies=['attack'],
+#     performance='relative LCC', num_trials=100,
+#     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main = "pmult", savefig='')
+plt.show()

@@ -130,7 +130,7 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     for i in range(len(nodes_array)):
         prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
 
-    #fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
+    # fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
     #                  graph_types=['ER'], remove_strategies=removal,
     #                  performance='relative LCC', num_trials=100,
     #                  smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
@@ -167,11 +167,13 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
                                             attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe'),
                      label="n: " + str(nodes_array[j]), color=colors[j])
 
-    #plt.legend()
+    plt.legend()
+    plt.show()
     #fig.savefig("percolation_graph"+str(percthresh)+ ".png")
-    df = pd.DataFrame(one_perc_table)
-    df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
-    return df
+    
+    # df = pd.DataFrame(one_perc_table)
+    # df.columns = ["nodes", "prob", "simulated RLCC", "fin theory RLCC"]
+    # return df
 
 
 # n = int(sys.argv[1])
@@ -205,33 +207,37 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
 # plt.savefig("one_perc_graph_random")
 
 
-colors = ['red','blue','orange','green','purple','cyan']
-fig = plt.figure(figsize=(8, 8))
-
-pa_10 = pd.read_pickle("percolation_attack_n10_t0.4.p" )
-pa_15 = pd.read_pickle("percolation_attack_n15_t0.4.p" )
-pa_25 = pd.read_pickle("percolation_attack_n25_t0.4.p")
-pa_50 = pd.read_pickle("percolation_attack_n50_t0.4.p" )
-#pa_75 = pd.read_pickle("percolation_attack_n75_t0.4.p" )
-#pa_100 = pd.read_pickle("percolation_attack_n100_t0.4.p" )
-list_files = [pa_10,pa_15,pa_25,pa_50]
-
-for i in range(len(list_files)):
-    n = list_files[i].iloc[0][0]
-    nodes_array = np.arange(n) / n
-    sim = list_files[i].iloc[0][2]
-    fin = list_files[i].iloc[0][3]
-    plt.plot(nodes_array, fin, color = colors[i])
-    plt.plot(nodes_array, sim,'o',color = colors[i])
-
-n = 50
-p = 1/(.4*(n-1))
-nodes_array = np.arange(n) / n
-plt.plot(nodes_array, infiniteTheory.relSCurve(n, p,
-                            attack=True, smooth_end=False), label = "inf theory")
-plt.xlabel("percent nodes removed")
-plt.ylabel("relative LCC")
-plt.title("relative LCC over nodes removed targeted")
-plt.savefig("one_perc_graph_attack_pointfour")
 
 
+#8/12
+# colors = ['red','blue','orange','green','purple','cyan']
+# fig = plt.figure(figsize=(8, 8))
+
+# pa_10 = pd.read_pickle("percolation_attack_n10_t0.4.p" )
+# pa_15 = pd.read_pickle("percolation_attack_n15_t0.4.p" )
+# pa_25 = pd.read_pickle("percolation_attack_n25_t0.4.p")
+# pa_50 = pd.read_pickle("percolation_attack_n50_t0.4.p" )
+# #pa_75 = pd.read_pickle("percolation_attack_n75_t0.4.p" )
+# #pa_100 = pd.read_pickle("percolation_attack_n100_t0.4.p" )
+# list_files = [pa_10,pa_15,pa_25,pa_50]
+
+# for i in range(len(list_files)):
+#     n = list_files[i].iloc[0][0]
+#     nodes_array = np.arange(n) / n
+#     sim = list_files[i].iloc[0][2]
+#     fin = list_files[i].iloc[0][3]
+#     plt.plot(nodes_array, fin, color = colors[i])
+#     plt.plot(nodes_array, sim,'o',color = colors[i])
+
+# n = 50
+# p = 1/(.4*(n-1))
+# nodes_array = np.arange(n) / n
+# plt.plot(nodes_array, infiniteTheory.relSCurve(n, p,
+#                             attack=True, smooth_end=False), label = "inf theory")
+# plt.xlabel("percent nodes removed")
+# plt.ylabel("relative LCC")
+# plt.title("relative LCC over nodes removed targeted")
+# plt.savefig("one_perc_graph_attack_pointfour")
+
+
+one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50], removal=["attack"])
