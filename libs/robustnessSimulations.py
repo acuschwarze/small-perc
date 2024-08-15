@@ -172,8 +172,8 @@ def getRCSet(n=100, p=0.1, num_trials=10, graph_type='ER',
        (AS: Why do we return this here?)
     '''
     # array to store data from multiple trials
-    data_array = np.zeros((num_trials + 1, n), dtype=float)
-    data_array[0] = np.arange(n)
+    data_array = np.zeros((num_trials, n), dtype=float)
+    #data_array[0] = np.arange(n)
 
     for i in range(num_trials):
         g = sampleNetwork(n, p, graph_type=graph_type)
@@ -192,7 +192,7 @@ def getRCSet(n=100, p=0.1, num_trials=10, graph_type='ER',
             performance=performance)
 
         # add performance data to data array
-        data_array[i + 1] = data[1]
+        data_array[i] = data[1]
 
     return data_array, percolation_threshold
 

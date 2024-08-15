@@ -22,7 +22,7 @@ from scipy.signal import argrelextrema
 # WORKS
 def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
     graph_types=['ER', 'SF'], remove_strategies=['random', 'attack'],
-    performance='relative LCC', num_trials=100,
+    performance='relative LCC', num_trials=100, legend=True,
     smooth_end=False, forbidden_values=[], fdict={}, pdict={}, lcc_method_main = "pmult", savefig='', simbool = True, executable_path = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe"):
     '''Calculate edge probability in an Erdos--Renyi network with original size
     `n` and original edge probability `p` after removing the node with the
@@ -165,7 +165,9 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
             # label the plot
             ax1.set_title(str(performance) + " of " + str(graph_type) +
                           " graph, " + str(remove_strategy) + " removal")
-            ax1.legend()
+            
+            if legend:
+                ax1.legend()
             ax1.set_xlabel('n (number nodes removed)')
             ax1.set_ylabel(performance)
 

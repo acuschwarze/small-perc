@@ -23,7 +23,7 @@ pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
 # get p from command line
 p = float(sys.argv[1])
 attack = True
-num_trials = 1000
+num_trials = 100
 
 if attack:
     remove_strategies = ['attack']
@@ -43,7 +43,7 @@ for i in range(0,100,1):
     print ('Number of nodes:', n)
     data = completeRCData(numbers_of_nodes=[n], edge_probabilities=[p],
         num_trials=num_trials, performance='relative LCC',
-        graph_types=['ER'], remove_strategies=remove_strategies)[0][0][0][0][1:]
+        graph_types=['ER'], remove_strategies=remove_strategies)[0][0][0][0]
     #data = 
     #print('data', np.array(data).shape)
 

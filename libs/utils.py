@@ -103,11 +103,13 @@ def expectedMaxDegree(n, p):
     if n == 2:
         return p
         
-    k_max = 0
+    k_max = n/2
     probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
     probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+    #print(probs_at_least_k)
+    #probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+    probs_at_least_one_node = 1 - (np.max([np.zeros(len(probs_at_least_k)),1 - probs_at_least_k],axis=0))** np.sqrt(n)
 
     # every node has at least degree zero
     #probs_at_least_one_node[0] = 1
@@ -256,7 +258,7 @@ def getLCC(G):
     return g
 
 
-def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True):
+def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True, num_trials=100):
     """
     Retrieve the finite percolation data from precalculated files for network 
     sizes 1 to 100 and probabilities between 0.01 and 1.00 (in steps of 0.01).
@@ -291,10 +293,16 @@ def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finit
     else:
         fstring = "infRelSCurve"
 
-    file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
+    #if num_trials==100:
+    #    file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
+    #else:
+    if simulated:
+        file_name = "{}{}_attack{}_n{}.npy".format(fstring, num_trials, targeted_removal, n)
+    else:
+        file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
 
-      
     file_path = os.path.join("data", "synthetic_data", file_name)
+    print('load from {}'.format(file_name))
 
     # Load the numpy array from the file
     data_array = np.load(file_path)

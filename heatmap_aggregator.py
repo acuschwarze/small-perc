@@ -79,8 +79,8 @@ def aggregate_data_2d(num_nodes, attack_flag, num_trials=100):
 
 if True:
     for i in range(1,101):
-        aggregate_data_2d(i, True, num_trials=1000)
-        aggregate_data_2d(i, False, num_trials=1000)
+        aggregate_data_2d(i, True, num_trials=100)
+        aggregate_data_2d(i, False, num_trials=100)
 
 if False:
     for i in range(1,101):

@@ -29,11 +29,11 @@ fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
-fig = plot_graphs(numbers_of_nodes=[20], edge_probabilities=[.1],
-                     graph_types=['ER'], remove_strategies=["attack"],
+fig = plot_graphs(numbers_of_nodes=[25], edge_probabilities=[.05, 0.5, 0.8],
+                     graph_types=['ER'], remove_strategies=["attack"], legend=False,
                      performance='relative LCC', num_trials=100,
                      smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
-                     simbool=True)
+                     simbool=True, executable_path = r".\libs\p-recursion.exe")
 
 colors = ['red','blue','orange','green','purple','cyan','magenta']
 n_threshold = .526
