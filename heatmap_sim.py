@@ -49,3 +49,4 @@ for i in range(0,100,1):
     np.save(os.path.join(path,'{}.npy'.format(name)), data)
 
     print (os.path.join(path,'{}.npy'.format(name)), 'saved after', time.time()-t0)
+    
