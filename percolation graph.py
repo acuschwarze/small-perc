@@ -130,11 +130,11 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     for i in range(len(nodes_array)):
         prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
 
-    # fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
-    #                  graph_types=['ER'], remove_strategies=removal,
-    #                  performance='relative LCC', num_trials=100,
-    #                  smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
-    #                  simbool=True)
+    fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
+                     graph_types=['ER'], remove_strategies=removal,
+                     performance='relative LCC', num_trials=100,
+                     smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
+                     simbool=True)
 
     for j in range(len(nodes_array)):
         sim_data = completeRCData(numbers_of_nodes=[nodes_array[j]],
@@ -240,4 +240,4 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
 # plt.savefig("one_perc_graph_attack_pointfour")
 
 
-one_perc_thresh_table(threshold=.2, nodes=[10, 15, 25, 50], removal=["attack"])
+one_perc_thresh_table(threshold=.526, nodes=[20], removal=["attack"])

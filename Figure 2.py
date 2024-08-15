@@ -30,9 +30,9 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 fig, axs = plt.subplots(1,2, figsize = [10,3.5])
 
-colors = ['red','blue','orange','green','purple','cyan']
-n_threshold = .2
-nodes_list = [10,15,25,50,75,100]
+colors = ['red','blue','orange','green','purple','cyan','magenta']
+n_threshold = .526
+nodes_list = [10,15,20,25,50,75,100]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
 remove_bool = False
@@ -53,22 +53,24 @@ for i_n in range(len(nodes_list)):
     
     fin = (relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True)[:n])
     
-    if i_n == len(nodes_list)-1:
-        path_name = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
-        path_name = os.path.join("data", "synthetic_data", path_name)
-        all_inf = np.load(path_name)
-        #print(np.shape(all_inf))
-        inf = all_inf[p_index]
-        axs[0].plot(nodes_array, inf, label = "infinite theory")
     axs[0].plot(nodes_array, fin, label = "fin" + str(n), linestyle = '--', color = colors[i_n])
     axs[0].plot(nodes_array, sim, label = "sim"+str(n), marker = "o", ms = 3, color = colors[i_n])
     #axs[0].set_title('Nwks with same percolation percentage: random')
-    axs[0].set(xlabel='nodes', ylabel='Relative LCC')
+    axs[0].set(xlabel=r'$f$', ylabel=r'$\langle S \rangle$')
+
+    if i_n == len(nodes_list)-1:
+            path_name = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
+            path_name = os.path.join("data", "synthetic_data", path_name)
+            all_inf = np.load(path_name)
+            #print(np.shape(all_inf))
+            inf = all_inf[p_index]
+            axs[0].plot(nodes_array, inf, label = "infinite theory")
+
     pos = axs[0].get_position()
     axs[0].set_position([pos.x0, pos.y0, pos.width, pos.height])
     axs[0].legend(loc='upper right', bbox_to_anchor=(2.65, 1.15))
 
-nodes_list = [10,15,25,50]
+nodes_list = [20] #[10,15,20,25,50]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
 remove_bool = True
@@ -88,6 +90,15 @@ for i_n in range(len(nodes_list)):
     
     fin = (relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=False, finite=True)[:n])
     
+    axs[1].plot(nodes_array, fin, label = "fin" + str(n), linestyle = '--', color = colors[i_n])
+    axs[1].plot(nodes_array, sim, label = "sim" + str(n), marker = 'o', ms = 3, color = colors[i_n])
+    #axs[1].set_title('Nwks with same percolation percentage: attack')
+    axs[1].set(xlabel=r'$f$')
+    axs[1].set_yticklabels([])
+    # pos = axs[1].get_position()
+    # axs[1].set_position([pos.x0, pos.y0, pos.width * 0.9, pos.height])
+    # axs[1].legend(loc='center right', bbox_to_anchor=(2.25, 0.5))
+
     if i_n == len(nodes_list)-1:
         # path_name = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
         # path_name = os.path.join("data", "synthetic_data", path_name)
@@ -96,14 +107,6 @@ for i_n in range(len(nodes_list)):
         # inf = all_inf[p_index]
         inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=False)
         axs[1].plot(nodes_array, inf, label = "infinite theory")
-    axs[1].plot(nodes_array, fin, label = "fin" + str(n), linestyle = '--', color = colors[i_n])
-    axs[1].plot(nodes_array, sim, label = "sim" + str(n), marker = 'o', ms = 3, color = colors[i_n])
-    #axs[1].set_title('Nwks with same percolation percentage: attack')
-    axs[1].set(xlabel='nodes')
-    axs[1].set_yticklabels([])
-    # pos = axs[1].get_position()
-    # axs[1].set_position([pos.x0, pos.y0, pos.width * 0.9, pos.height])
-    # axs[1].legend(loc='center right', bbox_to_anchor=(2.25, 0.5))
 
 #plt.legend(loc='center left',bbox_to_anchor=(1, 0.5))
 plt.subplots_adjust(left=0.08, right=.8, bottom=.15, top=0.9, wspace=.1)

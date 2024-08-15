@@ -101,8 +101,8 @@ def fig_3(total_n,total_p,remove_bool):
     add_colorbar(z4_plot)
     ax1.set(ylabel='p')
     #ax2.set(xlabel='nodes')
-    ax3.set(xlabel='nodes',ylabel='p')
-    ax4.set(xlabel='nodes')
+    ax3.set(xlabel=r'N',ylabel=r'p')
+    ax4.set(xlabel=r'N')
     ax1.set_title("AUC")
     ax2.set_title("MSE Finite")
     ax3.set_title("MSE Difference")
@@ -110,7 +110,7 @@ def fig_3(total_n,total_p,remove_bool):
 
     plt.savefig("Fig 3 Final")
 
-fig_3(30,100,False)
+fig_3(35,100,False)
 
 
 # #auc

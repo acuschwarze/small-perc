@@ -70,6 +70,7 @@ for j in range(num_nwks):
 fig = plt.figure()
  
 ## 2D stuff
+    # n vs p, colors mse
 max = np.max(mse_array)
 print(max)
 med = np.median(mse_array)
@@ -77,6 +78,18 @@ print(med)
 
     # n vs p with mse as colors
 plt.scatter(nodes_array, probs_array , c=mse_array, s=20, vmin = -.05, vmax = .1, cmap = "Reds")
+#plt.show()
+
+    # mse vs p, bin by nodes
+ax = plt.axes(projection = "3d")
+#plt.scatter(probs_array, mse_array, nodes_array)
+plt.scatter(nodes_array, probs_array, mse_array)
+nbin_means,nbin_edges, nbinnumber = scipy.stats.binned_statistic(nodes_array, mse_array, statistic='mean', bins=10, range=None)
+print(nbin_means)
+print(nbin_edges)
+plt.hlines(nbin_means, nbin_edges[:-1], nbin_edges[1:], colors='g', lw=2,
+           label='bins')
+plt.show()
 
 ## 3D stuff
 #ax = plt.axes(projection ='3d')
@@ -87,6 +100,5 @@ plt.scatter(nodes_array, probs_array , c=mse_array, s=20, vmin = -.05, vmax = .1
 #ax.plot_trisurf(nodes_array, probs_array, mse_array, triangles=tri.triangles, cmap=plt.cm.Spectral)
 
 #ax.set_title('MSE over n and p')
-
-plt.show()
+#plt.show()
 

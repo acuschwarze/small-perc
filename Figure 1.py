@@ -70,7 +70,7 @@ for i in range(len(remove_bools)):
             sim_data[i_nums] = data[j][i_nums]
         std = np.std(sim_data)
         #print(std)
-        std_table[j] = std / 10 # 10 for standard error (sqrt100)
+        std_table[j] = std / 10 * 3 # 10 for standard error (sqrt100)
         sim_y[j] = np.nanmean(sim_data)
 
     axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, label = "simulations", lw=1, color = "red")
