@@ -29,7 +29,7 @@ fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
-fig = plot_graphs(numbers_of_nodes=[25], edge_probabilities=[.05, 0.5, 0.8],
+fig = plot_graphs(numbers_of_nodes=[10], edge_probabilities=[.05, 0.5, 0.8],
                      graph_types=['ER'], remove_strategies=["attack"], legend=False,
                      performance='relative LCC', num_trials=100,
                      smooth_end=False, forbidden_values=[], fdict=fvals, lcc_method_main="pmult", savefig='',
