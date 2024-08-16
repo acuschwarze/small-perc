@@ -13,7 +13,7 @@
 #
 ###############################################################################
 
-import os
+import os, itertools, math
 import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomialDistribution
@@ -108,8 +108,8 @@ def expectedMaxDegree(n, p):
     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
     probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
     #print(probs_at_least_k)
-    #probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
-    probs_at_least_one_node = 1 - (np.max([np.zeros(len(probs_at_least_k)),1 - probs_at_least_k],axis=0))** np.sqrt(n)
+    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+    #probs_at_least_one_node = 1 - (np.max([np.zeros(len(probs_at_least_k)),1 - probs_at_least_k],axis=0))** np.sqrt(n)
 
     # every node has at least degree zero
     #probs_at_least_one_node[0] = 1
@@ -174,6 +174,7 @@ def edgeProbabilityAfterTargetedAttack(n, p):
 
     else:
         emd = expectedMaxDegree(n, p)
+        #emd = expected_maximum_degree(n, p) #expectedMaxDegree(n, p)
         new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
         new_p = max([new_p, 0])
 
@@ -258,7 +259,8 @@ def getLCC(G):
     return g
 
 
-def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True, num_trials=100):
+def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True, 
+                            num_trials=100, use_num_trials=True):
     """
     Retrieve the finite percolation data from precalculated files for network 
     sizes 1 to 100 and probabilities between 0.01 and 1.00 (in steps of 0.01).
@@ -296,7 +298,7 @@ def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finit
     #if num_trials==100:
     #    file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
     #else:
-    if simulated:
+    if simulated and use_num_trials:
         file_name = "{}{}_attack{}_n{}.npy".format(fstring, num_trials, targeted_removal, n)
     else:
         file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
@@ -317,3 +319,92 @@ def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finit
         raise ValueError(verr)
 
     return data_array[k]
+
+
+def binomial_pmf(k, n, p):
+    """Calculates the binomial probability mass function."""
+    if k==0:
+        return (1 - p) ** n
+    elif k<0:
+        return 0.0
+    else:
+        return math.comb(n, k) * (p ** k) * ((1 - p) ** (n - k))
+
+def pair_approximation_probability(k_values, n, ell):
+    """
+    Computes the probability p(|V_{<i} ∩ N(v_i)| = ell) 
+    using the pair approximation.
+
+    k_values: List of degrees [k1, k2, ..., k_{i-1}]
+    n: Total number of nodes
+    ell: Number of neighbors in the intersection
+    """
+    V_i_minus_ell = itertools.combinations(range(len(k_values)), ell)
+
+    probability_sum = 0
+
+    for subset in V_i_minus_ell:
+        prod_1 = 1
+        prod_2 = 1
+        for j in range(len(k_values)):
+            if j in subset:
+                prod_1 *= k_values[j] / (n - 1 - j)
+            else:
+                prod_2 *= (1 - k_values[j] / (n - 1 - j))
+        
+        probability_sum += prod_1 * prod_2
+
+    return probability_sum
+
+def p_k_i_given_degree_sequence(k_values, n, p, i, kappa_i):
+    """
+    Computes p(k_i = kappa_i) for a given degree sequence.
+
+    k_values: List of degrees [k1, k2, ..., k_{i-1}]
+    n: Total number of nodes
+    p: Probability of edge between any two nodes
+    i: Current node index
+    kappa_i: Degree of the i-th node
+    """
+    probability = 0
+    for ell in range(i):
+        prob_ell = pair_approximation_probability(k_values[:i-1], n, ell)
+        binomial_prob = binomial_pmf(kappa_i - ell, n - i, p)
+        probability += prob_ell * binomial_prob
+    
+    return probability
+
+def joint_probability_distribution(degree_sequence, n, p):
+    """
+    Computes the joint probability distribution for the entire degree sequence.
+
+    degree_sequence: List of degrees [k1, k2, ..., k_n]
+    n: Total number of nodes
+    p: Probability of edge between any two nodes
+    """
+    joint_probability = 1.0
+    
+    for i in range(1, len(degree_sequence) + 1):
+        kappa_i = degree_sequence[i-1]
+        k_values = degree_sequence[:i-1]
+        prob = p_k_i_given_degree_sequence(k_values, n, p, i, kappa_i)
+        joint_probability *= prob
+    
+    return joint_probability
+
+def expected_maximum_degree(n, p):
+    """
+    Calculates the expected maximum degree in a random graph.
+
+    n: Total number of nodes
+    p: Probability of edge between any two nodes
+    """
+    max_degree_expectation = 0
+    possible_degrees = range(n)  # Possible degrees are from 0 to n-1
+
+    for degree_sequence in itertools.product(possible_degrees, repeat=n):
+        joint_prob = joint_probability_distribution(degree_sequence, n, p)
+        max_degree = max(degree_sequence)
+        max_degree_expectation += max_degree * joint_prob
+
+    return max_degree_expectation
