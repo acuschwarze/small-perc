@@ -81,7 +81,7 @@ def fig_3(total_n,total_p,remove_bool):
 
             inf_mse = ((inf-sim)**2).mean()
             fin_mse = ((fin-sim)**2).mean()
-            heatmap3[j][i-1] = inf_mse-fin_mse
+            heatmap3[j][i-1] = (inf_mse-fin_mse)
 
     heatmap0 = heatmap0.tolist()
     heatmap1 = heatmap1.tolist()
@@ -92,17 +92,17 @@ def fig_3(total_n,total_p,remove_bool):
 
     fig , ( (ax1,ax2) , (ax3,ax4)) = plt.subplots(2, 2,sharex = True,sharey=True)
     z1_plot = ax1.pcolormesh(xnodes, yprobs, heatmap0, cmap = "Reds")
-    z2_plot = ax2.pcolormesh(xnodes, yprobs, heatmap1, vmax=0.05)
+    z2_plot = ax2.pcolormesh(xnodes, yprobs, heatmap1, vmax=0.01)
     z3_plot = ax3.pcolormesh(xnodes, yprobs, heatmap3, cmap = "Blues")
     z4_plot = ax4.pcolormesh(xnodes, yprobs, heatmap2, vmax=0.2)
     add_colorbar(z1_plot)
     add_colorbar(z2_plot)
     add_colorbar(z3_plot)
     add_colorbar(z4_plot)
-    ax1.set(ylabel='p')
+    ax1.set(ylabel=r'$p$')
     #ax2.set(xlabel='nodes')
-    ax3.set(xlabel=r'N',ylabel=r'p')
-    ax4.set(xlabel=r'N')
+    ax3.set(xlabel=r'$N$',ylabel=r'$p$')
+    ax4.set(xlabel=r'$N$')
     ax1.set_title("AUC")
     ax2.set_title("MSE Finite")
     ax3.set_title("MSE Difference")
@@ -110,7 +110,7 @@ def fig_3(total_n,total_p,remove_bool):
 
     plt.savefig("Fig 3 Final")
 
-fig_3(35,100,False)
+fig_3(30,100,True)
 
 
 # #auc

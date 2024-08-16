@@ -78,18 +78,18 @@ print(med)
 
     # n vs p with mse as colors
 plt.scatter(nodes_array, probs_array , c=mse_array, s=20, vmin = -.05, vmax = .1, cmap = "Reds")
-#plt.show()
+plt.show()
 
     # mse vs p, bin by nodes
-ax = plt.axes(projection = "3d")
+#ax = plt.axes(projection = "3d")
 #plt.scatter(probs_array, mse_array, nodes_array)
-plt.scatter(nodes_array, probs_array, mse_array)
-nbin_means,nbin_edges, nbinnumber = scipy.stats.binned_statistic(nodes_array, mse_array, statistic='mean', bins=10, range=None)
-print(nbin_means)
-print(nbin_edges)
-plt.hlines(nbin_means, nbin_edges[:-1], nbin_edges[1:], colors='g', lw=2,
-           label='bins')
-plt.show()
+# plt.scatter(nodes_array, probs_array, mse_array)
+# nbin_means,nbin_edges, nbinnumber = scipy.stats.binned_statistic(nodes_array, mse_array, statistic='mean', bins=10, range=None)
+# print(nbin_means)
+# print(nbin_edges)
+# plt.hlines(nbin_means, nbin_edges[:-1], nbin_edges[1:], colors='g', lw=2,
+#            label='bins')
+# plt.show()
 
 ## 3D stuff
 #ax = plt.axes(projection ='3d')

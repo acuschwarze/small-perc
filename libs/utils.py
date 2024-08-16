@@ -103,11 +103,11 @@ def expectedMaxDegree(n, p):
     if n == 2:
         return p
         
-    k_max = 0
+    #k_max = 0
     probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
-    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+    #probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
+    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n/2)
 
     # every node has at least degree zero
     #probs_at_least_one_node[0] = 1

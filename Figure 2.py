@@ -31,7 +31,7 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 fig, axs = plt.subplots(1,2, figsize = [10,3.5])
 
 colors = ['red','blue','orange','green','purple','cyan','magenta']
-n_threshold = .526
+n_threshold = .2
 nodes_list = [10,15,20,25,50,75,100]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
@@ -70,7 +70,7 @@ for i_n in range(len(nodes_list)):
     axs[0].set_position([pos.x0, pos.y0, pos.width, pos.height])
     axs[0].legend(loc='upper right', bbox_to_anchor=(2.65, 1.15))
 
-nodes_list = [20] #[10,15,20,25,50]
+nodes_list = [10,15,20,25,50]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
 remove_bool = True

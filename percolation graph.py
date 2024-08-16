@@ -138,7 +138,7 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
 
     for j in range(len(nodes_array)):
         sim_data = completeRCData(numbers_of_nodes=[nodes_array[j]],
-                                  edge_probabilities=[prob_array[j]], num_trials=100,
+                                  edge_probabilities=[prob_array[j]], num_trials=1000,
                                   performance='relative LCC', graph_types=['ER'],
                                   remove_strategies=removal)
         data_array = np.array(sim_data[0][0][0][0])
@@ -240,4 +240,4 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
 # plt.savefig("one_perc_graph_attack_pointfour")
 
 
-one_perc_thresh_table(threshold=.526, nodes=[20], removal=["attack"])
+one_perc_thresh_table(threshold=.2, nodes=[50], removal=["attack"])
