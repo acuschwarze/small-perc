@@ -82,45 +82,45 @@ def expectedNodeNumber(n, p, k):
     return expected_number
 
 #    correct one
-# def expectedMaxDegree(n, p):
-#     '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
-#     with n nodes and edge probability p.
+def expectedMaxDegree(n, p):
+    '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
+    with n nodes and edge probability p.
 
-#     Parameters
-#     ----------
-#     n : int
-#        Number of nodes.
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
 
-#     p : float
-#        Edge probability in Erdos Renyi graph.
+    p : float
+       Edge probability in Erdos Renyi graph.
 
-#     Returns
-#     -------
-#     mean_k_max (float)
-#        The expected value of the maximum degree.
-#     '''
-#     if n in [0, 1] or p == 0:
-#         return 0
+    Returns
+    -------
+    mean_k_max (float)
+       The expected value of the maximum degree.
+    '''
+    if n in [0, 1] or p == 0:
+        return 0
 
-#     if n == 2:
-#         return p
+    if n == 2:
+        return p
         
-#     #k_max = 0
-#     probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
-#     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
-#     #probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-#     probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n)
+    #k_max = 0
+    probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
+    probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
+    #probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
+    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n)
 
-#     # every node has at least degree zero
-#     #probs_at_least_one_node[0] = 1
-#     # at least one node has degree 1 if the graph is not empty
-#     #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
+    # every node has at least degree zero
+    #probs_at_least_one_node[0] = 1
+    # at least one node has degree 1 if the graph is not empty
+    #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
 
-#     probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
-#     probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
-#     mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
+    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+    probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
+    mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
 
-#     return mean_k_max
+    return mean_k_max
 
 
 # def probs_less(n,p,k):
@@ -155,43 +155,43 @@ def expectedNodeNumber(n, p, k):
 #     for i in range(n-1):
 #         sum += i/(n-1) * binomialDistribution(n)
 
-def probs_less(n,p,k): # probability that in a G(n,p), all nodes have degree < k
-    print("n p k",n,p,k)
-    if k == 0:
-        prob = 0
-    if k == n-1:
-        prob = 1
-    if n == 1:
-        prob = 1
-    else:
-        k_possibilities = 0
-        for i in range(k):
-            for j in range(n): # j for all values of exactly how many nodes in n-1 have less than k-1 degree
-                x = 0
-                for i_x in range(j):
-                    #x += 1-((1-binomialDistribution.cdf(i_x,n-1,p))**(i_x)*scipy.special.comb(n-1,i_x)) # probability that there are at least j nodes with less than k-1 
-                    x += binomialDistribution.cdf(k-2,n-1,p) ** (i_x) * scipy.special.comb(n-1,i_x)
-                k_possibilities += probs_less(n-1,p,i) * scipy.special.comb(j,i) * p**i * (1-p)**(n-1-i) * (x)
-            #k_possibilities += sum / i
-        #  (binomialDistribution.cdf(k-1, n - 1, p))**i
-        prob = k_possibilities
+# def probs_less(n,p,k): # probability that in a G(n,p), all nodes have degree < k
+#     print("n p k",n,p,k)
+#     if k == 0:
+#         prob = 0
+#     if k == n-1:
+#         prob = 1
+#     if n == 1:
+#         prob = 1
+#     else:
+#         k_possibilities = 0
+#         for i in range(k):
+#             for j in range(n): # j for all values of exactly how many nodes in n-1 have less than k-1 degree
+#                 x = 0
+#                 for i_x in range(j):
+#                     #x += 1-((1-binomialDistribution.cdf(i_x,n-1,p))**(i_x)*scipy.special.comb(n-1,i_x)) # probability that there are at least j nodes with less than k-1 
+#                     x += binomialDistribution.cdf(k-2,n-1,p) ** (i_x) * scipy.special.comb(n-1,i_x)
+#                 k_possibilities += probs_less(n-1,p,i) * scipy.special.comb(j,i) * p**i * (1-p)**(n-1-i) * (x)
+#             #k_possibilities += sum / i
+#         #  (binomialDistribution.cdf(k-1, n - 1, p))**i
+#         prob = k_possibilities
     
-    return prob
+#     return prob
 
-def expectedMaxDegree(n,p):
-    if n in [0, 1] or p == 0:
-        return 0
+# def expectedMaxDegree(n,p):
+#     if n in [0, 1] or p == 0:
+#         return 0
     
-    array = np.zeros(n)
-    for j in range(n):
-        array[j] = 1-probs_less(n,p,j)
-    array = np.concatenate([array, [0]])
-    print("array",array)
-    probs_kmax = array[:-1] - array[1:]
-    mean_k_max = np.sum([probs_kmax[k]*k for k in range(n)])
-    print("probs_kmax",probs_kmax)
-    print("meankmax",mean_k_max)
-    return mean_k_max
+#     array = np.zeros(n)
+#     for j in range(n):
+#         array[j] = 1-probs_less(n,p,j)
+#     array = np.concatenate([array, [0]])
+#     print("array",array)
+#     probs_kmax = array[:-1] - array[1:]
+#     mean_k_max = np.sum([probs_kmax[k]*k for k in range(n)])
+#     print("probs_kmax",probs_kmax)
+#     print("meankmax",mean_k_max)
+#     return mean_k_max
 
 
 # def expectedMaxDegree(n, p):

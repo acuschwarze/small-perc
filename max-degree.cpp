@@ -49,6 +49,7 @@ __float128 comb(long long n, long long r)
 #include <stdio.h>
 
 double binomial(int n, int k, double p){
+    std::cout << "binomial";
 
     scanf("%d%d", &n, &k);
     scanf("%lf", &p);
@@ -70,13 +71,15 @@ double binomial(int n, int k, double p){
 }
 
 double cdf(int n, int k, double p){
+    std::cout << "cdf";
     double b = 0;
     for(int i = 0; i < k+1; i++) b = b+binomial(n,i,p);
     return b;
 }
 
 
-double probs_less(int n, double p, int k){
+__float128 probs_less(int n, double p, int k){
+    std::cout << "probsless";
 //probability that in a G(n,p), all nodes have degree < k
     //print("n p k",n,p,k)
     if (k == 0) {
@@ -86,10 +89,10 @@ double probs_less(int n, double p, int k){
     } else if (n == 1) {
         return 1;
     } else {
-        double k_possibilities = 0;
+        __float128 k_possibilities = 0;
         for (int i = 0; i < k; ++i) {
             for (int j = 0; j < n; ++j) { // j for all values of exactly how many nodes in n-1 have less than k-1 degree
-                double x = 0;
+                __float128 x = 0;
                 for (int i_x = 0; i_x < j; ++i_x) {
                     //x += 1-((1-binomialDistribution.cdf(i_x,n-1,p))**(i_x)*scipy.special.comb(n-1,i_x)) # probability that there are at least j nodes with less than k-1 
                     x += pow(cdf(n-1,k-2,p) , i_x) * comb(n-1,i_x);
@@ -105,7 +108,8 @@ double probs_less(int n, double p, int k){
     //return prob;
 }
 
-double expectedMaxDegree(int n, double p) {
+__float128 expectedMaxDegree(int n, double p) {
+    std::cout << "expected max deg";
     if (n < 1) {
         return 0;
     } else if (p==0) {
@@ -120,7 +124,7 @@ double expectedMaxDegree(int n, double p) {
     for (size_t i = 0; i < n; ++i) {
         probs_kmax.push_back(arr[i] - arr[i+1]);
         }
-    double mean_k_max = 0;
+    __float128 mean_k_max = 0;
     for (size_t i_m = 0; i_m < n; ++i_m) {
         mean_k_max = mean_k_max + probs_kmax[i_m]*i_m;
     }
@@ -130,7 +134,7 @@ double expectedMaxDegree(int n, double p) {
 }
 
 
-double edgeProbabilityAfterTargetedAttack(int n, double p) {
+__float128 edgeProbabilityAfterTargetedAttack(int n, double p) {
     // '''Calculate edge probability in an Erdos--Renyi network with original size
     // `n` and original edge probability `p` after removing the node with the
     // highest degree.
@@ -148,11 +152,12 @@ double edgeProbabilityAfterTargetedAttack(int n, double p) {
     // new_p (float)
     //    Updated edge probability.
     // '''
+    std::cout << "edge prob after attack";
     if (n <=2) {
         return 0;
     } else {
-        double emd = expectedMaxDegree(n, p);
-        double new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2));
+        __float128 emd = expectedMaxDegree(n, p);
+        __float128 new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2));
         new_p = fmax(new_p, 0);
         return new_p;
     }
@@ -160,10 +165,10 @@ double edgeProbabilityAfterTargetedAttack(int n, double p) {
 
 int main(int argc, char* argv[]) {
     // Check if the correct number of command line arguments are provided
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " n, p" << std::endl;
-        return 1;
-    }
+    // if (argc != 3) {
+    //     std::cerr << "Usage: " << argv[0] << " n, p" << std::endl;
+    //     return 1;
+    // }
 
     // Parse command line arguments
     int n = std::atoi(argv[1]);

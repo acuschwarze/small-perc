@@ -43,7 +43,7 @@ import math, os
 import subprocess
 
 def execute_executable(executable_path):
-    print('EE path', executable_path)
+    #print('EE path', executable_path)
     try:
         # Run the executable and capture its output
         result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
@@ -51,6 +51,7 @@ def execute_executable(executable_path):
         # Extract the output
         output = result.stdout.strip()
         #print("EE Output", output)
+        #print("EE Output", output, "path", executable_path)
         return output
     except subprocess.CalledProcessError as e:
         # Handle if the executable returns a non-zero exit code
@@ -331,7 +332,7 @@ def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
     return output
 
 
-def new_prob_attack(n,p,executable_path = "max-degree.exe"):
+def new_prob_attack(n,p,executable_path =r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"):
     
     # Path to the executable
     # pwd = os. getcwd()
@@ -386,7 +387,7 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path='
         return S
 
 
-def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path='p-recursion.exe', executable2 = "max-degree.exe"):
+def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path='p-recursion.exe', executable2 = r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"):
     '''Sequence of the expected sizes of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
     removing nodes sequentially, either uniformly at random or (adaptively) 
@@ -435,8 +436,8 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
 
         if attack:
             # update p only if nodes are removed by degree
-            #current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
-            current_p = new_prob_attack(i+1,current_p,executable_path = executable2)
+            current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p) # old code
+            #current_p = new_prob_attack(i+1,current_p,executable_path = executable2) # c++ test
             #print(current_p,i+1, S[i])
 
     if reverse:
@@ -445,7 +446,7 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
     return S
 
 
-def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_relS = "pmult", executable_path='p-recursion.exe'):
+def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_relS = "pmult", executable_path='p-recursion.exe',executable2 = r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"):
     '''Sequence of the expected relative sizes of the largest connected 
     component of an Erdos--Renyi random graph with `n` nodes and edge 
     probability `p` when removing nodes sequentially, either uniformly at
@@ -489,7 +490,7 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_r
     if reverse:
         network_sizes = network_sizes[::-1]
 
-    relS = (SCurve(p, n, attack=attack, reverse=reverse, executable_path=executable_path,
+    relS = (SCurve(p, n, attack=attack, reverse=reverse, executable_path=executable_path, executable2=executable2,
         fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS) / network_sizes)
 
     #print(n,SCurve(p, n, attack=attack, reverse=reverse,
