@@ -99,46 +99,93 @@ double binomial(int n, int k, double p){
 }
 
 double cdf(int n, int k, double p){
-    double b = 0
+    double b = 0;
     double for(int i = 0; int i < k+1, int i++) {
-        b = b+binomial(n,i,p)
+        b = b+binomial(n,i,p);
     }
     return b
 }
 
 
-
-double expectedMaxDegree(int n, double p) {
-    if (n in [0, 1] or p == 0) {
-        return 0
-    }
-    if (n == 2) {
-        return p
-    }
-    int k_max = 0
-
-    xt::xarray<double> probs_k_or_less = xt::xarray<double>(n)
-
-    for(int i = 0; int i < n; int i++) {
-        probs_k_or_less[i] == cdf(n-1,i,p)
+double probs_less(int n, double p, int k): //probability that in a G(n,p), all nodes have degree < k
+    //print("n p k",n,p,k)
+    if (k == 0) {
+        double prob = 0;
+    } else if (k == n-1) {
+        double prob = 1;
+    } else if (n == 1) {
+        double prob = 1;
+    } else {
+        double k_possibilities = 0;
+        for (int i = 0; i < k; ++i) {
+            for (int j = 0; j < n; ++j)= { // j for all values of exactly how many nodes in n-1 have less than k-1 degree
+                double x = 0;
+                for (int i_x = 0; i_x < j; ++i_x) {
+                    //x += 1-((1-binomialDistribution.cdf(i_x,n-1,p))**(i_x)*scipy.special.comb(n-1,i_x)) # probability that there are at least j nodes with less than k-1 
+                    x += pow(cdf(n-1,k-2,p) , i_x) * comb(n-1,i_x);
+                }
+                k_possibilities += probs_less(n-1,p,i) * comb(j,i) * pow(p,i) * pow((1-p) , (n-1-i)) * (x);
+            //k_possibilities += sum / i
+        // (binomialDistribution.cdf(k-1, n - 1, p))**i
+            } 
+        }
+        prob = k_possibilities;
     }
     
-    xt::xarray<double> probs_at_least_k = xt::concatenate(xtuple({1}, , c), 1)
-    probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
-    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+    return prob
 
-    # every node has at least degree zero
-    #probs_at_least_one_node[0] = 1
-    # at least one node has degree 1 if the graph is not empty
-    #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
-
-    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
-    probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
-    mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
-
+double expectedMaxDegree(int n, double p):
+    if (n in [0, 1]) or (p == 0) {
+        return 0;
+    }
+    
+    double array[n+1];
+    for (int j = 0; j < n; ++j) {
+        array[j] = 1-probs_less(n,p,j);
+    }
+    array[n] = 0;
+    double probs_kmax[n] = array[:-1] - array[1:];
+    double mean_k_max = 0;
+    for (int i_m = 0; i_m < n; ++i_m) {
+        mean_k_max = mean_k_max + probs_kmax[i_m]*i_m;
+    }
+    //("probs_kmax",probs_kmax)
+    //print("meankmax",mean_k_max)
     return mean_k_max
-}
+
+
+
+// double expectedMaxDegree(int n, double p) {
+//     if (n in [0, 1] or p == 0) {
+//         return 0
+//     }
+//     if (n == 2) {
+//         return p
+//     }
+//     int k_max = 0
+
+//     xt::xarray<double> probs_k_or_less = xt::xarray<double>(n)
+
+//     for(int i = 0; int i < n; int i++) {
+//         probs_k_or_less[i] == cdf(n-1,i,p)
+//     }
+    
+//     xt::xarray<double> probs_at_least_k = xt::concatenate(xtuple({1}, , c), 1)
+//     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
+//     probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
+//     probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+
+//     # every node has at least degree zero
+//     #probs_at_least_one_node[0] = 1
+//     # at least one node has degree 1 if the graph is not empty
+//     #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
+
+//     probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+//     probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
+//     mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
+
+//     return mean_k_max
+// }
 
 
 def edgeProbabilityAfterTargetedAttack(n, p):

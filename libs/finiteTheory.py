@@ -43,7 +43,7 @@ import math, os
 import subprocess
 
 def execute_executable(executable_path):
-    # print('EE path', executable_path)
+    print('EE path', executable_path)
     try:
         # Run the executable and capture its output
         result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
@@ -324,7 +324,23 @@ def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
     # Execute the executable and capture its output
     # print(os. getcwd())
     output = float(execute_executable([executable_path, str(p), str(i), str(n)]))
-    #print("EEO output", output)
+    #print("EEO output pmult", output)
+    #output = float(output)
+
+    # return
+    return output
+
+
+def new_prob_attack(n,p,executable_path = "max-degree.exe"):
+    
+    # Path to the executable
+    # pwd = os. getcwd()
+    #executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
+
+    # Execute the executable and capture its output
+    # print(os. getcwd())
+    output = float(execute_executable([executable_path, str(n), str(p)]))
+    print("EEO output attack", output)
     #output = float(output)
 
     # return
@@ -363,13 +379,14 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path='
         return S
 
     elif lcc_method == "pmult":
+        print("n,p",n,p)
         S=0
         for m in range(1,n+1):
             S+=m*calculate_P_mult(p,m,n, executable_path=executable_path)
         return S
 
 
-def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path='p-recursion.exe'):
+def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path='p-recursion.exe', executable2 = "max-degree.exe"):
     '''Sequence of the expected sizes of the largest connected component of
     an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
     removing nodes sequentially, either uniformly at random or (adaptively) 
@@ -418,7 +435,8 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
 
         if attack:
             # update p only if nodes are removed by degree
-            current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
+            #current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p)
+            current_p = new_prob_attack(i+1,current_p,executable_path = executable2)
             #print(current_p,i+1, S[i])
 
     if reverse:

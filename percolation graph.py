@@ -128,7 +128,8 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
     colors = ["red", "orange", "yellow", "green", "purple", "magenta", "cyan"]
 
     for i in range(len(nodes_array)):
-        prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
+        prob_array[i] = .7
+        #prob_array[i] = 1 / (percthresh * (nodes_array[i] - 1))
 
     fig = plot_graphs(numbers_of_nodes=[nodes_array[0]], edge_probabilities=[prob_array[0]],
                      graph_types=['ER'], remove_strategies=removal,
@@ -240,4 +241,5 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
 # plt.savefig("one_perc_graph_attack_pointfour")
 
 
-one_perc_thresh_table(threshold=.2, nodes=[50], removal=["attack"])
+# p is .8 right now (in the function)
+one_perc_thresh_table(threshold=.2, nodes=[5], removal=["attack"])
