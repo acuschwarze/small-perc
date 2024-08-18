@@ -21,42 +21,107 @@ from libs.finiteTheory import *
 from libs.performanceMeasures import *
 from libs.utils import *
 
+################################################################################
 
+def expectedNthLargestDegree(n, p, N):
+    '''Calculate expected value of the degree of the node that has the Nth 
+    largest degree in an Erdos--Renyi graph with n nodes and edge probability
+    p.
 
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
 
+    N : int
+       Number of the node of interest in the degree-ranked (largest to 
+       smallest) node sequence.
 
-num_trials = 500
+    p : float
+       Edge probability in Erdos Renyi graph.
+
+    Returns
+    -------
+    mean_Nk (float)
+       The expected value of the degree of the node with the Nth largest 
+       degree.
+    '''
+
+    if N > n:
+        print('Cannot find the {}th largest element in a sequence of only {} numbers.'.format(N,n))
+
+    if n in [0, 1] or p == 0:
+        return 0
+
+    if n == 2:
+        return p
+
+    # probability that a node has at least degree k
+    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) 
+        for k in range(n)][::-1])[::-1]
+    # probability that at least N nodes have degree k or larger
+    probs_at_least_N_nodes = [1 - binomialDistribution.cdf(N-1, n, probs_at_least_k[k]) 
+        for k in range(n)]
+    probs_at_least_N_nodes = np.concatenate([probs_at_least_N_nodes, [0]])
+    probs_Nk = probs_at_least_N_nodes[:-1] - probs_at_least_N_nodes[1:]
+    mean_Nk = np.sum([probs_Nk[k] * k for k in range(n)])
+
+    return mean_Nk
+
+################################################################################
+
+num_trials = 200
 remove_nodes = 'attack'
-n = 5
-p = 0.1
-p_new = p
 
+################################################################################
 
-data_array = np.zeros((num_trials, 6, n), dtype=float)
-data_array[0] = np.arange(n)
+labels = [r'$c_{sim}$', r'$c_{epATA}$', r'$c_{sim+epATA}$', r'$K_{sim}$', r'$K_{from current}$', r'$K_{iteration}$', r'$K_{from first}$']
+colors = ['navy', 'mediumblue', 'lightblue', 'red', 'tomato', 'darkorange', 'orange']
 
+################################################################################
 
-for p in [0.1, 0.5, 0.9]:
-    for emd_updated in [False, True]:
+for n in [5,10,20]:
+    data_array = np.zeros((num_trials, 8, n), dtype=float)
+    data_array[0] = np.arange(n)
+
+    for ip, p in enumerate([0.1, 0.5, 0.9]):
+        
         for j in range(num_trials):
+
             g = sampleNetwork(n, p, graph_type='ER')
             c = averageDegree(g)
             p_new = p
             
             for i in range(n):
-                    # calculate performance value
-                    data_array[j, 1, i] = averageDegree(g) # computePerformance(g)
-                    data_array[j, 2, i] = edgeProbabilityAfterTargetedAttack(n-i, p_new)
-                    #print((n-i, p_new, averageDegree(g)*(n-i-1)/2, p))
+                    # calculate true mean degree
+                    data_array[j, 1, i] = averageDegree(g) 
+                    # calculate mean degree according to `edgeProbabilityAfterTargetedAttack`
+                    p_next = edgeProbabilityAfterTargetedAttack(n-i, p_new)
+                    data_array[j, 2, i] = 2*p_new*binom(n-i,2)/n
+                    # calculate mean degree of a new G(n,p) graph with the predicted p
                     g2 = sampleNetwork(n-i, p_new, graph_type='ER')
                     data_array[j, 3, i] = averageDegree(g2) 
+
+                    # calculate true max degree ("sim")
                     data_array[j, 4, i] = np.max([d for n, d in g.degree()] )
-                    if binom(n-i,2):
-                        if emd_updated:
-                            data_array[j, 5, i] = expected_maximum_degree(g.number_of_nodes(), g.number_of_edges()/binom(n-i,2)) 
-                        else:
-                            data_array[j, 5, i] = expectedMaxDegree(g.number_of_nodes(), g.number_of_edges()/binom(n-i,2)) 
-                    p_new = data_array[j, 2, i]
+                    # calculate max degree with independence assumption: ("from current")
+                    # we calculate the EMD of a graph with the same n and p as the current graph 
+                    if g.number_of_edges():
+                        data_array[j, 5, i] = expectedMaxDegree(
+                            g.number_of_nodes(), g.number_of_edges()/binom(n-i,2)) 
+                    # calculate max degree with independence assumption + ER assumption: ("from iteration")
+                    # we calculate the EMD from the predicted p_new
+                    
+                    data_array[j, 6, i] = expectedMaxDegree(
+                        g.number_of_nodes(), p_new)                     
+                    #print('(n, p_new, emd) = ({},{},{})'.format(n, p_new, data_array[j, 6, i]))
+
+                    # calculate max degree with independence assumption but no ER assumption: ("from first")
+                    # we calculate the EMD from the Nth largest degree in original network
+                    if i <= n:
+                        data_array[j, 7, i] = expectedNthLargestDegree(n,  p, i+1) 
+
+                    p_new = p_next
                     
                     if i == n:
                         break
@@ -67,23 +132,21 @@ for p in [0.1, 0.5, 0.9]:
                         v = choice(list(g.nodes()))
                     elif remove_nodes == 'attack':
                         # select the most connected node
-                        v = sorted(g.degree, key=lambda x: x[1], reverse=True)[0][0]
+                        v = sorted(g.degree, key=lambda x: x[1], 
+                            reverse=True)[0][0]
                     else:
-                        raise ValueError('I dont know that mode of removing nodes')
+                        raise ValueError(
+                            'I dont know that mode of removing nodes')
                         v = None
                     # remove node
                     g.remove_node(v)
 
-        #print(data_array)
-
-
-        plt.plot(np.mean(data_array[:,1],axis=0), marker='x', label='sim')
-        plt.plot(np.mean(data_array[:,2]*n*(n-1)/2/n*2,axis=0), marker='x', label='c from pnew')
-        plt.plot(np.mean(data_array[:,3],axis=0), marker='x', label='sim with pnew')
-        plt.plot(np.nanmean(data_array[:,4],axis=0), marker='x', label='max degree')
-        plt.plot(np.nanmean(data_array[:,5],axis=0), marker='x', label='expected max degree')
-        plt.legend()
-        plt.savefig('test_average_degree_p{}_emd{}.png'.format(p, emd_updated))
-        plt.clf()
-        print(np.mean(data_array[:,2]*n*(n-1)/2/n*2,axis=0))
-        print('max degree', data_array[0,5])
+        plt.subplot(1,3,1+ip)
+        plt.title('p={}'.format(p))
+        for l in range(4,len(data_array[0])): #range(1,len(data_array[0])):
+            plt.plot(np.nanmean(data_array[:,l],axis=0), marker='ovsd'[l%4], fillstyle='none',
+                ls=['--','-'][l//4], lw=0, c=colors[l-1], label=labels[l-1])
+        #print(np.nanmean(data_array, axis=0))
+    plt.legend()
+    plt.savefig('test_average_degree_n{}.png'.format(n))
+    plt.clf()

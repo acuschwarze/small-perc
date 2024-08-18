@@ -103,7 +103,7 @@ def expectedMaxDegree(n, p):
     if n == 2:
         return p
         
-    k_max = n/2
+    k_max = 0
     probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
     probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
@@ -121,6 +121,51 @@ def expectedMaxDegree(n, p):
     mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
 
     return mean_k_max
+
+def expectedNthLargestDegree(n, p, N):
+    '''Calculate expected value of the degree of the node that has the Nth 
+    largest degree in an Erdos--Renyi graph with n nodes and edge probability
+    p.
+
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
+
+    N : int
+       Number of the node of interest in the degree-ranked (largest to 
+       smallest) node sequence.
+
+    p : float
+       Edge probability in Erdos Renyi graph.
+
+    Returns
+    -------
+    mean_Nk (float)
+       The expected value of the degree of the node with the Nth largest 
+       degree.
+    '''
+
+    if N > n:
+        print('Cannot find the {}th largest element in a sequence of only {} numbers.'.format(N,n))
+
+    if n in [0, 1] or p == 0:
+        return 0
+
+    if n == 2:
+        return p
+
+    # probability that a node has at least degree k
+    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) 
+        for k in range(n)][::-1])[::-1]
+    # probability that at least N nodes have degree k or larger
+    probs_at_least_N_nodes = [1 - binomialDistribution.cdf(N-1, n, probs_at_least_k[k]) 
+        for k in range(n)]
+    probs_at_least_N_nodes = np.concatenate([probs_at_least_N_nodes, [0]])
+    probs_Nk = probs_at_least_N_nodes[:-1] - probs_at_least_N_nodes[1:]
+    mean_Nk = np.sum([probs_Nk[k] * k for k in range(n)])
+
+    return mean_Nk
 
 # def expectedMaxDegree(n, p):
 #     '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
@@ -174,6 +219,7 @@ def edgeProbabilityAfterTargetedAttack(n, p):
 
     else:
         emd = expectedMaxDegree(n, p)
+        #print('(n, p, emd) = ({},{},{})'.format(n, p, emd))
         #emd = expected_maximum_degree(n, p) #expectedMaxDegree(n, p)
         new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
         new_p = max([new_p, 0])
