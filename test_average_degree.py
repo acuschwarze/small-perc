@@ -70,18 +70,21 @@ def expectedNthLargestDegree(n, p, N):
 
 ################################################################################
 
-num_trials = 200
+num_trials = 50
 remove_nodes = 'attack'
 
 ################################################################################
 
-labels = [r'$c_{sim}$', r'$c_{epATA}$', r'$c_{sim+epATA}$', r'$K_{sim}$', r'$K_{from current}$', r'$K_{iteration}$', r'$K_{from first}$']
-colors = ['navy', 'mediumblue', 'lightblue', 'red', 'tomato', 'darkorange', 'orange']
+labels = [r'$c_{sim}$', r'$c_{epATA}$', r'$c_{sim+epATA}$', r'$K_{sim}$', 
+    r'$K_{from current}$', r'$K_{iteration}$', r'$K_{from first}$',
+    r'$K_{from first corrected}$']
+colors = ['navy', 'mediumblue', 'lightblue', 'red', 'tomato', 'darkorange', 
+          'orange', 'yellow']
 
 ################################################################################
 
-for n in [5,10,20]:
-    data_array = np.zeros((num_trials, 8, n), dtype=float)
+for n in [5, 10, 20]:
+    data_array = np.zeros((num_trials, 9, n), dtype=float)
     data_array[0] = np.arange(n)
 
     for ip, p in enumerate([0.1, 0.5, 0.9]):
@@ -120,6 +123,19 @@ for n in [5,10,20]:
                     # we calculate the EMD from the Nth largest degree in original network
                     if i <= n:
                         data_array[j, 7, i] = expectedNthLargestDegree(n,  p, i+1) 
+                    #if i > 0:
+                    #    data_array[j, 7, i] =- data_array[j, 7, :i-1]/n #n-1?
+
+                    # same as before but with a correction for subsequently lost edges
+                    p2 = p 
+                    if i > 0:
+                        print('p2 before',p2)
+                        print('to be added', data_array[j, 8, :(i-1)])
+                        print(n, binom(n,2), 1/binom(n,2)/2, np.sum(data_array[j, 8, :(i-1)])/binom(n,2)/2)
+                        p2 = p2 - np.nansum(data_array[j, 8, :(i-1)])/binom(n,2)/2
+                        print('p2',p2)
+                    data_array[j, 8, i] = expectedNthLargestDegree(n,  np.max([0,p2]), i+1) 
+
 
                     p_new = p_next
                     
@@ -145,7 +161,7 @@ for n in [5,10,20]:
         plt.title('p={}'.format(p))
         for l in range(4,len(data_array[0])): #range(1,len(data_array[0])):
             plt.plot(np.nanmean(data_array[:,l],axis=0), marker='ovsd'[l%4], fillstyle='none',
-                ls=['--','-'][l//4], lw=0, c=colors[l-1], label=labels[l-1])
+                ls=['--','-'][l>=4], lw=0, c=colors[l-1], label=labels[l-1])
         #print(np.nanmean(data_array, axis=0))
     plt.legend()
     plt.savefig('test_average_degree_n{}.png'.format(n))
