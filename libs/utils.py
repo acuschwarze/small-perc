@@ -17,7 +17,7 @@ import os
 import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomialDistribution
-import scipy.special
+from scipy.special import binom
 import math
 
 def string2array(s, sep=" "):
@@ -246,8 +246,15 @@ def edgeProbabilityAfterTargetedAttack(n, p):
 
     else:
         emd = expectedMaxDegree(n, p)
-        new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
-        new_p = max([new_p, 0])
+
+        # new number of edges = old number of number of edges - emd
+        # new p = new number of edges/ n-1 choose 2
+        old_number_of_number_of_edges = p*binom(n,2)
+        new_number_of_edges = old_number_of_number_of_edges - emd
+        new_p = new_number_of_edges/ binom(n-1,2)
+
+        #new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+        #new_p = max([new_p, 0])
 
     return new_p
 

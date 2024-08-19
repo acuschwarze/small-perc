@@ -99,7 +99,7 @@ def attack_trick(p, nodes_array=[10, 20, 30, 40, 50, 60], removal=["attack"], tr
         removed_max = np.zeros(n)
 
         current_p = p
-        print(j, 'trick new')
+        print(j, 'updated finite')
         for i_r in range(n):
             new_nodes = n-i_r
             max_d = expectedNthLargestDegree(n, p, i_r+1)  - i_r*p

@@ -135,5 +135,5 @@ def attack_trick(p, nodes_array=[10, 20, 30, 40, 50, 60], removal=["attack"], tr
     plt.savefig('attack_trick_p{}.png'.format(p))
     plt.clf()
 
-for p in [0.1, 0.3, 0.5, 0.7, 0.9]:
-    attack_trick(p, nodes_array=[5, 10, 20], removal=["attack"], trials=500)
+for p in [0.9]: #n [0.1, 0.3, 0.5, 0.7, 0.9]:
+    attack_trick(p, nodes_array=[20], removal=["attack"], trials=100)
