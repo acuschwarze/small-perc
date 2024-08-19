@@ -115,15 +115,14 @@ remove_nodes = 'attack'
 
 ################################################################################
 
-labels = [r'$c_{sim}$', r'$c_{epATA}$', r'$c_{sim+epATA}$', r'$K_{sim}$', r'$K_{from current}$', r'$K_{iteration}$', r'$K_{from first}$']
-colors = ['navy', 'mediumblue', 'lightblue', 'red', 'tomato', 'darkorange', 'orange']
+labels = [r'$K_{sim}$', r'$K_{from current}$', r'$K_{from first}$', r'$K_{from first-ip}$']
+colors = ['red', 'navy', 'mediumblue', 'lightblue', 'darkgreen', 'darkorange', 'orange']
 
 ################################################################################
+prange = [0.9]
 
-prange = [0.1,0.9]
-
-for n in [20]:
-    data_array = np.zeros((num_trials, 8, n), dtype=float)
+for n in [10,20]:
+    data_array = np.zeros((num_trials, 5, n), dtype=float)
     data_array[0] = np.arange(n)
 
     for ip, p in enumerate(prange):
@@ -136,34 +135,25 @@ for n in [20]:
             
             for i in range(n):
                     
-                    # calculate true mean degree
-                    data_array[j, 1, i] = averageDegree(g) 
                     # calculate mean degree according to `edgeProbabilityAfterTargetedAttack`
                     p_next = edgeProbabilityAfterTargetedAttack(n-i, p_new)
-                    data_array[j, 2, i] = 2*p_new*binom(n-i,2)/n
-                    # calculate mean degree of a new G(n,p) graph with the predicted p
-                    g2 = sampleNetwork(n-i, p_new, graph_type='ER')
-                    data_array[j, 3, i] = averageDegree(g2) 
 
                     # calculate true max degree ("sim")
-                    data_array[j, 4, i] = np.max([d for n, d in g.degree()] )
+                    data_array[j, 1, i] = np.max([d for n, d in g.degree()] )
 
                     # calculate max degree with independence assumption: ("from current")
                     # we calculate the EMD of a graph with the same n and p as the current graph 
                     if g.number_of_edges():
-                        data_array[j, 5, i] = expectedMaxDegree(
+                        data_array[j, 2, i] = expectedMaxDegree(
                             g.number_of_nodes(), g.number_of_edges()/binom(n-i,2)) 
                         
-                    # calculate max degree with independence assumption + ER assumption: ("from iteration")
-                    # we calculate the EMD from the predicted p_new
-                    data_array[j, 6, i] = expectedMaxDegree(
-                        g.number_of_nodes(), p_new)                     
-                    #print('(n, p_new, emd) = ({},{},{})'.format(n, p_new, data_array[j, 6, i]))
-
                     # calculate max degree with independence assumption but no ER assumption: ("from first")
                     # we calculate the EMD from the Nth largest degree in original network
                     if i <= n:
-                        data_array[j, 7, i] = expectedNthLargestDegree(n,  p, i+1) 
+                        data_array[j, 3, i] = expectedNthLargestDegree(n,  p, i+1) 
+
+                    # same as before but with correction for edges to already removed nodes
+                    data_array[j, 4, i] = data_array[j, 3, i] - i*p
 
 
 
@@ -188,19 +178,13 @@ for n in [20]:
                     # remove node
                     g.remove_node(v)
 
-        # discard all botched configurations
-        for j in range(num_trials):
-            for i in range(n):
-                if np.isnan(np.mean(data_array[j,:,i])):
-                    data_array[j,:,i] += np.nan
-
         plt.subplot(1,len(prange),1+ip)
         plt.title('p={}'.format(p))
-        for l in range(4,len(data_array[0])): #range(1,len(data_array[0])):
-            plt.plot(np.nanmean(data_array[:,l],axis=0), marker='ovsd'[l%4], fillstyle='none',
-                ls=['--','-'][l//4], lw=0, c=colors[l-1], label=labels[l-1])
+        for l in range(1,len(data_array[0])): 
+            print(l)
+            plt.plot(np.nanmean(data_array[:,l],axis=0), marker='ovsd'[l%4-1], fillstyle='none',
+                lw=0, c=colors[l-1], label=labels[l-1])
         #print(np.nanmean(data_array, axis=0))
     plt.legend()
-    plt.subplots_adjust(top=0.8)
-    plt.savefig('test_average_degree_n{}.png'.format(n))
+    plt.savefig('test_average_degree3_n{}.pdf'.format(n))
     plt.clf()
