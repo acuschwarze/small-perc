@@ -77,7 +77,9 @@ med = np.median(mse_array)
 print(med)
 
     # n vs p with mse as colors
-plt.scatter(nodes_array, probs_array , c=mse_array, s=20, vmin = -.05, vmax = .1, cmap = "Reds")
+fig , (ax1) = plt.subplots(1, 1)
+ax1plot = ax1.scatter(nodes_array, probs_array , c=mse_array, s=4, marker="x", linewidth = 1, vmin = -.05, vmax = .1, cmap = "Reds")
+#add_colorbar(ax1plot)
 plt.show()
 
     # mse vs p, bin by nodes

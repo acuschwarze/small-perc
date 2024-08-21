@@ -1,39 +1,39 @@
-# import sys, pickle
-# sys.path.insert(0, "libs")
+import sys, pickle
+sys.path.insert(0, "libs")
 
-# import os, pickle, csv # import packages for file I/O
-# import time # package to help keep track of calculation time
+import os, pickle, csv # import packages for file I/O
+import time # package to help keep track of calculation time
 
-# import numpy as np
-# import networkx as nx
-# import matplotlib.pyplot as plt
-# import pandas as pd
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+import pandas as pd
 
-# import scipy
-# import scipy.stats as sst
-# from scipy.special import comb
-# from scipy.integrate import simpson
-# from scipy.signal import argrelextrema
-# from random import choice
+import scipy
+import scipy.stats as sst
+from scipy.special import comb
+from scipy.integrate import simpson
+from scipy.signal import argrelextrema
+from random import choice
 
-# from libs.utils import *
-# from libs.finiteTheory import *
-# from visualizations import *
-# from libs.utils import *
-# from robustnessSimulations import *
-# from performanceMeasures import *
-# from infiniteTheory import *
-# from finiteTheory import *
+from libs.utils import *
+from libs.finiteTheory import *
+from visualizations import *
+from libs.utils import *
+from robustnessSimulations import *
+from performanceMeasures import *
+from infiniteTheory import *
+from finiteTheory import *
 
-# fvals = pickle.load(open('data/fvalues.p', 'rb'))
-# pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+fvals = pickle.load(open('data/fvalues.p', 'rb'))
+pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
-# nwks_list2 = pd.read_csv("nwks_list2")
-# print(len(nwks_list2))
+nwks_list2 = pd.read_csv("nwks_list2")
+print(len(nwks_list2))
 
-# print(nwks_list2.iloc[0])
-# cwd = os.getcwd() 
-# print("Current working directory:", cwd) 
+print(nwks_list2.iloc[0])
+cwd = os.getcwd() 
+print("Current working directory:", cwd) 
 
 
 
@@ -764,16 +764,18 @@ for i in range(len(nwks_list2)):
 
 print(nwks_100)
 
+counter_100 = 0
 for i_b in range(len(bottom20_i)):
-    counter_100 = 0
-    for j in nwks_100:
-        if j < i_b:
-            counter_100 += 1
+    #counter_100 = 0
+    # for j in nwks_100:
+    #     if j < i_b:
+    #         counter_100 += 1
     new_ib = indices.iloc[bottom20_i[i_b]-counter_100][0]
     #print("file1",nwks_list2.iloc[i_b][1])
     file = nwks_list2.iloc[new_ib][1]
-    if nodecount_edge(file_name = file) >= 100:
+    if nodecount_edge(file_name = file) == 100:
         counter_100 += 1
+        print("counter", counter_100)
     elif nodecount_edge(file_name = file) < 100:
         #file2 = file.replace("C:\\Users\\jj\Downloads\\GitHub\small-perc\\pholme_networks", '')
         #print("file2",file)
@@ -788,7 +790,8 @@ for i_b in range(len(bottom20_i)):
         #print("nodes")
         #print(fullData.iloc[bottom20_i[i_b]-counter_100][1])
         #print(nodecount_edge(file_name=file))
-        if fullData.iloc[bottom20_i[i_b]-counter_100][1] == nodecount_edge(file_name=file):
+
+        if fullData.iloc[bottom20_i[i_b]-counter_100][1] != nodecount_edge(file_name=file):
             print("nodes")
             print(fullData.iloc[bottom20_i[i_b]-counter_100][1])
             print(nodecount_edge(file_name=file))
@@ -800,11 +803,13 @@ for i_b in range(len(bottom20_i)):
 y_array_bdf = pd.DataFrame(y_array_b)
 y_array_bdf.to_pickle("bayesian mse bottom 20 (n=100)")
 
+#counter_100 = 0
 for i_t in range(len(top20_i)):
-    counter_100 = 0
-    for j in nwks_100:
-        if j < i_b:
-            counter_100 += 1
+    #counter_100 = 0
+    #print("counter", counter_100)
+    # for j in nwks_100:
+    #     if j < i_b:
+    #         counter_100 += 1
     new_it = indices.iloc[top20_i[i_t]-counter_100][0]
     file = nwks_list2.iloc[new_it][1]
     if nodecount_edge(file_name = file) >= 100:
@@ -812,7 +817,8 @@ for i_t in range(len(top20_i)):
     elif nodecount_edge(file_name = file) < 100:
       sim = string2array(fullData.iloc[top20_i[i_t]-counter_100][3], sep=" ")
       fin = string2array(fullData.iloc[top20_i[i_t]-counter_100][5], sep=" ")
-      if fullData.iloc[top20_i[i_t]-counter_100][1] == nodecount_edge(file_name=file):
+
+      if fullData.iloc[top20_i[i_t]-counter_100][1] != nodecount_edge(file_name=file):
           print("nodes")
           print(fullData.iloc[top20_i[i_t]-counter_100][1])
           print(nodecount_edge(file_name=file))

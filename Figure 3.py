@@ -45,7 +45,7 @@ def add_colorbar(mappable):
 
 total_n = 30
 total_p = 100
-nodes_array = np.arange(1,total_n+1)
+nodes_array = np.arange(2,total_n+1)
 probs_array = np.linspace(.01,1,total_p)
 
 
@@ -55,10 +55,10 @@ def fig_3(total_n,total_p,remove_bool):
     heatmap2 = np.zeros((total_p,total_n))
     heatmap3 = np.zeros((total_p,total_n))
 
-    nodes_array = np.arange(1,total_n+1)
+    nodes_array = np.arange(2,total_n+1)
     probs_array = np.linspace(.01,1,total_p)
 
-    for i in range(1,total_n+1):
+    for i in range(2,total_n+1):
         for j in range(total_p):
             all_sim = relSCurve_precalculated(i, probs_array[j], targeted_removal=remove_bool, simulated=True, finite=False)
             sim = np.zeros(i)
@@ -75,11 +75,13 @@ def fig_3(total_n,total_p,remove_bool):
             else:
                 heatmap0[j][i-1] = scipy.integrate.simpson(sim, dx=1 / (i - 1))
 
-            heatmap1[j][i-1] = ((fin-sim)**2).mean()
+            heatmap1[j][i-1] = np.log10(((fin-sim)**2).mean())
 
-            heatmap2[j][i-1] = ((inf-sim)**2).mean()
+            heatmap2[j][i-1] = np.log10(((inf-sim)**2).mean())
 
             inf_mse = ((inf-sim)**2).mean()
+            if inf_mse == 1:
+                print("n",i,"p",probs_array[j])
             fin_mse = ((fin-sim)**2).mean()
             heatmap3[j][i-1] = (inf_mse-fin_mse)
 
@@ -87,20 +89,27 @@ def fig_3(total_n,total_p,remove_bool):
     heatmap1 = heatmap1.tolist()
     heatmap2 = heatmap2.tolist()
     heatmap3 = heatmap3.tolist()
+    #print(heatmap2)
+    #print(heatmap3)
 
+    hist1 = np.ravel(heatmap1)
+    hist3 = np.ravel(heatmap3)
     xnodes, yprobs = np.meshgrid(nodes_array, probs_array)
 
+    #total = len(hist1)+len(hist3)
+    #plt.hist(hist1,density=True,stacked=True)
+    #plt.hist(hist3,density=True,stacked=True)
+    #plt.ylim([0, 1])
     fig , ( (ax1,ax2) , (ax3,ax4)) = plt.subplots(2, 2,sharex = True,sharey=True)
     z1_plot = ax1.pcolormesh(xnodes, yprobs, heatmap0, cmap = "Reds")
-    z2_plot = ax2.pcolormesh(xnodes, yprobs, heatmap1, vmax=0.01)
+    z2_plot = ax2.pcolormesh(xnodes, yprobs, heatmap1,vmin=-5) #, vmax=0.01)
     z3_plot = ax3.pcolormesh(xnodes, yprobs, heatmap3, cmap = "Blues")
-    z4_plot = ax4.pcolormesh(xnodes, yprobs, heatmap2, vmax=0.2)
+    z4_plot = ax4.pcolormesh(xnodes, yprobs, heatmap2)#, vmax=0.2)
     add_colorbar(z1_plot)
     add_colorbar(z2_plot)
     add_colorbar(z3_plot)
     add_colorbar(z4_plot)
     ax1.set(ylabel=r'$p$')
-    #ax2.set(xlabel='nodes')
     ax3.set(xlabel=r'$N$',ylabel=r'$p$')
     ax4.set(xlabel=r'$N$')
     ax1.set_title("AUC")
@@ -108,7 +117,7 @@ def fig_3(total_n,total_p,remove_bool):
     ax3.set_title("MSE Difference")
     ax4.set_title('MSE Infinite')
 
-    plt.savefig("Fig 3 Final")
+    plt.savefig("Fig 3 Final Attack")
 
 fig_3(30,100,True)
 

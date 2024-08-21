@@ -380,7 +380,7 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path='
         return S
 
     elif lcc_method == "pmult":
-        print("n,p",n,p)
+        #print("n,p",n,p)
         S=0
         for m in range(1,n+1):
             S+=m*calculate_P_mult(p,m,n, executable_path=executable_path)

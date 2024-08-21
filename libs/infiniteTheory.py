@@ -96,11 +96,25 @@ def relSCurve(n, p, attack=False, reverse=False, smooth_end=False):
         c = 2 * current_p * comb(current_n, 2) / current_n
 
         # compute value of S from percolation theory for infinite networks
-        if c > 0:
+        if c == 1:
+            relS[i] = 2/current_n
+            # print("set to 2/i")
+            # print("currentp",current_p)
+            # print("currentn",current_n)
+            # print("c",c)
+        elif c > 0:
             relS[i] = 1 + np.real(
                 myLambertW((-c * np.exp(-c)), k=0, tol=1e-8) / c)
+            # print("set to 0")
+            # print("currentp",current_p)
+            # print("currentn",current_n)
+            # print("c",c)
         else:
             relS[i] = 0
+            # print("set to 0")
+            # print("currentp",current_p)
+            # print("currentn",current_n)
+            # print("c",c)
         if smooth_end == True:
             relS[i] = max([relS[i], 1 / current_n])
 
@@ -113,7 +127,7 @@ def relSCurve(n, p, attack=False, reverse=False, smooth_end=False):
         # update current_n
         if current_n > 1:
             current_n -= 1
-
+    #print("relS", relS)
     return relS
 
 

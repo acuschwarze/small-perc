@@ -27,7 +27,8 @@ pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
 p = float(sys.argv[1])
 attack = False
 
-path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'synthetic_data', 'p{:.2f}'.format(p))
+#path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'synthetic_data', 'p{:.2f}'.format(p))
+path = os.path.join(r'C:\Users\jj\Downloads\GitHub\small-perc\data', 'synthetic_data', 'p{:.2f}'.format(p))
 if not os.path.exists(path):
     os.mkdir(path)
 

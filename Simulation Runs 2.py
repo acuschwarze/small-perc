@@ -332,8 +332,8 @@ def nodecount_edge(file_name = ""):
         edge = content[i].strip()
         edge = edge.split(" ")
         edge_list[i] = np.zeros(2)
-        print("i", i)
-        print("edge[0]",edge[0])
+        #print("i", i)
+        #print("edge[0]",edge[0])
         edge_list[i][0] = int(edge[0])
         edge_list[i][1] = int(edge[1])
         for j in range(2):
@@ -1170,7 +1170,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
             # edge list
         elif check_space(content[0])==1 and (len(content) == 1 or len(content) > 2):
             print('edge file')
-            if nodecount_edge(file_name) > 100:
+            if nodecount_edge(file_name) >= 100:
                 product = "None"
                 n = "None"
                 p = "None"
@@ -1217,7 +1217,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
             #biadjacency matrix
         elif len(content[0]) > 4 or (len(content[0]) == 4 and len(content) == 2):
             print("biadj file")
-            if nodecount_bi(file_name) > 100:
+            if nodecount_bi(file_name) >= 100:
                 product = "None"
                 n = "None"
                 file.close()
@@ -1264,7 +1264,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
                 nx.draw(G_0)
                 #plt.show()
                 freq = nx.degree_histogram(G_0)
-                print(freq)
+                #print(freq)
                 for f in freq:
                     product /= math.factorial(f)
                 product = product * math.factorial(n)
@@ -1282,46 +1282,50 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 # bayesian_array = np.zeros(len(nwks_list2),dtype=object)
 # nodes_array = np.zeros(len(nwks_list2),dtype=object)
 # probs_array = np.zeros(len(nwks_list2),dtype=object)
+bayesian_array = []
+nodes_array = []
+probs_array = []
 nwks_list2 = pd.read_csv("nwks_list2")
+print(len(nwks_list2))
 bayesian_indices = []
 counter=0
-# for nwk in nwks_list2:
-# #     print(nwk)
-#     nwkname = nwks_list2.iloc[counter][1]
-#     data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
-#     if data == ("None", "None","None"):
-#         counter+=1
-#     else:
-#         bayesian_indices.append(counter)
-#         print("add", counter)
-#         counter+=1
-        
+#for nwk in nwks_list2:
 for i in range(len(nwks_list2)):
+    #print(nwk)
     nwkname = nwks_list2.iloc[i][1]
     data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
-    if data != ("None", "None","None"):
-        bayesian_indices.append(i)
+    if data == ("None", "None","None"):
+        counter+=1
+    else:
+        bayesian_indices.append(counter)
+        bayesian_array.append(data[0])
+        nodes_array.append(data[1])
+        probs_array.append(data[2])
         #print("add", counter)
+        counter+=1
         
-
-#         # bayesian_array = np.delete(bayesian_array,counter)
-#         # nodes_array = np.delete(nodes_array,counter)
-#         probs_array = np.delete(probs_array,counter)
-#         counter -= 1
-#     else:
-#         # bayesian_array[counter] = data[0]
-#         # nodes_array[counter] = data[1]
-#         probs_array[counter] = data[2]
-#     counter += 1
+# for i in range(len(nwks_list2)):
+#     nwkname = nwks_list2.iloc[i][1]
+#     data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
+#     if data != ("None", "None","None"):
+#         bayesian_indices.append(i)
+#         #print("add", counter)
+        
+    # else:
+    #     # bayesian_array[counter] = data[0]
+    #     # nodes_array[counter] = data[1]
+    #     probs_array[counter] = data[2]
+    # counter += 1
 indices = pd.DataFrame(bayesian_indices)
 indices.to_pickle("bayesian indices")
-# probs = pd.DataFrame(probs_array)
-# probs.to_pickle("bayesian probs")
+probs = pd.DataFrame(probs_array)
+probs.to_pickle("bayesian probs")
 
-# bayesian = pd.DataFrame(bayesian_array)
-# bayesian.to_pickle("bayesian array")
-# bayesian_nodes = pd.DataFrame(nodes_array)
-# bayesian_nodes.to_pickle("bayesian nodes")
+bayesian_array = pd.DataFrame(bayesian_array)
+bayesian_array.to_pickle("bayesian array")
+bayesian_nodes = pd.DataFrame(nodes_array)
+bayesian_nodes.to_pickle("bayesian nodes")
+print(len(bayesian_array))
 #
 
 # commented out 8/8
