@@ -436,7 +436,8 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
 
         if attack:
             # update p only if nodes are removed by degree
-            current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p) # old code
+            print("run attack")
+            current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p) # old code # add plus 1?
             #current_p = new_prob_attack(i+1,current_p,executable_path = executable2) # c++ test
             #print(current_p,i+1, S[i])
 
