@@ -105,22 +105,23 @@ def expectedMaxDegree(n, p):
     if n == 2:
         return p
         
-#     #k_max = 0
-#     probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
-#     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
-#     #probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-#     probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n)
+    k_max = 0
+    probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
+    probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
+    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
+    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
 
-#     # every node has at least degree zero
-#     #probs_at_least_one_node[0] = 1
-#     # at least one node has degree 1 if the graph is not empty
-#     #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
+    # every node has at least degree zero
+    #probs_at_least_one_node[0] = 1
+    # at least one node has degree 1 if the graph is not empty
+    #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
 
-#     probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
-#     probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
-#     mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
+    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+    probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
+    mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
 
-#     return mean_k_max
+
+    return mean_k_max
 
 
 # def probs_less(n,p,k):
@@ -311,32 +312,32 @@ def expectedMaxDegree(n, p):
 #     return mean_k_max
 
 
-def expectedMaxDegree(n, p):
-    '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
-    with n nodes and edge probability p.
+# def expectedMaxDegree(n, p):
+#     '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
+#     with n nodes and edge probability p.
 
-    Parameters
-    ----------
-    n : int
-       Number of nodes.
+#     Parameters
+#     ----------
+#     n : int
+#        Number of nodes.
 
-    p : float
-       Edge probability in Erdos Renyi graph.
+#     p : float
+#        Edge probability in Erdos Renyi graph.
 
-    Returns
-    -------
-    emd (int)
-       The expected value of the maximum degree.
-    '''
+#     Returns
+#     -------
+#     emd (int)
+#        The expected value of the maximum degree.
+#     '''
 
-    probs_k_or_less = np.array([binomialDistribution.cdf(k,n-1,p) for k in range(n)])
-    probs_at_least_k = np.concatenate([[1],np.array(1-probs_k_or_less[:-1])])
-    probs_at_least_one_node = 1-(1-probs_at_least_k)**(1)
-    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
-    probs_kmax = probs_at_least_one_node[:-1]-probs_at_least_one_node[1:]
-    mean_k_max = np.sum([probs_kmax[k]*k for k in range(n)])
-    print(n,p,mean_k_max)
-    return mean_k_max
+#     probs_k_or_less = np.array([binomialDistribution.cdf(k,n-1,p) for k in range(n)])
+#     probs_at_least_k = np.concatenate([[1],np.array(1-probs_k_or_less[:-1])])
+#     probs_at_least_one_node = 1-(1-probs_at_least_k)**(n)
+#     probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
+#     probs_kmax = probs_at_least_one_node[:-1]-probs_at_least_one_node[1:]
+#     mean_k_max = np.sum([probs_kmax[k]*k for k in range(n)])
+#     print(n,p,mean_k_max)
+#     return mean_k_max
 
     
 
@@ -366,12 +367,12 @@ def edgeProbabilityAfterTargetedAttack(n, p):
 
         # new number of edges = old number of number of edges - emd
         # new p = new number of edges/ n-1 choose 2
-        old_number_of_number_of_edges = p*binom(n,2)
-        new_number_of_edges = old_number_of_number_of_edges - emd
-        new_p = new_number_of_edges/ binom(n-1,2)
+        # old_number_of_number_of_edges = p*binom(n,2)
+        # new_number_of_edges = old_number_of_number_of_edges - emd
+        # new_p = new_number_of_edges/ binom(n-1,2)
 
-        #new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
-        #new_p = max([new_p, 0])
+        new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+        new_p = max([new_p, 0])
 
     return new_p
 

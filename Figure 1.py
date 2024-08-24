@@ -29,9 +29,9 @@ fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 # random removals
-n=50
+n=20
 nodes = np.arange(n)/n
-p=.06
+p=.1
 p_index = int(p/.01 - 1)
 
 
@@ -39,14 +39,39 @@ fig, axs = plt.subplots(1,2, figsize = [7,3.5])
 
 remove_bools = [False,True]
 
+simtrials=100
+
 for i in range(len(remove_bools)):
 
     remove_bool = remove_bools[i]
     if remove_bool == True:
         remove = "Target"
+        remove2 = "attack"
     elif remove_bool == False:
         remove = "Random"
-    data = relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=True, finite=False)
+        remove2 = "random"
+    #data = relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=True, finite=False)
+    big_data = np.zeros((simtrials),dtype=object)
+    for j in range(len(nodes)):
+        for k in range(simtrials):
+                sim_data = completeRCData(numbers_of_nodes=[n],
+                                        edge_probabilities=[p], num_trials=1,
+                                        performance='relative LCC', graph_types=['ER'],
+                                        remove_strategies=[remove2])
+                data_array = np.array(sim_data[0][0][0][0])
+
+                # exclude the first row, because it is the number of nodes
+                data_array = data_array[1:]
+
+                # this can prevent some sort of bug about invalid values
+                for val in []:
+                    data_array[data_array == val] = np.nan
+
+                # plot simulated data
+                data = np.nanmean(data_array, axis=0)
+                big_data[k] = data
+
+
     #sim_path = "{}_attack{}_n{}.npy".format("simRelSCurve", remove_bool, n)
     #sim_path = os.path.join("data", "synthetic_data", sim_path)
     #data = np.load(sim_path)
@@ -54,7 +79,7 @@ for i in range(len(remove_bools)):
     print(np.shape(data))
     numtrials = len(data)
 
-    inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=False)
+    inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=remove_bool)
 
     fin_path = "{}_attack{}_n{}.npy".format("RelSCurve", remove_bool, n)
     fin_path = os.path.join("data", "synthetic_data", fin_path)
@@ -64,18 +89,27 @@ for i in range(len(remove_bools)):
     std_table = np.zeros(n)
     sim_y = np.zeros(n)
 
+    # for j in range(n):
+    #     sim_data = np.zeros(numtrials)
+    #     for i_nums in range(numtrials):
+    #         sim_data[i_nums] = data[j][i_nums]
+    #     std = np.std(sim_data)
+    #     #print(std)
+    #     std_table[j] = std / 10 * 3 # 10 for standard error (sqrt100)
+    #     sim_y[j] = np.nanmean(sim_data)
+
     for j in range(n):
         sim_data = np.zeros(numtrials)
         for i_nums in range(numtrials):
-            sim_data[i_nums] = data[j][i_nums]
+            sim_data[i_nums] = big_data[i_nums][j]
         std = np.std(sim_data)
         #print(std)
         std_table[j] = std / 10 * 3 # 10 for standard error (sqrt100)
         sim_y[j] = np.nanmean(sim_data)
 
-    axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, label = "simulations", lw=1, color = "red")
-    axs[i].plot(nodes, inf, label = "infinite theory", color = "orange")
-    axs[i].plot(nodes, fin, label = "finite theory", color = "blue")
+    axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, marker = 'o', markersize=2.5, label = "simulations", lw=1, color = "red")
+    axs[i].plot(nodes, inf, label = "infinite theory", color = "black")
+    axs[i].plot(nodes, fin, label = "finite theory", color = "blue", linestyle = '--')
     #axs[i].set_title("Fin/Inf Theory: n=" + str(n) + ", p=" + str(p) + ", removal " + str(remove))
     axs[i].set(xlabel= r'$f$')
     if i==0:
@@ -85,8 +119,8 @@ for i in range(len(remove_bools)):
 
 axs[i].legend()
 
-plt.subplots_adjust(left=0.08, right=0.99, bottom=.15, top=0.99, wspace=.1)
-plt.savefig("Fig 1 final")
+plt.subplots_adjust(left=0.08, right=0.98, bottom=.15, top=0.99, wspace=.1)
+plt.savefig("Fig_1_final.pdf")
 
 # inf_rand_path = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
 # inf_rand_path = os.path.join("data", "synthetic_data", inf_targ_path)

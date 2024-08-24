@@ -325,7 +325,9 @@ def nodecount_edge(file_name = ""):
     #content = file.readlines()
     content = (line.rstrip() for line in file)  # All lines including the blank ones
     content = list(line for line in content if line)
-    print(content)
+    if len(content)==0:
+        return 0
+    #print(content)
     node_list = []
     edge_list = np.empty(len(content), dtype=object)
     for i in range(len(content)):
@@ -461,7 +463,7 @@ def mega_file_reader(theory = False, removal = "random", adj_list = ["taro.txt"]
                     edge = content[i].strip()
                     edge = edge.split("\t")
                     print("edge")
-                    print(edge)
+                    #print(edge)
 
                     for j in range(len(edge)):
                         e = int(float(edge[j]))
@@ -1154,6 +1156,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 
     for file_name in adj_list:
         #file_name = open(os.path.join(file_path,file_name), "r")
+        print("bayesian")
         print(str(file_name))
         file = open(file_name, "r")
         #content = file.readlines()
@@ -1170,7 +1173,7 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
             # edge list
         elif check_space(content[0])==1 and (len(content) == 1 or len(content) > 2):
             print('edge file')
-            if nodecount_edge(file_name) >= 100:
+            if nodecount_edge(file_name) > 100:
                 product = "None"
                 n = "None"
                 p = "None"
@@ -1277,6 +1280,9 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
     return product,n,p
 
 
+#print('bay')
+#print(bayesian(theory=False, removal = "random", adj_list = [r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\tests\krackhardt_kite.adj"], oneplot = False))
+
 
 #print(bayesian(theory = False, removal = "random", adj_list = ["AmadMyJn12-20.adj"], oneplot = False))
 # bayesian_array = np.zeros(len(nwks_list2),dtype=object)
@@ -1285,14 +1291,136 @@ def bayesian(theory = False, removal = "random", adj_list = ["taro.txt"], oneplo
 bayesian_array = []
 nodes_array = []
 probs_array = []
-nwks_list2 = pd.read_csv("nwks_list2")
-print(len(nwks_list2))
+fullData = pd.read_csv("fullData.csv")
+data_names = []
+
+# nwks_list2 = pd.read_csv("nwks_list2")
+cwd = os.getcwd()
+nwks_names = []
+
+data_names = []
+
+for j in range(len(fullData)):
+    data_name = fullData.iloc[j][0]
+    data_names.append(data_name)
+
+
+paths = np.zeros(len(data_names),dtype=object)
+
+for i in range(len(nwks_list2)):
+    pathname = nwks_list2.iloc[i][1]
+    nwks_listname = os.path.basename(nwks_list2.iloc[i][1])
+    if nodecount_edge(file_name = pathname) <= 100 and nodecount_edge(file_name = pathname) >= 2:
+        nwks_names.append(nwks_listname)
+        if nwks_listname in data_names:
+            indx = data_names.index(nwks_listname)
+            #print(indx)
+            paths[indx] = pathname
+
+print("path test", paths[1552])
+for i in range(len(paths)):
+    if paths[i] == 0:
+        print(i)
+
 bayesian_indices = []
 counter=0
 #for nwk in nwks_list2:
-for i in range(len(nwks_list2)):
+for i in range(len(paths)):
     #print(nwk)
-    nwkname = nwks_list2.iloc[i][1]
+    #nwkname = nwks_list2.iloc[i][1]
+    if i == 1550:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\tests\krackhardt_kite.adj"
+    elif i == 1560:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\tests\sedgewick_maze.adj"
+    elif i == 1564:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\146.adj"
+    elif i ==  1565:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\147_acct_recip.adj"
+    elif i == 1566:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\147_reject_any.adj"
+    elif i == 1567:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\148.adj"
+    elif i == 1568:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\151.adj"
+    elif i == 1569:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\152.adj"
+    elif i == 1570:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\153.adj"
+    elif i == 1571:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\154.adj"
+    elif i == 1572:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\155.adj"
+    elif i == 1573:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\157.adj"
+    elif i == 1574:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\158.adj"
+    elif i == 1575:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\159.adj"
+    elif i == 1576:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\160.adj"
+    elif i == 1578:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\162.adj"
+    elif i == 1579:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\163.adj"
+    elif i == 1580:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\171.adj"
+    elif i == 1581:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\174.adj"
+    elif i == 1582:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\265.adj"
+    elif i == 1583:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\266.adj"
+    elif i == 1584:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\267.adj"
+    elif i == 1585:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\268.adj"
+    elif i == 1586:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\269.adj"
+    elif i == 1587:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\270.adj"
+    elif i == 1588:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\271.adj"
+    elif i == 1589:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\272.adj"
+    elif i == 1590:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\273.adj"
+    elif i == 1591:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\275.adj"
+    elif i == 1592:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\276.adj"
+    elif i == 1593:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\277.adj"
+    elif i == 1594:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\278.adj"
+    elif i == 1595:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\282.adj"
+    elif i == 1596:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\304.adj"
+    elif i == 1597:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\395.adj"
+    elif i == 1598:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\396.adj"
+    elif i == 1600:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\428.adj"
+    elif i == 1601:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\518.adj"
+    elif i == 1602:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\519.adj"
+    elif i == 1603:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\521.adj"
+    elif i == 1604:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\522.adj"
+    elif i == 1605:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\524.adj"
+    elif i == 1606:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\525.adj"
+    elif i == 1607:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\636.adj"
+    elif i == 1608:
+        nwkname = r"C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks\wss\637.adj"
+    else:    
+        nwkname = paths[i]
+    print("loop",nwkname)
     data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
     if data == ("None", "None","None"):
         counter+=1
@@ -1304,18 +1432,21 @@ for i in range(len(nwks_list2)):
         #print("add", counter)
         counter+=1
         
-# for i in range(len(nwks_list2)):
-#     nwkname = nwks_list2.iloc[i][1]
+# for i in range(len(paths)):
+#     nwkname = paths[i]
 #     data = bayesian(theory=False, removal = "random", adj_list = [nwkname], oneplot = False)
 #     if data != ("None", "None","None"):
 #         bayesian_indices.append(i)
+#         bayesian_array[counter] = data[0]
+#         nodes_array[counter] = data[1]
+#         probs_array[counter] = data[2]
 #         #print("add", counter)
         
-    # else:
-    #     # bayesian_array[counter] = data[0]
-    #     # nodes_array[counter] = data[1]
-    #     probs_array[counter] = data[2]
-    # counter += 1
+#     else:
+#         bayesian_array[counter] = data[0]
+#         nodes_array[counter] = data[1]
+#         probs_array[counter] = data[2]
+#     counter += 1
 indices = pd.DataFrame(bayesian_indices)
 indices.to_pickle("bayesian indices")
 probs = pd.DataFrame(probs_array)
