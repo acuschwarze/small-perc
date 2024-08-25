@@ -84,6 +84,8 @@ for j in range(num_nwks):
 
 log_array = np.zeros(len(mse_array))
 for i in range(len(mse_array)):
+    # if np.log(mse_array[i]) > 0:
+    #     log_array[i] = 0
     if np.log(mse_array[i]) <= -4:
         log_array[i] = -4
     elif np.log(mse_array[i]) >= 10**.5:
@@ -114,7 +116,7 @@ cmap = cm.gnuplot2 #cm.viridis
 fig, ax = plt.subplots()
 
 # Plot Voronoi diagram with cells colored based on z values
-voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='grey', line_width=1, line_alpha=0.6, point_size=1)
+ax1 = voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='grey', line_width=1, line_alpha=0.6, point_size=1)
 
 # Color each Voronoi region
 for region_index, region in enumerate(vor.regions):
@@ -131,22 +133,62 @@ for region_index, region in enumerate(vor.regions):
 # Add a color bar to show the mapping of z values to colors
 sm = plt.cm.ScalarMappable(cmap="gnuplot2", norm=norm)
 sm.set_array([])
-plt.colorbar(sm, ax=ax, label='Z value')
 
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.title('Voronoi Diagram Colored by Z Values')
+labels = plt.xticks()[0]
+newticks = np.zeros(len(labels))
+newticks2 = [r'$10^{{{}}}$'.format(x) for x in labels]
+plt.xticks(range(0,len(labels)),newticks2)
+
+c_bar = plt.colorbar(sm, ax=ax, label='log(MSE)')
+
+#c_bar.ax.set_yticklabels(newticks2) 
+
+
+def add_colorbar_neg(mappable):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    import matplotlib.pyplot as plt
+    last_axes = plt.gca()
+    ax = mappable.axes
+    fig = ax.figure
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = fig.colorbar(mappable, cax=cax)
+    newticks1 = cbar.ax.get_yticklabels()
+    newticks1 = [label.get_text() for label in newticks1]
+    newticks1 = [a.replace('−', '-') for a in newticks1]
+    #newticks1 = [int(a) for a in newticks1 if "." not in a]
+    #newticks1 = [float(a) for a in newticks1 if type(a) != int]
+    newticks2 = [r'$10^{{{}}}$'.format(x) for x in newticks1]
+    cbar.ax.set_yticklabels(newticks2) 
+    plt.sca(last_axes)
+    return cbar
+
+#add_colorbar_neg(ax1)
+
+plt.xlabel(r'$N$')
+plt.ylabel(r'$p$')
+plt.title('Voronoi Diagram Colored by MSE')
 plt.xlim([0,1])
 plt.ylim([0,1])
+
+# labels= plt.xticks()[0]
+# newticks2 = [100*x for x in labels]
+# plt.xticks(newticks2)
+
+import matplotlib.ticker as ticker
+scale_x = 100
+ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x*scale_x))
+ax.xaxis.set_major_formatter(ticks_x)
+
 plt.savefig("voronoi.pdf")
-plt.show()
+plt.savefig("Figure 4")
 
 from scipy.spatial import Voronoi, voronoi_plot_2d
 vor = Voronoi(points)
 
 import matplotlib.pyplot as plt
-fig = voronoi_plot_2d(vor,point_size=1,show_vertices=False)
+fig = voronoi_plot_2d(vor,point_size=1,show_vertices=False,)
 plt.xlim([0,1])
 plt.ylim([0,1])
-plt.show()
+
 
