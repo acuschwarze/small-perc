@@ -82,19 +82,30 @@ for j in range(num_nwks):
     mse_array[j] = msedata.iloc[j][4]
 
 
-log_array = np.zeros(len(mse_array))
+fullData = pd.read_csv("fullData.csv")
+
+log_array = np.zeros(len(mse_array)) #[] #np.zeros(len(mse_array))
 for i in range(len(mse_array)):
     # if np.log(mse_array[i]) > 0:
     #     log_array[i] = 0
     if np.log(mse_array[i]) <= -4:
-        log_array[i] = -4
+        log_array[i] = -4 #log_array.append(-4) #log_array[i] = -4
     elif np.log(mse_array[i]) >= 10**.5:
-        log_array[i] = 10**.5
+        log_array[i] = 0
+        #nodes_array.remove(i)
+        #probs_array.(i)
 
     elif mse_array[i] != 0:
-        log_array[i] = np.log(mse_array[i])
-    else:
-        log_array[i] = -4
+        log_array[i] = np.log(mse_array[i]) #log_array.append(np.log(mse_array[i]))
+    
+    if mse_array[i] > 10**2:
+        print(fullData.iloc[i][0])
+        print(fullData.iloc[i][1])
+        print("n",nodes_array[i])
+        print("p",probs_array[i])
+    # else:
+    #     #log_array.append(-4)
+    #     log_array[i] = -4
 
 mse_array = log_array
 
@@ -109,8 +120,8 @@ mse_array = np.concatenate([mse_array, ring_z])
 vor = Voronoi(points)
 
 # Normalize z values to get a colormap
-norm = plt.Normalize(vmin=min(mse_array), vmax=.5)
-cmap = cm.gnuplot2 #cm.viridis
+norm = plt.Normalize(vmin=min(mse_array), vmax=5)
+cmap = cm.gnuplot2_r #cm.viridis
 
 # Create a plot
 fig, ax = plt.subplots()
@@ -131,13 +142,15 @@ for region_index, region in enumerate(vor.regions):
 
 
 # Add a color bar to show the mapping of z values to colors
-sm = plt.cm.ScalarMappable(cmap="gnuplot2", norm=norm)
+sm = plt.cm.ScalarMappable(cmap="gnuplot2_r", norm=norm)
 sm.set_array([])
 
 labels = plt.xticks()[0]
 newticks = np.zeros(len(labels))
-newticks2 = [r'$10^{{{}}}$'.format(x) for x in labels]
-plt.xticks(range(0,len(labels)),newticks2)
+#newticks2 = [r'$10^{{{}}}$'.format(x) for x in labels]
+#plt.xticks(range(0,len(labels)),newticks2)
+#plt.xticks(np.arange(0, 1, 10)) 
+#plt.xticks(range(0,int(max(labels)),10))
 
 c_bar = plt.colorbar(sm, ax=ax, label='log(MSE)')
 
@@ -177,6 +190,7 @@ plt.ylim([0,1])
 
 import matplotlib.ticker as ticker
 scale_x = 100
+plt.xticks([0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1])
 ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x*scale_x))
 ax.xaxis.set_major_formatter(ticks_x)
 
