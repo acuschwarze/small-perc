@@ -41,6 +41,24 @@ def averageDegree(G):
 
     return md
 
+def maxDegree(G):
+    '''Get average degree of a graph `G`.
+
+    Parameters
+    ----------
+    G : a networkX graph
+       A graph.
+
+    Returns
+    -------
+    md : float
+       Mean degree of the graph G.
+    '''
+    v = sorted(G.degree, key=lambda x: x[1], reverse=True)[0][0]
+    md = G.degree(v)
+
+    return md
+
 
 def getEfficiency(G, lcc_only=False):
     '''Get efficiency of a graph `G`.

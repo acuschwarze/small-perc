@@ -22,6 +22,7 @@ from libs.utils import *
 from libs.finiteTheory import *
 from libs.performanceMeasures import *
 from libs.utils import *
+from scipy.stats import binom as binDist
 
 ################################################################################
 
@@ -110,6 +111,24 @@ def expectedMaxDegreeWithVariableExponent(n, p, fun=lambda n_, p_:n_):
 
     return mean_k_max
 
+
+def expected_minimum_binomial(m, n, p):
+    # Calculate P(X_i >= k) for each k
+    prob_x_geq_k = np.array([sum(binDist.pmf(range(k, n+1), n, p)) for k in range(n+1)])
+
+    # Calculate P(Y = k) for each k (Y being the minimum of m draws)
+    prob_y_eq_k = np.zeros(n+1)
+    for k in range(n+1):
+        if k == n:
+            prob_y_eq_k[k] = prob_x_geq_k[k] ** m
+        else:
+            prob_y_eq_k[k] = prob_x_geq_k[k] ** m - prob_x_geq_k[k+1] ** m
+
+    # Calculate the expected value E[Y]
+    expected_value_y = np.sum([k * prob_y_eq_k[k] for k in range(n+1)])
+    
+    return expected_value_y
+
 ################################################################################
 
 num_trials = 200
@@ -117,13 +136,13 @@ remove_nodes = 'attack'
 
 ################################################################################
 
-labels = [r'$K_{sim}$', r'$K_{from current}$', r'$K_{from first}$', r'$K_{from first-ip}$', r'$K_{iterative}$']
-colors = ['red', 'navy', 'mediumblue', 'lightblue', 'darkgreen', 'darkorange', 'orange']
+labels = [r'c', r'$K_{sim}$', r'$K_{from current}$', r'$K_{from first}$', r'$K_{from first-ip}$', r'$K_{iterative}$']
+colors = ['purple', 'red', 'navy', 'mediumblue', 'lightblue', 'darkgreen', 'darkorange', 'orange']
 
 ################################################################################
 prange = [0.9]
 
-for n in [10,20]:
+for n in [10]:
     data_array = np.zeros((num_trials, 6, n), dtype=float)
     data_array[0] = np.arange(n)
 
@@ -137,6 +156,9 @@ for n in [10,20]:
             p_new = p
             
             for i in range(n):
+                    
+                    if i > 0 :
+                        data_array[j,0,i] = averageDegree(g)
                     
                     # calculate mean degree according to `edgeProbabilityAfterTargetedAttack`
                     p_next = edgeProbabilityAfterTargetedAttack(n-i, p_new)
@@ -159,18 +181,37 @@ for n in [10,20]:
                         
                     # calculate max degree with independence assumption but no ER assumption: ("from first")
                     # we calculate the EMD from the Nth largest degree in original network
-                    if i <= n:
-                        if i > 0:
-                            data_array[j, 3, i] = data_array[j, 3, i-1] + expectedNthLargestDegree(n,  p, (i-1)+1) 
-
+                    if j==0:
+                        if i <= n:
+                            if i > 0:
+                                data_array[j, 3, i] = data_array[j, 3, i-1] + expectedNthLargestDegree(n,  p, (i-1)+1) 
+                        data_array[:, 3, i] = data_array[0, 3, i]
                     # same as before but with correction for edges to already removed nodes
-                    #if i > 0:
-                    #    data_array[j, 4, i] = data_array[j, 4, i-1] + data_array[j, 3, i] - p
+                    if i > 0:
+                        data_array[j, 4, i] = data_array[j, 4, i-1] + expectedNthLargestDegree(n,  p, (i-1)+1)
+                        print(min([i-1, expectedNthLargestDegree(n,  p, (i-1)+1)]))
+                        x = expected_minimum_binomial(min([(i-1),1]), 
+                                                      min([i-1]), 
+                                                      p) #min([i,int(expectedNthLargestDegree(n,  p, (i-1)+1))])
+                        x = (i-1)*p**2
+                        data_array[j, 4, i] = data_array[j, 4, i] - x #*p/np.sqrt(2)
+                        # this is the average case, but we want the luckiest (i.e., smallest x) out of ???
+                        # cases, because the average case would not be the node that we would like to pick
+                        # instead check for doubles, etc: x should be the expected lowest out of i draws from a 
+                        # binomial distribution with probability p
+                        
+                        #for ii in range(1, i):
+                        #    data_array[j, 4, i] = data_array[j, 4, i] - p**(ii) 
 
                     # old method from finite theory
-                    if i > 0:
-                        data_array[j, 5, i] = data_array[j, 5, i-1] + expectedMaxDegree(
-                            g.number_of_nodes()+1, p_new)  
+                    if j==0:
+                        if i > 0:
+                            data_array[j, 5, i] = data_array[j, 5, i-1] + expectedMaxDegree(
+                                g.number_of_nodes()+1, p_new)  
+                            #print('g.number_of_nodes()+1, p_new', g.number_of_nodes()+1, p_new)
+                            #print('(i, emd, m rem)=', i, expectedMaxDegree(g.number_of_nodes()+1, p_new), 
+                            #    data_array[j, 5, i])
+                        data_array[:, 5, i] = data_array[0, 5, i]
 
                     p_new = p_next
                     
@@ -194,10 +235,10 @@ for n in [10,20]:
 
         ax = plt.subplot(1,len(prange),1+ip)
         plt.title('p={}'.format(p))
-        for l in [1,2,5]: #range(1,2): #len(data_array[0])): 
+        for l in [0, 1,2,4,5]: #range(1,2): #len(data_array[0])): 
             print(l)
             plt.plot(np.nanmean(data_array[:,l],axis=0), marker='ovsd'[l%4-1], fillstyle='none',
-                lw=0, c=colors[l-1], label=labels[l-1])
+                lw=0, c=colors[l], label=labels[l])
         #print(np.nanmean(data_array, axis=0))
     plt.legend()
     ax.yaxis.set_major_locator(MultipleLocator(5))

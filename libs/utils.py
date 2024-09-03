@@ -246,17 +246,151 @@ def edgeProbabilityAfterTargetedAttack(n, p):
 
     else:
         emd = expectedMaxDegree(n, p)
+        #print('emd, n, p', emd, n, p)
 
         # new number of edges = old number of number of edges - emd
         # new p = new number of edges/ n-1 choose 2
         old_number_of_number_of_edges = p*binom(n,2)
-        new_number_of_edges = old_number_of_number_of_edges - emd
+        print('estimated old m', old_number_of_number_of_edges)
+        removed_edges = emd
+        new_number_of_edges = max([0, old_number_of_number_of_edges - removed_edges])
         new_p = new_number_of_edges/ binom(n-1,2)
 
         #new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
         #new_p = max([new_p, 0])
 
+        #print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(
+        #    'n','n-1','nC2','(n-1)C2','k', 'old m', 'rem m', 'new m'))
+        #print('{}\t{}\t{}\t{}\t{}\t{:.3f}\t{:.3f}\t{:.3f}'.format(
+        #    n,n-1,binom(n,2),binom(n-1,2),1,
+        #    old_number_of_number_of_edges, removed_edges, new_number_of_edges))
+        
+
+
     return new_p
+
+def expected_minimum_binomial(m, n, p):
+    # Calculate P(X_i >= k) for each k
+    prob_x_geq_k = np.array([sum(binomialDistribution.pmf(range(k, n+1), n, p)) for k in range(n+1)])
+
+    # Calculate P(Y = k) for each k (Y being the minimum of m draws)
+    prob_y_eq_k = np.zeros(n+1)
+    for k in range(n+1):
+        if k == n:
+            prob_y_eq_k[k] = prob_x_geq_k[k] ** m
+        else:
+            prob_y_eq_k[k] = prob_x_geq_k[k] ** m - prob_x_geq_k[k+1] ** m
+
+    # Calculate the expected value E[Y]
+    expected_value_y = np.sum([k * prob_y_eq_k[k] for k in range(n+1)])
+    
+    return expected_value_y
+
+def edgeProbabilityAfterTargetedAttack2(n, p, k):
+    '''Calculate edge probability in an Erdos--Renyi network with original size
+    `n` and original edge probability `p` after removing the node with the
+    highest degree.
+
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
+    
+    p : float
+       Edge probability in Erdos Renyi graph.
+       
+    Returns
+    -------
+    new_p (float)
+       Updated edge probability.
+    '''
+
+    if n-k < 2:
+        return 0
+    
+    else:
+
+        total_edges_removed = 0
+        p_new = p
+        for i in range(k):
+            emd = expectedMaxDegree(n-i, p_new)  # +1?
+            total_edges_removed = total_edges_removed + emd
+            p_next = edgeProbabilityAfterTargetedAttack(n-i, p_new)
+            p_new = p_next
+
+        m_rem = 0
+        for i in range(k):
+            m_rem = m_rem + expectedNthLargestDegree(n,  p, i)
+            x = i*p**1 #expected_minimum_binomial(min([i,n-i]), i, p)
+            m_rem = m_rem - x
+            #for ii in range(i):
+            #    m_rem = m_rem - p**(ii)
+        total_edges_removed = m_rem
+        
+        # new number of edges = old number of number of edges - emd
+        # new p = new number of edges/ n-1 choose 2
+        old_number_of_number_of_edges = p*binom(n,2)
+        new_number_of_edges = old_number_of_number_of_edges - total_edges_removed
+        print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(
+            'n','n-k','nC2','(n-k)C2','k', 'old m', 'rem m', 'new m'))
+        print('{}\t{}\t{}\t{}\t{}\t{:.3f}\t{:.3f}\t{:.3f}'.format(
+            n,n-k,binom(n,2),binom(n-k,2),k,
+            old_number_of_number_of_edges, total_edges_removed, new_number_of_edges))
+        
+        new_p = new_number_of_edges/ binom(n-k,2)
+        print('new_p', new_p)
+
+
+
+        #new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
+        #new_p = max([new_p, 0])
+
+    return new_p
+
+def expectedNthLargestDegree(n, p, N):
+    '''Calculate expected value of the degree of the node that has the Nth 
+    largest degree in an Erdos--Renyi graph with n nodes and edge probability
+    p.
+
+    Parameters
+    ----------
+    n : int
+       Number of nodes.
+
+    N : int
+       Number of the node of interest in the degree-ranked (largest to 
+       smallest) node sequence.
+
+    p : float
+       Edge probability in Erdos Renyi graph.
+
+    Returns
+    -------
+    mean_Nk (float)
+       The expected value of the degree of the node with the Nth largest 
+       degree.
+    '''
+
+    if N > n:
+        print('Cannot find the {}th largest element in a sequence of only {} numbers.'.format(N,n))
+
+    if n in [0, 1] or p == 0:
+        return 0
+
+    if n == 2:
+        return p
+
+    # probability that a node has at least degree k
+    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) 
+        for k in range(n)][::-1])[::-1]
+    # probability that at least N nodes have degree k or larger
+    probs_at_least_N_nodes = [1 - binomialDistribution.cdf(N-1, n, probs_at_least_k[k]) 
+        for k in range(n)]
+    probs_at_least_N_nodes = np.concatenate([probs_at_least_N_nodes, [0]])
+    probs_Nk = probs_at_least_N_nodes[:-1] - probs_at_least_N_nodes[1:]
+    mean_Nk = np.sum([probs_Nk[k] * k for k in range(n)])
+
+    return mean_Nk
 
 
 def sampleNetwork(n, p, graph_type='ER'):
