@@ -84,6 +84,19 @@ for j in range(num_nwks):
 
 fullData = pd.read_csv("fullData.csv")
 
+nonweird = []
+nwnodes = []
+nwprobs=[]
+for i in range(len(mse_array)):
+    if mse_array[i] < 10:
+        nonweird.append(mse_array[i])
+        nwnodes.append(nodes_array[i])
+        nwprobs.append(probs_array[i])
+
+mse_array = np.array(nonweird)
+nodes_array = np.array(nwnodes)
+probs_array = np.array(nwprobs)
+
 log_array = np.zeros(len(mse_array)) #[] #np.zeros(len(mse_array))
 for i in range(len(mse_array)):
     # if np.log(mse_array[i]) > 0:
@@ -120,7 +133,7 @@ mse_array = np.concatenate([mse_array, ring_z])
 vor = Voronoi(points)
 
 # Normalize z values to get a colormap
-norm = plt.Normalize(vmin=min(mse_array), vmax=5)
+norm = plt.Normalize(vmin=min(mse_array), vmax=-.3)
 cmap = cm.gnuplot2_r #cm.viridis
 
 # Create a plot
@@ -145,17 +158,24 @@ for region_index, region in enumerate(vor.regions):
 sm = plt.cm.ScalarMappable(cmap="gnuplot2_r", norm=norm)
 sm.set_array([])
 
-labels = plt.xticks()[0]
-newticks = np.zeros(len(labels))
-#newticks2 = [r'$10^{{{}}}$'.format(x) for x in labels]
-#plt.xticks(range(0,len(labels)),newticks2)
-#plt.xticks(np.arange(0, 1, 10)) 
-#plt.xticks(range(0,int(max(labels)),10))
+newticks1 = plt.xticks()[0]
+#newticks = np.zeros(len(labels))
 
+newticks2 = []
+for i in range(len(newticks1)):
+    if newticks1[i]==0 or newticks1[i]==-1 or newticks1[i]==-2 or newticks1[i]==-3 or newticks1[i]==-4:
+        newticks2.append(r'$10^{{{}}}$'.format(newticks1[i]))
+    # else:
+    #     newticks2[i] = 
 c_bar = plt.colorbar(sm, ax=ax, label='log(MSE)')
-
-#c_bar.ax.set_yticklabels(newticks2) 
-
+print(newticks2)
+# c_bar.ax.set_yticklabels(newticks2)
+# for i in range(len(newticks1)):
+#     if isinstance(newticks1[i], float):
+#         c_bar.ax.set_yticks[i].label1.set_visible(False)
+ticks = [-1,-2,-3,-4]
+newticks2 = [r'$10^{{{}}}$'.format(x) for x in ticks]
+c_bar.set_ticks(newticks2)
 
 def add_colorbar_neg(mappable):
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -171,7 +191,13 @@ def add_colorbar_neg(mappable):
     newticks1 = [a.replace('−', '-') for a in newticks1]
     #newticks1 = [int(a) for a in newticks1 if "." not in a]
     #newticks1 = [float(a) for a in newticks1 if type(a) != int]
-    newticks2 = [r'$10^{{{}}}$'.format(x) for x in newticks1]
+    newticks2 = np.zeros(len(newticks1))
+    for i in range(newticks1):
+        if isinstance(newticks1[i], int):
+            newticks2[i] = r'$10^{{{}}}$'.format(newticks1[i])
+        else:
+            newticks2[i] = ''
+    #newticks2 = [r'$10^{{{}}}$'.format(x) for x in newticks1]
     cbar.ax.set_yticklabels(newticks2) 
     plt.sca(last_axes)
     return cbar
@@ -196,13 +222,3 @@ ax.xaxis.set_major_formatter(ticks_x)
 
 plt.savefig("voronoi.pdf")
 plt.savefig("Figure 4")
-
-from scipy.spatial import Voronoi, voronoi_plot_2d
-vor = Voronoi(points)
-
-import matplotlib.pyplot as plt
-fig = voronoi_plot_2d(vor,point_size=1,show_vertices=False,)
-plt.xlim([0,1])
-plt.ylim([0,1])
-
-

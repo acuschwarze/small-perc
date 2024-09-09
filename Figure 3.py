@@ -164,7 +164,7 @@ def fig_3(max_n,total_p):
     # replacing 'gnuplot2' with just the last 75% of 'gnuplot2':
     from matplotlib import cm
     cmap = cm.get_cmap('gnuplot2')
-    new_cmap = cm.colors.ListedColormap(cmap(np.linspace(0.2, 1.0, 256)))
+    new_cmap = cm.colors.ListedColormap(cmap(np.linspace(0.3, 1.0, 256)))
     reversed = new_cmap.reversed()
 
     z1_plot = ax1.pcolormesh(xnodes, yprobs, heatmap_rauc)

@@ -155,38 +155,6 @@ double expectedMaxDegree(int n, double p):
 
 
 
-// double expectedMaxDegree(int n, double p) {
-//     if (n in [0, 1] or p == 0) {
-//         return 0
-//     }
-//     if (n == 2) {
-//         return p
-//     }
-//     int k_max = 0
-
-//     xt::xarray<double> probs_k_or_less = xt::xarray<double>(n)
-
-//     for(int i = 0; int i < n; int i++) {
-//         probs_k_or_less[i] == cdf(n-1,i,p)
-//     }
-    
-//     xt::xarray<double> probs_at_least_k = xt::concatenate(xtuple({1}, , c), 1)
-//     probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
-//     probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-//     probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
-
-//     # every node has at least degree zero
-//     #probs_at_least_one_node[0] = 1
-//     # at least one node has degree 1 if the graph is not empty
-//     #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
-
-//     probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
-//     probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
-//     mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
-
-//     return mean_k_max
-// }
-
 
 def edgeProbabilityAfterTargetedAttack(n, p):
     '''Calculate edge probability in an Erdos--Renyi network with original size

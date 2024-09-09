@@ -380,7 +380,6 @@ def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path='
         return S
 
     elif lcc_method == "pmult":
-        #print("n,p",n,p)
         S=0
         for m in range(1,n+1):
             S+=m*calculate_P_mult(p,m,n, executable_path=executable_path)
@@ -438,8 +437,6 @@ def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scu
             # update p only if nodes are removed by degree
             print("run attack")
             current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p) # old code # add plus 1?
-            #current_p = new_prob_attack(i+1,current_p,executable_path = executable2) # c++ test
-            #print(current_p,i+1, S[i])
 
     if reverse:
         S = S[::-1]
@@ -494,8 +491,6 @@ def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_r
     relS = (SCurve(p, n, attack=attack, reverse=reverse, executable_path=executable_path, executable2=executable2,
         fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS) / network_sizes)
 
-    #print(n,SCurve(p, n, attack=attack, reverse=reverse,
-    #    fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS))
     return relS
 
 
