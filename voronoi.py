@@ -140,14 +140,45 @@ cmap = cm.gnuplot2_r #cm.viridis
 fig, ax = plt.subplots()
 
 # Plot Voronoi diagram with cells colored based on z values
-ax1 = voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='grey', line_width=1, line_alpha=0.6, point_size=1)
+ax1 = voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='grey', line_width=1, line_alpha=0.6, point_size=0)
 
 # Color each Voronoi region
+def PolyArea(x,y):
+    return 0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1)))
+
+def polygon_area(vertices):
+    n = len(vertices)
+    area = 0
+    for i in range(n):
+        x1, y1 = vertices[i]
+        x2, y2 = vertices[(i + 1) % n]  # Wrap around to the first vertex
+        area += x1 * y2 - x2 * y1
+    return abs(area) / 2
+
+areas = []
+counter = 0
 for region_index, region in enumerate(vor.regions):
     if not -1 in region and len(region) > 0:
+        print(counter)
         polygon = [vor.vertices[i] for i in region]
+        poly_array = np.array(polygon)
+        x = poly_array[:,0]
+        y = poly_array[:,1]
         color = cmap(norm(mse_array[region_index]))
         ax.fill(*zip(*polygon), color=color)
+        area = polygon_area(polygon)
+        areas.append(area)
+        #if area <= 0.08:
+            #plt.plot([vor.points[counter,0]], [vor.points[counter,1]], color = "grey", marker = ".", markersize = 20)
+        counter += 1
+
+areas = np.array(areas)
+print("mean", np.mean(areas))
+print("med", np.median(areas))
+print("max", np.max(areas))
+print("min", np.min(areas))
+        
+
 
 # Plot the original points
 #ax.plot(points[:, 0], points[:, 1], 'ko')
@@ -167,15 +198,16 @@ for i in range(len(newticks1)):
         newticks2.append(r'$10^{{{}}}$'.format(newticks1[i]))
     # else:
     #     newticks2[i] = 
-c_bar = plt.colorbar(sm, ax=ax, label='log(MSE)')
+c_bar = plt.colorbar(sm, ax=ax, label=r'$MSE$')
 print(newticks2)
 # c_bar.ax.set_yticklabels(newticks2)
 # for i in range(len(newticks1)):
 #     if isinstance(newticks1[i], float):
 #         c_bar.ax.set_yticks[i].label1.set_visible(False)
-ticks = [-1,-2,-3,-4]
+ticks = [-4,-3,-2,-1]
+c_bar.set_ticks(ticks)
 newticks2 = [r'$10^{{{}}}$'.format(x) for x in ticks]
-c_bar.set_ticks(newticks2)
+c_bar.set_ticklabels(newticks2)
 
 def add_colorbar_neg(mappable):
     from mpl_toolkits.axes_grid1 import make_axes_locatable
