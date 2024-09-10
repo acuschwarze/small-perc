@@ -33,10 +33,10 @@ fig, axs = plt.subplots(1,2, figsize = [10,3.5])
 colors = ['red','blue','orange','green','purple','cyan','magenta']
 markers = ['o', 'x', 'v', '+', 's', 'd', '1']
 n_threshold = .2
-nodes_list = [10,15,25,50,75,100]
+nodes_list = [10,15,50]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
-remove_bool = False
+remove_bool = True
 
 for i_n in range(len(nodes_list)):
     n = nodes_list[i_n]
@@ -52,7 +52,7 @@ for i_n in range(len(nodes_list)):
                                         attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
         sim /= 100
     else:
-        all_sim = relSCurve_precalculated(n, p, targeted_removal=False, simulated=True, finite=False)
+        all_sim = relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=True, finite=False)
     #print("allsim",i,j,all_sim)
         sim = np.zeros(n)
         #print("i",i)
@@ -60,7 +60,7 @@ for i_n in range(len(nodes_list)):
             sim = sim + np.transpose(all_sim[:,k][:n])
         sim = sim / n
     
-    fin = (relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True)[:n])
+    fin = (relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=False, finite=True)[:n])
     
     axs[1].plot(nodes_array, fin, linestyle = '--', color = colors[i_n])
     axs[1].plot(nodes_array, sim, label = r"$n = $"+str(n), linestyle = ' ', marker = markers[i_n], ms = 3, color = colors[i_n])
@@ -73,7 +73,8 @@ for i_n in range(len(nodes_list)):
             path_name = os.path.join("data", "synthetic_data", path_name)
             all_inf = np.load(path_name)
             #print(np.shape(all_inf))
-            inf = all_inf[p_index]
+            #inf = all_inf[p_index]
+            inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, reverse=False, smooth_end=False)
             axs[1].plot(nodes_array, inf, label = r"${\langle S \rangle}_{N \to \infty}$")
     axs[1].legend()
     # pos = axs[1].get_position()
@@ -81,7 +82,7 @@ for i_n in range(len(nodes_list)):
     # axs[1].legend(loc='upper right', bbox_to_anchor=(1.35, 1.15))
 
 n = 25
-mult_probs = [.05,.1,.2,.5,1]
+mult_probs = [.05,.3, .7, .9, 1]
 nodes_array = np.arange(n)/n
 trials = 10
 for j in range(len(mult_probs)):
@@ -91,7 +92,7 @@ for j in range(len(mult_probs)):
     #                                         label = r"$p=$"+str(mult_probs[j]))
 
     
-    fin = (relSCurve_precalculated(n, mult_probs[j], targeted_removal=False, simulated=False, finite=True)[:n])
+    fin = (relSCurve_precalculated(n, mult_probs[j], targeted_removal=remove_bool, simulated=False, finite=True)[:n])
 
     if mult_probs[j] == .05 or mult_probs[j] ==.1:
         sim = np.zeros(n)
@@ -101,7 +102,7 @@ for j in range(len(mult_probs)):
                                         attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
         sim /= trials
     else:
-        all_sim = relSCurve_precalculated(n, mult_probs[j], targeted_removal=False, simulated=True, finite=False)
+        all_sim = relSCurve_precalculated(n, mult_probs[j], targeted_removal=remove_bool, simulated=True, finite=False)
         #print("allsim",i,j,all_sim)
         sim = np.zeros(n)
         #print("i",i)
@@ -113,7 +114,8 @@ for j in range(len(mult_probs)):
     path_name = os.path.join("data", "synthetic_data", path_name)
     all_inf = np.load(path_name)
     #print(np.shape(all_inf))
-    inf = all_inf[p_index]
+    #inf = all_inf[p_index]
+    inf = infiniteTheory.relSCurve(n, mult_probs[j], attack=remove_bool, reverse=False, smooth_end=False)
     axs[0].plot(nodes_array, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = colors[j])
 
     axs[0].plot(nodes_array, fin, linestyle = '--', color = colors[j])
@@ -122,7 +124,7 @@ for j in range(len(mult_probs)):
     axs[0].set(xlabel=r'$f$', ylabel=r'$\langle S \rangle$')
     pos2 = axs[0].get_position()
     axs[0].set_position([pos2.x0, pos2.y0, pos2.width, pos2.height])
-    axs[0].legend(loc='upper right', bbox_to_anchor=(1.33, 1.15))
+    axs[0].legend(loc='upper right', bbox_to_anchor=(1.30, 1.15))
     # pos = axs[1].get_position()
     # axs[1].set_position([pos.x0, pos.y0, pos.width * 0.9, pos.height])
     # axs[1].legend(loc='center right', bbox_to_anchor=(2.25, 0.5))
@@ -138,8 +140,12 @@ for j in range(len(mult_probs)):
 
 #plt.legend(loc='center left',bbox_to_anchor=(1, 0.5))
 plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.9, wspace=.3)
-plt.savefig("Fig 2 final")
-plt.savefig("Fig_2_final.pdf")
+if remove_bool == False:
+    plt.savefig("Fig 2 final")
+    plt.savefig("Fig_2_final.pdf")
+else:
+    plt.savefig("Fig 2 final attack")
+    plt.savefig("Fig_2_final_attack.pdf")
 
 
 

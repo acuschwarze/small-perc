@@ -84,6 +84,19 @@ for j in range(num_nwks):
 
 fullData = pd.read_csv("fullData.csv")
 
+nonweird = []
+nwnodes = []
+nwprobs=[]
+for i in range(len(mse_array)):
+    if mse_array[i] < 10:
+        nonweird.append(mse_array[i])
+        nwnodes.append(nodes_array[i])
+        nwprobs.append(probs_array[i])
+
+mse_array = np.array(nonweird)
+nodes_array = np.array(nwnodes)
+probs_array = np.array(nwprobs)
+
 log_array = np.zeros(len(mse_array)) #[] #np.zeros(len(mse_array))
 for i in range(len(mse_array)):
     # if np.log(mse_array[i]) > 0:
@@ -120,21 +133,52 @@ mse_array = np.concatenate([mse_array, ring_z])
 vor = Voronoi(points)
 
 # Normalize z values to get a colormap
-norm = plt.Normalize(vmin=min(mse_array), vmax=5)
+norm = plt.Normalize(vmin=min(mse_array), vmax=-.3)
 cmap = cm.gnuplot2_r #cm.viridis
 
 # Create a plot
 fig, ax = plt.subplots()
 
 # Plot Voronoi diagram with cells colored based on z values
-ax1 = voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='grey', line_width=1, line_alpha=0.6, point_size=1)
+ax1 = voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='grey', line_width=1, line_alpha=0.6, point_size=0)
 
 # Color each Voronoi region
+def PolyArea(x,y):
+    return 0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1)))
+
+def polygon_area(vertices):
+    n = len(vertices)
+    area = 0
+    for i in range(n):
+        x1, y1 = vertices[i]
+        x2, y2 = vertices[(i + 1) % n]  # Wrap around to the first vertex
+        area += x1 * y2 - x2 * y1
+    return abs(area) / 2
+
+areas = []
+counter = 0
 for region_index, region in enumerate(vor.regions):
     if not -1 in region and len(region) > 0:
+        print(counter)
         polygon = [vor.vertices[i] for i in region]
+        poly_array = np.array(polygon)
+        x = poly_array[:,0]
+        y = poly_array[:,1]
         color = cmap(norm(mse_array[region_index]))
         ax.fill(*zip(*polygon), color=color)
+        area = polygon_area(polygon)
+        areas.append(area)
+        #if area <= 0.08:
+            #plt.plot([vor.points[counter,0]], [vor.points[counter,1]], color = "grey", marker = ".", markersize = 20)
+        counter += 1
+
+areas = np.array(areas)
+print("mean", np.mean(areas))
+print("med", np.median(areas))
+print("max", np.max(areas))
+print("min", np.min(areas))
+        
+
 
 # Plot the original points
 #ax.plot(points[:, 0], points[:, 1], 'ko')
@@ -145,17 +189,25 @@ for region_index, region in enumerate(vor.regions):
 sm = plt.cm.ScalarMappable(cmap="gnuplot2_r", norm=norm)
 sm.set_array([])
 
-labels = plt.xticks()[0]
-newticks = np.zeros(len(labels))
-#newticks2 = [r'$10^{{{}}}$'.format(x) for x in labels]
-#plt.xticks(range(0,len(labels)),newticks2)
-#plt.xticks(np.arange(0, 1, 10)) 
-#plt.xticks(range(0,int(max(labels)),10))
+newticks1 = plt.xticks()[0]
+#newticks = np.zeros(len(labels))
 
-c_bar = plt.colorbar(sm, ax=ax, label='log(MSE)')
-
-#c_bar.ax.set_yticklabels(newticks2) 
-
+newticks2 = []
+for i in range(len(newticks1)):
+    if newticks1[i]==0 or newticks1[i]==-1 or newticks1[i]==-2 or newticks1[i]==-3 or newticks1[i]==-4:
+        newticks2.append(r'$10^{{{}}}$'.format(newticks1[i]))
+    # else:
+    #     newticks2[i] = 
+c_bar = plt.colorbar(sm, ax=ax, label=r'$MSE$')
+print(newticks2)
+# c_bar.ax.set_yticklabels(newticks2)
+# for i in range(len(newticks1)):
+#     if isinstance(newticks1[i], float):
+#         c_bar.ax.set_yticks[i].label1.set_visible(False)
+ticks = [-4,-3,-2,-1]
+c_bar.set_ticks(ticks)
+newticks2 = [r'$10^{{{}}}$'.format(x) for x in ticks]
+c_bar.set_ticklabels(newticks2)
 
 def add_colorbar_neg(mappable):
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -171,7 +223,13 @@ def add_colorbar_neg(mappable):
     newticks1 = [a.replace('−', '-') for a in newticks1]
     #newticks1 = [int(a) for a in newticks1 if "." not in a]
     #newticks1 = [float(a) for a in newticks1 if type(a) != int]
-    newticks2 = [r'$10^{{{}}}$'.format(x) for x in newticks1]
+    newticks2 = np.zeros(len(newticks1))
+    for i in range(newticks1):
+        if isinstance(newticks1[i], int):
+            newticks2[i] = r'$10^{{{}}}$'.format(newticks1[i])
+        else:
+            newticks2[i] = ''
+    #newticks2 = [r'$10^{{{}}}$'.format(x) for x in newticks1]
     cbar.ax.set_yticklabels(newticks2) 
     plt.sca(last_axes)
     return cbar
@@ -196,13 +254,3 @@ ax.xaxis.set_major_formatter(ticks_x)
 
 plt.savefig("voronoi.pdf")
 plt.savefig("Figure 4")
-
-from scipy.spatial import Voronoi, voronoi_plot_2d
-vor = Voronoi(points)
-
-import matplotlib.pyplot as plt
-fig = voronoi_plot_2d(vor,point_size=1,show_vertices=False,)
-plt.xlim([0,1])
-plt.ylim([0,1])
-
-
