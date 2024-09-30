@@ -96,11 +96,11 @@ for i in range(len(probs)):
     sim[i] = lcc
 
 
-plt.errorbar(x=probs, y=sim, yerr = std_table, marker = 'o', markersize=2.5, label = "simulations", lw=1, color = "green")
-plt.plot(probs, fin, label = 'finite theory', color = "orange")
-plt.plot(probs, inf, label = "infinite theory")
+plt.errorbar(x=probs, y=sim, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "green")
+plt.plot(probs, fin, label = r'$\langle S \rangle$', color = "orange")
+plt.plot(probs, inf, label = r"${\langle S \rangle}_{N \to \infty}$")
 #plt.plot(probs,sim,label="sim")
 plt.xlabel(r"$p$")
-plt.ylabel(r"$\langle S \rangle$")
+plt.ylabel(r"$S$")
 plt.legend()
 plt.savefig("Intro_Figure.pdf")

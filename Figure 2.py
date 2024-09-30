@@ -31,12 +31,13 @@ pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 fig, axs = plt.subplots(1,2, figsize = [10,3.5])
 colors = ['red','blue','orange','green','purple','cyan','magenta']
-markers = ['o', 'x', 'v', '+', 's', 'd', '1']
+markers = ['o', 'x', 'v', 's', '+', 'd', '1']
 n_threshold = .2
-nodes_list = [10,15,50]
+nodes_list = [10,15,25,50,100]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
-remove_bool = True
+remove_bool = False
+simtrials = 1
 
 for i_n in range(len(nodes_list)):
     n = nodes_list[i_n]
@@ -47,10 +48,13 @@ for i_n in range(len(nodes_list)):
     
     if n == 10 or n==15:
         sim = np.zeros(n)
-        for j in range(100):
+        for j in range(simtrials):
             sim += finiteTheory.relSCurve(p, n,
                                         attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
-        sim /= 100
+        sim /= simtrials
+    elif n == 400:
+        sim = finiteTheory.relSCurve(p, n,
+                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
     else:
         all_sim = relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=True, finite=False)
     #print("allsim",i,j,all_sim)
@@ -66,7 +70,9 @@ for i_n in range(len(nodes_list)):
     axs[1].plot(nodes_array, sim, label = r"$n = $"+str(n), linestyle = ' ', marker = markers[i_n], ms = 3, color = colors[i_n])
     #axs[0].set_title('Nwks with same percolation percentage: random')
     axs[1].set_yticklabels([])
+    axs[1].set_ylim(-.1,1.3)
     axs[1].set(xlabel=r'$f$')
+    #axs[1].text(-0.1, 1.15, "B", transform=axs[1].transAxes,fontweight="bold",fontsize=16, va='top', ha='right')
 
     if i_n == len(nodes_list)-1:
             path_name = "{}_attack{}_n{}.npy".format("infRelSCurve", remove_bool, n)
@@ -76,15 +82,15 @@ for i_n in range(len(nodes_list)):
             #inf = all_inf[p_index]
             inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, reverse=False, smooth_end=False)
             axs[1].plot(nodes_array, inf, label = r"${\langle S \rangle}_{N \to \infty}$")
-    axs[1].legend()
-    # pos = axs[1].get_position()
-    # axs[1].set_position([pos.x0, pos.y0, pos.width, pos.height])
+    pos = axs[1].get_position()
+    axs[1].set_position([pos.x0, pos.y0, pos.width, pos.height])
+    axs[1].legend(loc="upper left",ncol=4)
     # axs[1].legend(loc='upper right', bbox_to_anchor=(1.35, 1.15))
 
 n = 25
-mult_probs = [.05,.3, .7, .9, 1]
+mult_probs = [.05,.1,.3, 1]
 nodes_array = np.arange(n)/n
-trials = 10
+trials = 1
 for j in range(len(mult_probs)):
     p_index = int(mult_probs[j]/.01 - 1)
     # axs[1].plot(np.arange(n)/n, finiteTheory.relSCurve(mult_probs[j], n,
@@ -116,15 +122,19 @@ for j in range(len(mult_probs)):
     #print(np.shape(all_inf))
     #inf = all_inf[p_index]
     inf = infiniteTheory.relSCurve(n, mult_probs[j], attack=remove_bool, reverse=False, smooth_end=False)
-    axs[0].plot(nodes_array, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = colors[j])
+    axs[0].plot(nodes_array, inf, color = colors[j])
 
     axs[0].plot(nodes_array, fin, linestyle = '--', color = colors[j])
     axs[0].plot(nodes_array, sim, label = r"$p = $" + str(mult_probs[j]), linestyle = " ", marker = markers[j], ms = 3, color = colors[j])
     #axs[1].set_title('Nwks with same percolation percentage: attack')
     axs[0].set(xlabel=r'$f$', ylabel=r'$\langle S \rangle$')
+    axs[0].set_ylim(-.1,1.3)
     pos2 = axs[0].get_position()
     axs[0].set_position([pos2.x0, pos2.y0, pos2.width, pos2.height])
-    axs[0].legend(loc='upper right', bbox_to_anchor=(1.30, 1.15))
+    axs[0].legend(loc="upper left",ncol=4)
+    #axs[0].text(-0.1, 1.15, "A", transform=axs[1].transAxes,fontweight="bold",fontsize=16, va='top', ha='right')
+    # axs[0].legend(loc='center right', bbox_to_anchor=(-.05, 0.11))
+
     # pos = axs[1].get_position()
     # axs[1].set_position([pos.x0, pos.y0, pos.width * 0.9, pos.height])
     # axs[1].legend(loc='center right', bbox_to_anchor=(2.25, 0.5))
@@ -139,7 +149,13 @@ for j in range(len(mult_probs)):
     #     axs[1].plot(nodes_array, inf, label = "infinite theory")
 
 #plt.legend(loc='center left',bbox_to_anchor=(1, 0.5))
-plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.9, wspace=.3)
+plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.99, wspace=.04)
+
+
+axs[0].text(0.05, .1, 'A', transform=axs[0].transAxes, fontsize=10, fontweight='light', va='top', ha='right')
+axs[1].text(0.05, .1, 'B', transform=axs[1].transAxes, fontsize=10, fontweight='light', va='top', ha='right')
+
+
 if remove_bool == False:
     plt.savefig("Fig 2 final")
     plt.savefig("Fig_2_final.pdf")

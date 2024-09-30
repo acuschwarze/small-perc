@@ -168,8 +168,9 @@ for region_index, region in enumerate(vor.regions):
         ax.fill(*zip(*polygon), color=color)
         area = polygon_area(polygon)
         areas.append(area)
-        #if area <= 0.08:
-            #plt.plot([vor.points[counter,0]], [vor.points[counter,1]], color = "grey", marker = ".", markersize = 20)
+        if area >= .006:
+            pt = np.where(vor.point_region == region_index)[0][0]
+            plt.plot([vor.points[pt,0]], [vor.points[pt,1]], color = "grey", marker = ".", markersize = 5)
         counter += 1
 
 areas = np.array(areas)

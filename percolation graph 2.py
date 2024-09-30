@@ -242,4 +242,4 @@ def one_perc_thresh_table(threshold=.5, nodes=[10, 20, 30, 40, 50, 60], removal=
 
 
 # p is .8 right now (in the function)
-one_perc_thresh_table(threshold=.5, nodes=[20], removal=["attack"])
+one_perc_thresh_table(threshold=.04, nodes=[25], removal=["random"])

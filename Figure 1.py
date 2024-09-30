@@ -79,12 +79,13 @@ for i in range(len(remove_bools)):
     print(np.shape(data))
     numtrials = len(data)
 
-    inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=remove_bool)
+    inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=False)
 
     fin_path = "{}_attack{}_n{}.npy".format("RelSCurve", remove_bool, n)
     fin_path = os.path.join("data", "synthetic_data", fin_path)
     all_fin = np.load(fin_path)
     fin = all_fin[p_index]
+
 
     std_table = np.zeros(n)
     sim_y = np.zeros(n)
@@ -107,17 +108,21 @@ for i in range(len(remove_bools)):
         std_table[j] = std / 10 * 3 # 10 for standard error (sqrt100)
         sim_y[j] = np.nanmean(sim_data)
 
-    axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, marker = 'o', markersize=2.5, label = "simulations", lw=1, color = "red")
-    axs[i].plot(nodes, inf, label = "infinite theory", color = "black")
-    axs[i].plot(nodes, fin, label = "finite theory", color = "blue", linestyle = '--')
+    axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "red")
+    axs[i].plot(nodes, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = "black")
+    axs[i].plot(nodes, fin, label = r"${\langle S \rangle}$", color = "blue", linestyle = '--')
     #axs[i].set_title("Fin/Inf Theory: n=" + str(n) + ", p=" + str(p) + ", removal " + str(remove))
     axs[i].set(xlabel= r'$f$')
     if i==0:
-        axs[i].set(ylabel= r'$\langle S \rangle $')
+        axs[i].set(ylabel= r'$S$')
     else:
         axs[i].set_yticklabels([])
 
 axs[i].legend()
+pos2 = axs[i].get_position()
+axs[i].set_position([pos2.x0, pos2.y0, pos2.width, pos2.height])
+# axs[i].legend(loc='upper left', bbox_to_anchor=(.05, 1))
+axs[i].legend(loc='center right', bbox_to_anchor=(0, 0.1))
 
 plt.subplots_adjust(left=0.08, right=0.98, bottom=.15, top=0.99, wspace=.1)
 plt.savefig("Fig_1_final.pdf")
