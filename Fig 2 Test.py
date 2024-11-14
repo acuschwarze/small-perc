@@ -65,7 +65,7 @@ for i_n in range(len(nodes_list)):
         # #print(np.shape(all_inf))
         # inf = all_inf[p_index]
         inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, smooth_end=False)
-        plt.plot(nodes_array, inf, label = "infinite theory")
+        plt.plot(nodes_array, inf, label = "infinite theory", color = "black")
     plt.plot(nodes_array, fin, label = "fin" + str(n), linestyle = '--', color = colors[i_n])
     plt.plot(nodes_array, sim, label = "sim" + str(n), marker = 'o', ms = 3, color = colors[i_n])
     #plt.set_title('Nwks with same percolation percentage: attack')

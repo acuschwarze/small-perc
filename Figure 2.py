@@ -64,14 +64,15 @@ for i_n in range(len(nodes_list)):
             sim = sim + np.transpose(all_sim[:,k][:n])
         sim = sim / n
     
+    
     fin = (relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=False, finite=True)[:n])
     
     axs[1].plot(nodes_array, fin, linestyle = '--', color = colors[i_n])
-    axs[1].plot(nodes_array, sim, label = r"$n = $"+str(n), linestyle = ' ', marker = markers[i_n], ms = 3, color = colors[i_n])
+    axs[1].plot(nodes_array, sim, label = r"$N = $"+str(n), linestyle = ' ', marker = markers[i_n], ms = 3, color = colors[i_n])
     #axs[0].set_title('Nwks with same percolation percentage: random')
     axs[1].set_yticklabels([])
-    axs[1].set_ylim(-.1,1.3)
-    axs[1].set(xlabel=r'$f$')
+    axs[1].set_ylim(-.1,1.2)
+    axs[1].set(xlabel=r'fraction $f$')
     #axs[1].text(-0.1, 1.15, "B", transform=axs[1].transAxes,fontweight="bold",fontsize=16, va='top', ha='right')
 
     if i_n == len(nodes_list)-1:
@@ -81,10 +82,11 @@ for i_n in range(len(nodes_list)):
             #print(np.shape(all_inf))
             #inf = all_inf[p_index]
             inf = infiniteTheory.relSCurve(n, p, attack=remove_bool, reverse=False, smooth_end=False)
-            axs[1].plot(nodes_array, inf, label = r"${\langle S \rangle}_{N \to \infty}$")
+            axs[1].plot(nodes_array, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = "black")
     pos = axs[1].get_position()
     axs[1].set_position([pos.x0, pos.y0, pos.width, pos.height])
-    axs[1].legend(loc="upper left",ncol=4)
+    #axs[1].legend(loc="upper left",ncol=6)
+    axs[1].legend()
     # axs[1].legend(loc='upper right', bbox_to_anchor=(1.35, 1.15))
 
 n = 25
@@ -127,11 +129,12 @@ for j in range(len(mult_probs)):
     axs[0].plot(nodes_array, fin, linestyle = '--', color = colors[j])
     axs[0].plot(nodes_array, sim, label = r"$p = $" + str(mult_probs[j]), linestyle = " ", marker = markers[j], ms = 3, color = colors[j])
     #axs[1].set_title('Nwks with same percolation percentage: attack')
-    axs[0].set(xlabel=r'$f$', ylabel=r'$\langle S \rangle$')
-    axs[0].set_ylim(-.1,1.3)
+    axs[0].set(xlabel= "fraction " + r'$f$', ylabel='rel. LCC size')
+    axs[0].set_ylim(-.1,1.2)
     pos2 = axs[0].get_position()
     axs[0].set_position([pos2.x0, pos2.y0, pos2.width, pos2.height])
     axs[0].legend(loc="upper left",ncol=4)
+    
     #axs[0].text(-0.1, 1.15, "A", transform=axs[1].transAxes,fontweight="bold",fontsize=16, va='top', ha='right')
     # axs[0].legend(loc='center right', bbox_to_anchor=(-.05, 0.11))
 
@@ -149,11 +152,11 @@ for j in range(len(mult_probs)):
     #     axs[1].plot(nodes_array, inf, label = "infinite theory")
 
 #plt.legend(loc='center left',bbox_to_anchor=(1, 0.5))
-plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.99, wspace=.04)
+plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.98, wspace=.04)
 
 
-axs[0].text(0.05, .1, 'A', transform=axs[0].transAxes, fontsize=10, fontweight='light', va='top', ha='right')
-axs[1].text(0.05, .1, 'B', transform=axs[1].transAxes, fontsize=10, fontweight='light', va='top', ha='right')
+axs[0].text(0.05, .1, 'A', transform=axs[0].transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
+axs[1].text(0.05, .1, 'B', transform=axs[1].transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
 
 
 if remove_bool == False:

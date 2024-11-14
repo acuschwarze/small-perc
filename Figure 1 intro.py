@@ -95,12 +95,16 @@ for i in range(len(probs)):
     lcc /= 100
     sim[i] = lcc
 
-
-plt.errorbar(x=probs, y=sim, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "green")
-plt.plot(probs, fin, label = r'$\langle S \rangle$', color = "orange")
-plt.plot(probs, inf, label = r"${\langle S \rangle}_{N \to \infty}$")
+fig, axs = plt.subplots(1,1, figsize = [5,3.5])
+plt.errorbar(x=probs, y=sim, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "red")
+#plt.plot(probs, fin, label = r'$\langle S \rangle$', linestyle = "--", color = "blue")
+plt.plot(probs, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = "black")
 #plt.plot(probs,sim,label="sim")
-plt.xlabel(r"$p$")
-plt.ylabel(r"$S$")
+plt.xlabel("edge probability " + r"$p$")
+plt.ylabel("rel. LCC size")
 plt.legend()
+handles, labels = plt.gca().get_legend_handles_labels()
+order = [1,0]
+plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+plt.subplots_adjust(left=0.12, right=.99, bottom=.15, top=0.99, wspace=0)
 plt.savefig("Intro_Figure.pdf")

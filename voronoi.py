@@ -69,7 +69,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.cm as cm
 
 # making 3D graph
-msedata = pd.read_csv("MSEdata3D.csv")
+msedata = pd.read_csv("MSEdata3D2t.csv")
 num_nwks = len(msedata)
 nodes_array = np.zeros(num_nwks)
 probs_array = np.zeros(num_nwks)
@@ -253,5 +253,5 @@ plt.xticks([0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1])
 ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x*scale_x))
 ax.xaxis.set_major_formatter(ticks_x)
 
-plt.savefig("voronoi.pdf")
-plt.savefig("Figure 4")
+plt.savefig("voronoit.pdf")
+plt.savefig("Figure 4t")

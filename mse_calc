@@ -1,0 +1,116 @@
+import sys, pickle
+sys.path.insert(0, "libs")
+
+import os, pickle, csv # import packages for file I/O
+import time # package to help keep track of calculation time
+
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+import pandas as pd
+
+import scipy
+import scipy.stats as sst
+from scipy.special import comb
+from scipy.integrate import simpson
+from scipy.signal import argrelextrema
+from random import choice
+from matplotlib.gridspec import GridSpec
+
+from libs.utils import *
+from libs.finiteTheory import *
+from visualizations import *
+from libs.utils import *
+from robustnessSimulations import *
+from performanceMeasures import *
+from infiniteTheory import *
+from finiteTheory import *
+
+fvals = pickle.load(open('data/fvalues.p', 'rb'))
+pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+
+
+
+def add_colorbar_neg(mappable):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    import matplotlib.pyplot as plt
+    last_axes = plt.gca()
+    ax = mappable.axes
+    fig = ax.figure
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = fig.colorbar(mappable, cax=cax)
+    newticks1 = cbar.ax.get_yticklabels()
+    newticks1 = [label.get_text() for label in newticks1]
+    newticks1 = [a.replace('−', '-') for a in newticks1]
+    #newticks1 = [int(a) for a in newticks1 if "." not in a]
+    #newticks1 = [float(a) for a in newticks1 if type(a) != int]
+    newticks2 = [r'$10^{{{}}}$'.format(x) for x in newticks1]
+    cbar.ax.set_yticklabels(newticks2) 
+    plt.sca(last_axes)
+    return cbar
+
+def add_colorbar_norm(mappable):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    import matplotlib.pyplot as plt
+    last_axes = plt.gca()
+    ax = mappable.axes
+    fig = ax.figure
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = fig.colorbar(mappable, cax=cax) 
+    plt.sca(last_axes)
+    return cbar
+
+max_n = [10,15,20,25,50,100]
+total_p = 100
+#nodes_array = np.arange(2,max_n+1)
+#probs_array = np.linspace(.01,1,total_p)
+
+n_threshold = .2
+nodes_list = [10,15,25,50,100]
+probs_array = [(1/(n_threshold*(x-1))) for x in max_n]
+
+def fig_3(max_n,probs_array):
+    nodes_array = max_n
+    # probs_array = np.linspace(.01,1,total_p)
+
+    for ix in range(len(nodes_array)):
+        i = nodes_array[ix]
+        probs = probs_array[ix]
+        r_all_sim = relSCurve_precalculated(i, probs, targeted_removal=False, simulated=True, finite=False)
+        r_sim = np.zeros(i)
+        for k in range(i):
+            r_sim = r_sim[:50] + np.transpose(r_all_sim[:,k][:i][:50])
+        r_sim = r_sim / i
+
+        r_fin = (relSCurve_precalculated(i, probs, targeted_removal=False, simulated=False, finite=True)[:i])[:50]
+        
+        r_inf = infiniteTheory.relSCurve(i, probs, attack=False, smooth_end=False)[:50]
+
+
+        t_all_sim = relSCurve_precalculated(i, probs, targeted_removal=True, simulated=True, finite=False)
+        t_sim = np.zeros(i)
+        for k in range(i):
+            t_sim = t_sim + np.transpose(t_all_sim[:,k][:i])
+        t_sim = t_sim / i
+
+        t_fin = (relSCurve_precalculated(i, probs, targeted_removal=True, simulated=False, finite=True)[:i])
+        
+        t_inf = infiniteTheory.relSCurve(i, probs, attack=True, smooth_end=False)
+
+        # heatmap_rfin[j][i-2] = ((r_fin-r_sim)**2).mean() * i
+        # heatmap_rinf[j][i-2] = ((r_inf-r_sim)**2).mean() * i
+        # heatmap_tfin[j][i-2] = ((t_fin-t_sim)**2).mean() * i
+        # heatmap_tinf[j][i-2] = ((t_inf-t_sim)**2).mean() * i
+
+        print(i,"fin rand", "mse",((r_fin-r_sim)**2).mean())
+
+        print(i,"inf rand", "mse",((r_inf-r_sim)**2).mean())
+
+        print(i, "fin tar", "mse",((t_fin-t_sim)**2).mean())
+
+        print(i,"inf tar","mse",((t_inf-t_sim)**2).mean())
+
+    
+fig_3(max_n,probs_array)

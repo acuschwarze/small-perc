@@ -26,12 +26,171 @@ from performanceMeasures import *
 from infiniteTheory import *
 from finiteTheory import *
 
-fvals = pickle.load(open('data/fvalues.p', 'rb'))
-pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+# cwd = os.getcwd() 
+# print("Current working directory:", cwd) 
 
-fullData = pd.read_csv("fullData.csv")
 
-# making csv of data
+# from fnmatch import fnmatch
+
+# root = r'C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks'
+# pattern = "*.adj"
+# pattern2 = "*.arc"
+# nwks_list2 = []
+
+# for path, subdirs, files in os.walk(root):
+#     for name in files:
+#         if fnmatch(name, pattern):
+#             # print(os.path.join(path, name))
+#             nwks_list2.append(os.path.join(path, name))
+#         elif fnmatch(name, pattern2):
+#             nwks_list2.append(os.path.join(path, name))
+
+
+
+# def nodecount_edge(file_name = ""):
+#     file = open(file_name, "r")
+#     #content = file.readlines()
+#     content = (line.rstrip() for line in file)  # All lines including the blank ones
+#     content = list(line for line in content if line)
+#     if len(content)==0:
+#         return 0
+#     #print(content)
+#     node_list = []
+#     edge_list = np.empty(len(content), dtype=object)
+#     for i in range(len(content)):
+#         edge = content[i].strip()
+#         edge = edge.split(" ")
+#         edge_list[i] = np.zeros(2)
+#         #print("i", i)
+#         #print("edge[0]",edge[0])
+#         edge_list[i][0] = int(edge[0])
+#         edge_list[i][1] = int(edge[1])
+#         for j in range(2):
+#             node_list.append(int(edge[j]))
+#     if 0 in node_list:
+#         n = max(node_list) + 1
+#     else:
+#         n = max(node_list)
+#     return n
+
+
+# fvals = pickle.load(open('data/fvalues.p', 'rb'))
+# pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+
+
+# def get_full_path(relative_path):
+#     """Gets the full path from a relative path."""
+#     return os.path.abspath(relative_path)
+#     #return os.path.abspath("pholme_networks\\" + relative_path)
+
+# # import os
+# # os.chdir(r'C:\Users\jj\Downloads\GitHub\small-perc\pholme_networks')
+
+# fullData = pd.read_csv("fullData.csv")
+
+# nwks=[]
+
+# # for i in range(len(nwks_list2)):
+# #     nwname = os.path.basename(nwks_list2[i])
+# #     for j in range(len(fullData)):
+# #         if nwname == fullData.iloc[j][0]:
+# #             nwks.append(nwks_list2[i])
+
+# for j in range(len(fullData)):
+#     for i in range(len(nwks_list2)):
+#         nwname = os.path.basename(nwks_list2[i])
+#         if nwname == fullData.iloc[j][0]:
+#             nwks.append(nwks_list2[i])
+#             break
+
+# print(len(nwks))
+
+# def check_space(string):
+#     '''Check if there is a space in a string to help identify edge list files.'''
+    
+#     # counter
+#     count = 0
+
+#     # loop for search each index
+#     for i in range(0, len(string)):
+
+#         # Check each char
+#         # is blank or not
+#         if string[i] == " ":
+#             count += 1
+
+#     return count
+
+# def mega_file_reader(theory = False, removal = "random", adj_list = nwks, oneplot = False, num_trials = 100):
+#     for file_name in adj_list:
+#         print(file_name)
+#         file = open(file_name, "r")
+#         #content = file.readlines()
+#         content = (line.rstrip() for line in file)  # All lines including the blank ones
+#         content = list(line for line in content if line)
+#         #print("linecount")
+#         #print(len(content))
+#         #print(len(content[0]))
+#         #print(content[0])
+#         if len(content) == 0:
+#             file.close()
+#             print("0")
+#         elif nodecount_edge(file_name) > 100:
+#                 print("over 100")
+#                 file.close()
+#         else:
+#             node_list = []
+#             edge_list = np.empty(len(content), dtype=object)
+#             for i in range(len(content)):
+#                 edge = content[i].strip()
+#                 edge = edge.split(" ")
+#                 edge_list[i] = np.zeros(2)
+#                 edge_list[i][0] = int(edge[0])
+#                 edge_list[i][1] = int(edge[1])
+#                 for j in range(2):
+#                     node_list.append(int(edge[j]))
+#             if 0 in node_list:
+#                 n = max(node_list) + 1
+#             else:
+#                 n = max(node_list)
+#             adj = np.zeros((n, n))
+
+#             for k in range(len(edge_list)):
+#                 if 0 in node_list:
+#                     adj[int(edge_list[k][0]), int(edge_list[k][1])] = 1
+#                     adj[int(edge_list[k][1]), int(edge_list[k][0])] = 1
+#                 else:
+#                     adj[int(edge_list[k][0]-1), int(edge_list[k][1]-1)] = 1
+#                     adj[int(edge_list[k][1]-1), int(edge_list[k][0]-1)] = 1
+
+#             G_0 = nx.from_numpy_array(adj)
+#             # G_0 = nx.algorithms.bipartite.matrix.from_biadjacency_matrix(adj, create_using=None)
+#             G = G_0.copy()
+#             #nx.draw(G)
+#             #plt.show()
+#             averaged_data = np.zeros(n)
+#             for j_2 in range(num_trials):
+#                 G = G_0.copy()
+#                 # print(list(G.nodes()), "nodes")
+#                 data_array = np.zeros(n, dtype=float)
+#                 for i_2 in range(n):
+#                     #print(G.number_of_nodes(), "g size before")
+#                     data_array[i_2] = len(max(nx.connected_components(G), key=len)) / (n - i_2)
+#                     # find a node to remove
+#                     if removal == "random":
+#                         if G.number_of_nodes() != 0:
+#                             v = choice(list(G.nodes()))
+#                             G.remove_node(v)
+#                             # print(v)
+#                     elif removal == "attack":
+#                         if G.number_of_nodes() != 0:
+#                             v = sorted(G.degree, key=lambda x: x[1], reverse=True)[0][0]
+#                             G.remove_node(v)
+#                 averaged_data += data_array
+#             averaged_data /= num_trials
+#             #print(averaged_data, "y")
+#     return averaged_data
+
 
 # k = len(fullData)
 
@@ -40,7 +199,7 @@ fullData = pd.read_csv("fullData.csv")
 # for i in range(k):
 #     n = fullData.iloc[i][1]
 #     p = fullData.iloc[i][2] / scipy.special.comb(n,2)
-#     sim = string2array(fullData.iloc[i][3], sep=" ")
+#     sim = mega_file_reader(theory = False, removal = "attack", adj_list = [nwks[i]], oneplot = False, num_trials = 100)
 #     fin = string2array(fullData.iloc[i][5], sep=" ")
 #     mse = ((fin-sim)**2).mean()
 
@@ -50,12 +209,12 @@ fullData = pd.read_csv("fullData.csv")
 #     mse_array[i][3] = mse
 
 # df = pd.DataFrame(mse_array)
-# df.to_csv("MSEdata3D.csv")
+# df.to_csv("MSEdata3D2targeted.csv")
 # df.columns = ["network", "n", "p", "mse"]
 
 
 # making 3D graph
-msedata = pd.read_csv("MSEdata3D.csv")
+msedata = pd.read_csv("MSEdata3D2.csv")
 num_nwks = len(msedata)
 nodes_array = np.zeros(num_nwks)
 probs_array = np.zeros(num_nwks)
@@ -70,19 +229,32 @@ for j in range(num_nwks):
 fig = plt.figure()
 
 nonweird = []
-for data in mse_array:
-    if data < 10:
-        nonweird.append(data)
+bignums = []
+smallnums = []
 
-log_array = np.zeros(len(mse_array))
 for i in range(len(mse_array)):
+    data = mse_array[i]
+    if data >= 10:
+        bignums.append((msedata.iloc[i][1],msedata.iloc[i][0]))
+        
+    elif data < 10:
+        if data < 10**(-7):
+            smallnums.append((msedata.iloc[i][1],msedata.iloc[i][0]))
+        else:
+            nonweird.append(data)
+print("bignums t",bignums)
+print("smallnums t",smallnums)
+
+
+log_array = np.zeros(len(nonweird))
+for i in range(len(nonweird)):
     if mse_array[i] != 0:
         log_array[i] = np.log(mse_array[i])
     else:
         log_array[i] = -100
 ## histogram
 plt.hist(log_array, density = True, log=True, bins=200)
-plt.xlim([-30,0])
+plt.xlim([-7,0])
 plt.show()
 
 

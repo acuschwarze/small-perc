@@ -112,17 +112,21 @@ for i in range(len(remove_bools)):
     axs[i].plot(nodes, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = "black")
     axs[i].plot(nodes, fin, label = r"${\langle S \rangle}$", color = "blue", linestyle = '--')
     #axs[i].set_title("Fin/Inf Theory: n=" + str(n) + ", p=" + str(p) + ", removal " + str(remove))
-    axs[i].set(xlabel= r'$f$')
+    axs[i].set(xlabel= r'fraction $f$')
     if i==0:
-        axs[i].set(ylabel= r'$S$')
+        axs[i].set(ylabel= r'rel. LCC size')
     else:
         axs[i].set_yticklabels([])
 
 axs[i].legend()
 pos2 = axs[i].get_position()
 axs[i].set_position([pos2.x0, pos2.y0, pos2.width, pos2.height])
-# axs[i].legend(loc='upper left', bbox_to_anchor=(.05, 1))
-axs[i].legend(loc='center right', bbox_to_anchor=(0, 0.1))
+axs[i].legend(loc='upper left', bbox_to_anchor=(.05, 1))
+handles, labels = plt.gca().get_legend_handles_labels()
+order = [2,0,1]
+plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+
+#axs[i].legend(loc='center right', bbox_to_anchor=(0, 0.1))
 
 plt.subplots_adjust(left=0.08, right=0.98, bottom=.15, top=0.99, wspace=.1)
 plt.savefig("Fig_1_final.pdf")
