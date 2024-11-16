@@ -329,6 +329,7 @@ def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
     #output = float(output)
 
     # return
+    print("n",n)
     return output
 
 

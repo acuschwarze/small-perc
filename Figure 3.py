@@ -128,9 +128,9 @@ def fig_3(max_n,total_p):
                 heatmap_rinf[j][i-2] = np.log10(((r_inf-r_sim)**2).mean())
 
             if ((t_fin-t_sim)**2).mean() == 0:
-                heatmap_tfin[j][i-2] = -7 # -6
+                heatmap_tfin[j][i-2] = -6 # -6
             elif ((t_fin-t_sim)**2).mean() <= 10**(-7):
-                heatmap_tfin[j][i-2] == -7
+                heatmap_tfin[j][i-2] == -6
                 badcount+=1
             else:
                 heatmap_tfin[j][i-2] = np.log10(((t_fin-t_sim)**2).mean())
@@ -170,18 +170,18 @@ def fig_3(max_n,total_p):
     z1_plot = ax1.pcolormesh(xnodes, yprobs, heatmap_rauc)
     z2_plot = ax2.pcolormesh(xnodes, yprobs, heatmap_rfin, cmap = reversed, vmin=-4,vmax= -.3)#vmin=-5) #, vmax=0.01)
     z3_plot = ax3.pcolormesh(xnodes, yprobs, heatmap_rinf, cmap = reversed, vmin = -4,vmax= -.3)
-    z5_plot = ax5.hist(hist_rfin, density=True, label = r"${\langle S \rangle$}_{}", alpha=0.65)
+    z5_plot = ax5.hist(hist_rfin, density=True, label = r"${\langle S \rangle}_{rec}$", alpha=0.65)
     ax5.hist(hist_rinf, density=True, label = r"${\langle S \rangle}_{N \to \infty}$", alpha=0.65)
     ax5.legend(prop={'size': 10})
 
     z6_plot = ax6.pcolormesh(xnodes, yprobs, heatmap_tauc)
     z7_plot = ax7.pcolormesh(xnodes, yprobs, heatmap_tfin, cmap = reversed, vmin = -4,vmax= -.3)
     z8_plot = ax8.pcolormesh(xnodes, yprobs, heatmap_tinf, cmap = reversed, vmin = -4,vmax= -.3)
-    z10_plot = ax10.hist(hist_tfin, density=True, label = r"${\langle S \rangle$}_{}", alpha=0.65)
+    z10_plot = ax10.hist(hist_tfin, density=True, label = r"${\langle S \rangle}_{rec}$", alpha=0.65)
     ax10.hist(hist_tinf, density=True, label = r"${\langle S \rangle}_{N \to \infty}$", alpha=0.65)
     ax10.legend(prop={'size': 10})
     ax5.set_ylim([0,1])
-    ax10.set_xlim([-7,0])
+    ax10.set_xlim([-6,0])
     ax10.set_ylim([0,1])
     
     ax2.set_yticklabels([])
@@ -221,7 +221,7 @@ def fig_3(max_n,total_p):
     ax10.set(xlabel=r'log scale of $(MSE)$',ylabel=r'$frequency$')
 
     ax1.set_title(r"$\widebar{S} \, AUC$")
-    ax2.set_title(r"${\langle S \rangle} \, \log(MSE)$")
+    ax2.set_title(r"${\langle S \rangle}_{rec} \, \log(MSE)$")
     ax3.set_title(r'${\langle S \rangle}_{N \to \infty} \, \log(MSE)$')
     ax5.set_title("Histogram of " + r"log scale of $(MSE)$")
     # ax6.set_title(r"$AUC$")

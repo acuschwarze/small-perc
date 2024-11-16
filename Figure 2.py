@@ -39,6 +39,11 @@ print(probs_list)
 remove_bool = False
 simtrials = 1
 
+if remove_bool == True:
+    remove_strat = "attack"
+else: 
+    remove_strat = 'random'
+
 for i_n in range(len(nodes_list)):
     n = nodes_list[i_n]
     nodes_array = np.arange(n)/n
@@ -46,15 +51,31 @@ for i_n in range(len(nodes_list)):
     p_index = int(p/.01 - 1)
     
     
-    if n == 10 or n==15:
+    if n == 10 or n==15 or n > 100:
         sim = np.zeros(n)
-        for j in range(simtrials):
-            sim += finiteTheory.relSCurve(p, n,
-                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
-        sim /= simtrials
-    elif n == 400:
-        sim = finiteTheory.relSCurve(p, n,
-                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
+        #for j in range(simtrials):
+        sim = completeRCData(numbers_of_nodes=[n],
+                                  edge_probabilities=[p], num_trials=1000,
+                                  performance='relative LCC', graph_types=['ER'],
+                                  remove_strategies=[remove_strat])
+        data_array = np.array(sim[0][0][0][0])
+
+        # exclude the first row, because it is the number of nodes
+        data_array = data_array[1:]
+
+        # this can prevent some sort of bug about invalid values
+        for val in []:
+            data_array[data_array == val] = np.nan
+
+        # plot simulated data
+        #removed_fraction = np.arange(n) / n
+        line_data = np.nanmean(data_array, axis=0)
+        sim = line_data
+        #sim /= simtrials
+    #elif n > 100:
+        #sim = finiteTheory.relSCurve(p, n,
+                #                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
+        
     else:
         all_sim = relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=True, finite=False)
     #print("allsim",i,j,all_sim)
@@ -64,14 +85,18 @@ for i_n in range(len(nodes_list)):
             sim = sim + np.transpose(all_sim[:,k][:n])
         sim = sim / n
     
-    
-    fin = (relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=False, finite=True)[:n])
+    if n > 100:
+        fin = finiteTheory.relSCurve(p, n,
+            attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
+
+    else:
+        fin = (relSCurve_precalculated(n, p, targeted_removal=remove_bool, simulated=False, finite=True)[:n])
     
     axs[1].plot(nodes_array, fin, linestyle = '--', color = colors[i_n])
     axs[1].plot(nodes_array, sim, label = r"$N = $"+str(n), linestyle = ' ', marker = markers[i_n], ms = 3, color = colors[i_n])
     #axs[0].set_title('Nwks with same percolation percentage: random')
     axs[1].set_yticklabels([])
-    axs[1].set_ylim(-.1,1.2)
+    axs[1].set_ylim(-.1,1.05)
     axs[1].set(xlabel=r'fraction $f$')
     #axs[1].text(-0.1, 1.15, "B", transform=axs[1].transAxes,fontweight="bold",fontsize=16, va='top', ha='right')
 
@@ -103,12 +128,23 @@ for j in range(len(mult_probs)):
     fin = (relSCurve_precalculated(n, mult_probs[j], targeted_removal=remove_bool, simulated=False, finite=True)[:n])
 
     if mult_probs[j] == .05 or mult_probs[j] ==.1:
-        sim = np.zeros(n)
-        for k in range(trials):
-            print(k)
-            sim += finiteTheory.relSCurve(mult_probs[j], n,
-                                        attack=remove_bool, fdict=fvals, pdict=pvals, lcc_method_relS="pmult", executable_path='libs/p-recursion-float128.exe')
-        sim /= trials
+        sim = completeRCData(numbers_of_nodes=[n],
+                                  edge_probabilities=[mult_probs[j]], num_trials=1000,
+                                  performance='relative LCC', graph_types=['ER'],
+                                  remove_strategies=[remove_strat])
+        data_array = np.array(sim[0][0][0][0])
+
+        # exclude the first row, because it is the number of nodes
+        data_array = data_array[1:]
+
+        # this can prevent some sort of bug about invalid values
+        for val in []:
+            data_array[data_array == val] = np.nan
+
+        # plot simulated data
+        #removed_fraction = np.arange(n) / n
+        line_data = np.nanmean(data_array, axis=0)
+        sim = line_data
     else:
         all_sim = relSCurve_precalculated(n, mult_probs[j], targeted_removal=remove_bool, simulated=True, finite=False)
         #print("allsim",i,j,all_sim)
@@ -130,10 +166,12 @@ for j in range(len(mult_probs)):
     axs[0].plot(nodes_array, sim, label = r"$p = $" + str(mult_probs[j]), linestyle = " ", marker = markers[j], ms = 3, color = colors[j])
     #axs[1].set_title('Nwks with same percolation percentage: attack')
     axs[0].set(xlabel= "fraction " + r'$f$', ylabel='rel. LCC size')
-    axs[0].set_ylim(-.1,1.2)
+    axs[0].set_ylim(-.1,1.05)
     pos2 = axs[0].get_position()
     axs[0].set_position([pos2.x0, pos2.y0, pos2.width, pos2.height])
-    axs[0].legend(loc="upper left",ncol=4)
+    axs[0].legend(loc='upper center', bbox_to_anchor=(0.5, 1.15),
+          ncol=4) # fancybox=True, shadow=True
+    #axs[0].legend(loc="upper left",ncol=4)
     
     #axs[0].text(-0.1, 1.15, "A", transform=axs[1].transAxes,fontweight="bold",fontsize=16, va='top', ha='right')
     # axs[0].legend(loc='center right', bbox_to_anchor=(-.05, 0.11))
@@ -152,7 +190,7 @@ for j in range(len(mult_probs)):
     #     axs[1].plot(nodes_array, inf, label = "infinite theory")
 
 #plt.legend(loc='center left',bbox_to_anchor=(1, 0.5))
-plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.98, wspace=.04)
+plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.90, wspace=.04)
 
 
 axs[0].text(0.05, .1, 'A', transform=axs[0].transAxes, fontsize=10, fontweight='bold', va='top', ha='right')

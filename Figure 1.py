@@ -35,7 +35,7 @@ p=.1
 p_index = int(p/.01 - 1)
 
 
-fig, axs = plt.subplots(1,2, figsize = [7,3.5])
+fig, axs = plt.subplots(1,2, figsize = [6.5,3])
 
 remove_bools = [False,True]
 
