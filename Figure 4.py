@@ -211,9 +211,8 @@ from finiteTheory import *
 # df = pd.DataFrame(mse_array)
 # df.to_csv("MSEdata3D2targeted.csv")
 # df.columns = ["network", "n", "p", "mse"]
+import heapq, random
 
-
-# making 3D graph
 msedata = pd.read_csv("MSEdata3D2.csv")
 num_nwks = len(msedata)
 nodes_array = np.zeros(num_nwks)
@@ -231,6 +230,49 @@ fig = plt.figure()
 nonweird = []
 bignums = []
 smallnums = []
+
+biggestvals =  heapq.nlargest(10,mse_array)
+smallestvals = heapq.nsmallest(10,mse_array)
+
+print("biggest", heapq.nlargest(10,mse_array))
+print("smallest", heapq.nsmallest(10,mse_array))
+
+bigval_table = np.zeros((10,4),dtype=object)
+
+counterbig = 0
+for bigval in biggestvals:
+    idx = np.where(mse_array == bigval)[0][0]
+    bigval_table[counterbig][0] = msedata.iloc[idx][1]
+    bigval_table[counterbig][1] = msedata.iloc[idx][2]
+    bigval_table[counterbig][2] = msedata.iloc[idx][3]
+    bigval_table[counterbig][3] = msedata.iloc[idx][4]
+    counterbig += 1
+
+df_big = pd.DataFrame(bigval_table)
+df_big.to_csv("bigvalsreal.csv")
+df_big.columns = ["network", "n", "p", "mse"]
+
+
+def nsmallest_indices(n, arr):
+    return [i for i, _ in heapq.nsmallest(n, enumerate(arr), key=lambda x: x[1])]
+
+small_indices = nsmallest_indices(10,mse_array)
+
+smallval_table = np.zeros((10,4), dtype= object)
+
+countersmall = 0
+#for smallval in smallestvals:
+for idx in small_indices:
+    #idx = np.where(mse_array == smallval)[0][0]
+    smallval_table[countersmall][0] = msedata.iloc[idx][1]
+    smallval_table[countersmall][1] = msedata.iloc[idx][2]
+    smallval_table[countersmall][2] = msedata.iloc[idx][3]
+    smallval_table[countersmall][3] = msedata.iloc[idx][4]
+    countersmall += 1
+df_small = pd.DataFrame(smallval_table)
+df_small.to_csv("smallvalsreal.csv")
+df_small.columns = ["network", "n", "p", "mse"]
+
 
 for i in range(len(mse_array)):
     data = mse_array[i]
@@ -253,8 +295,69 @@ for i in range(len(nonweird)):
     else:
         log_array[i] = -100
 ## histogram
-plt.hist(log_array, density = True, log=True, bins=200)
-plt.xlim([-7,0])
+fig, ax = plt.subplots(1,1)
+#ax.hist(log_array, density = True, bins=200)
+
+
+# making 3D graph
+fig, ax = plt.subplots(1,1)
+csvfiles = ["MSEdata3D2.csv","MSEdata3D2targeted.csv"]
+colors = ["tab:blue","orange"]
+labels = ["random","targeted"]
+for iii in range(len(csvfiles)):
+    msedata = pd.read_csv(csvfiles[iii])
+    num_nwks = len(msedata)
+    nodes_array = np.zeros(num_nwks)
+    probs_array = np.zeros(num_nwks)
+    mse_array = np.zeros(num_nwks)
+
+    # some weird formatting means you have to add 1 to each index for the n,p,mse
+    for j in range(num_nwks):
+        nodes_array[j] = msedata.iloc[j][2]
+        probs_array[j] = msedata.iloc[j][3]
+        mse_array[j] = msedata.iloc[j][4]
+
+
+    nonweird = []
+    bignums = []
+    smallnums = []
+
+    for i in range(len(mse_array)):
+        data = mse_array[i]
+        if data >= 10:
+            bignums.append((msedata.iloc[i][1],msedata.iloc[i][0]))
+            nonweird.append(data)
+            
+        elif data < 10:
+            if data < 10**(-7):
+                smallnums.append((msedata.iloc[i][1],msedata.iloc[i][0]))
+            else:
+                nonweird.append(data)
+    print("bignums t",bignums)
+    print("smallnums t",smallnums)
+
+
+    log_array = np.zeros(len(nonweird))
+    for i in range(len(nonweird)):
+        if mse_array[i] != 0:
+            log_array[i] = np.log(mse_array[i])
+        else:
+            log_array[i] = -100
+    ## histogram
+    ax.hist(log_array, density = True, bins=200, alpha = .65, color = colors[iii], label = labels[iii])
+
+plt.legend()
+
+# ticks = [-7,-6,-5,-4,-3,-2,-1,0]
+# ax.set_xticks(ticks)
+# newticks2 = [r'$10^{{{}}}$'.format(x) for x in ticks]
+# ax.set_xticklabels(newticks2)
+
+plt.xlim([-7,60])
+plt.xlabel(r'$MSE$')
+plt.ylabel(r'$frequency$')
+plt.title('Histogram of MSE')
+plt.savefig("voronoi_histogram.pdf")
 plt.show()
 
 
