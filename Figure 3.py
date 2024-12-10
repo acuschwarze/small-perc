@@ -213,11 +213,11 @@ def fig_3(max_n,total_p):
     add_colorbar_neg(z7_plot)
     add_colorbar_neg(z8_plot)
 
-    ax1.set(ylabel=r'$p$')
+    ax1.set(ylabel=r'edge probability $p$')
     ax5.set(ylabel=r'$frequency$')
-    ax6.set(xlabel=r'$N$',ylabel=r'$p$')
-    ax7.set(xlabel=r'$N$')
-    ax8.set(xlabel=r'$N$')
+    ax6.set(xlabel=r'network size $N$',ylabel=r'edge probability $p$')
+    ax7.set(xlabel=r'network size $N$')
+    ax8.set(xlabel=r'network size $N$')
     ax10.set(xlabel=r'$MSE$',ylabel=r'$frequency$')
 
     ax1.set_title(r"$\widebar{S} \, AUC$")
@@ -228,6 +228,16 @@ def fig_3(max_n,total_p):
     # ax7.set_title(r"${\langle S \rangle} MSE$")
     # ax8.set_title(r"${\langle S \rangle}_{N \to \infty} MSE$")
     # ax10.set_title("MSE Histogram")
+
+    ax1.text(0.1, .1, '(a)', transform=ax1.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax2.text(0.1, .1, '(b)', transform=ax2.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax3.text(0.1, .1, '(c)', transform=ax3.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax5.text(0.1, .1, '(d)', transform=ax5.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax6.text(0.1, .1, '(e)', transform=ax6.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax7.text(0.1, .1, '(f)', transform=ax7.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax8.text(0.1, .1, '(g)', transform=ax8.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax10.text(0.1, .1, '(h)', transform=ax10.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+
 
     plt.savefig("Fig_3_Final.pdf")
 

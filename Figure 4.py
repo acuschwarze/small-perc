@@ -211,6 +211,9 @@ from finiteTheory import *
 # df = pd.DataFrame(mse_array)
 # df.to_csv("MSEdata3D2targeted.csv")
 # df.columns = ["network", "n", "p", "mse"]
+
+
+
 import heapq, random
 
 msedata = pd.read_csv("MSEdata3D2.csv")

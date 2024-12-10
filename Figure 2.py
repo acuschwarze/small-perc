@@ -33,10 +33,10 @@ fig, axs = plt.subplots(1,2, figsize = [10,3.5])
 colors = ['red','blue','orange','green','purple','cyan','magenta']
 markers = ['o', 'x', 'v', 's', '+', 'd', '1']
 n_threshold = .2
-nodes_list = [10,15,25,50,100]
+nodes_list = [10,15,25,50]
 probs_list = [(1/(n_threshold*(x-1))) for x in nodes_list]
 print(probs_list)
-remove_bool = False
+remove_bool = True
 simtrials = 1
 
 if remove_bool == True:
@@ -193,8 +193,8 @@ for j in range(len(mult_probs)):
 plt.subplots_adjust(left=0.06, right=.99, bottom=.15, top=0.90, wspace=.04)
 
 
-axs[0].text(0.05, .1, 'A', transform=axs[0].transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
-axs[1].text(0.05, .1, 'B', transform=axs[1].transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
+axs[0].text(0.05, .1, '(a)', transform=axs[0].transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+axs[1].text(0.05, .1, '(b)', transform=axs[1].transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
 
 
 if remove_bool == False:
