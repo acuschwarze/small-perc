@@ -98,24 +98,14 @@ def relSCurve(n, p, attack=False, reverse=False, smooth_end=False):
         # compute value of S from percolation theory for infinite networks
         if c == 1 and n==2:
             relS[i] = 2/current_n
-            # print("set to 2/i",2/current_n)
-            # print("currentp",current_p)
-            # print("currentn",current_n)
-            # print("c",c)
         
         elif c > 0:
             relS[i] = 1 + np.real(
                 myLambertW((-c * np.exp(-c)), k=0, tol=1e-8) / c)
-            # print("set to 0")
-            # print("currentp",current_p)
-            # print("currentn",current_n)
-            # print("c",c)
+        
         else:
             relS[i] = 0
-            # print("set to 0")
-            # print("currentp",current_p)
-            # print("currentn",current_n)
-            # print("c",c)
+            
         if smooth_end == True:
             relS[i] = max([relS[i], 1 / current_n])
 
@@ -128,47 +118,8 @@ def relSCurve(n, p, attack=False, reverse=False, smooth_end=False):
         # update current_n
         if current_n > 1:
             current_n -= 1
-    #print("relS", relS)
+
     return relS
-
-
-def perf_sim2copy(n, p, smooth_end=False):
-    '''Only here for debugging purposes.'''
-    #this was a function for troubleshooting lambert stuff
-    # we did -2 to avoid the end tail bit at first
-    y_array = np.zeros(n - 2) # just the part that goes into the lambert function
-    z_array = np.zeros(n - 2) # actual S from entire lambert calculation
-    x_array = np.zeros(n - 2) # proportion of nodes "removed"
-    mean_array = np.zeros(n) #for c values
-    difference = np.zeros(n) 
-    #for difference between y and 1/e - made sure some values aligned, but I 
-    # can't quite remember why - I don't think we use this much anymore though
-
-    new_p = p
-    new_n = n
-    c_init = 2 * new_p * comb(new_n, 2) / new_n
-    percolation_threshold2 = 1 / n + (n - 1) / (c_init * n)
-
-    for i in range(n - 2):
-        x_array[i] = i / n
-
-    for i in range(n - 2):
-        c = 2 * new_p * comb(new_n, 2) / new_n
-        if smoothi_end == True:
-            y_array[i] = -c * np.exp(-c)
-            z_array[i] = 1 + myLambertW(-c * np.exp(-c)) / c + 1 / new_n
-        else:
-            y_array[i] = -c * np.exp(-c)
-            z_array[i] = 1 + myLambertW(-c * np.exp(-c)) / c
-            mean_array[i] = c
-            difference[i] = y_array[i] - 1 / scipy.e
-        if new_n ** 2 - 2 * new_n == 0:
-            new_p = new_p
-        else:
-            new_p = new_p
-            new_n -= 1
-
-    return x_array, y_array, z_array, mean_array, difference, percolation_threshold2
 
 
 def relSmallSCurve(n, p, attack=False, smoothing=False):

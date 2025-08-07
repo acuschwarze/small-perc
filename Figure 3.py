@@ -118,7 +118,7 @@ def fig_3(max_n,total_p):
             # heatmap_tinf[j][i-2] = ((t_inf-t_sim)**2).mean() * i
 
             if ((r_fin-r_sim)**2).mean() == 0:
-                heatmap_rfin[j][i-2] = -6
+                heatmap_rfin[j][i-2] = -7
             else:
                 heatmap_rfin[j][i-2] = np.log10(((r_fin-r_sim)**2).mean())
 
@@ -128,9 +128,9 @@ def fig_3(max_n,total_p):
                 heatmap_rinf[j][i-2] = np.log10(((r_inf-r_sim)**2).mean())
 
             if ((t_fin-t_sim)**2).mean() == 0:
-                heatmap_tfin[j][i-2] = -6 # -6
+                heatmap_tfin[j][i-2] = -7
             elif ((t_fin-t_sim)**2).mean() <= 10**(-7):
-                heatmap_tfin[j][i-2] == -6
+                heatmap_tfin[j][i-2] == -7
                 badcount+=1
             else:
                 heatmap_tfin[j][i-2] = np.log10(((t_fin-t_sim)**2).mean())
@@ -170,18 +170,18 @@ def fig_3(max_n,total_p):
     z1_plot = ax1.pcolormesh(xnodes, yprobs, heatmap_rauc)
     z2_plot = ax2.pcolormesh(xnodes, yprobs, heatmap_rfin, cmap = reversed, vmin=-4,vmax= -.3)#vmin=-5) #, vmax=0.01)
     z3_plot = ax3.pcolormesh(xnodes, yprobs, heatmap_rinf, cmap = reversed, vmin = -4,vmax= -.3)
-    z5_plot = ax5.hist(hist_rfin, density=True, label = r"${\langle S \rangle}_{rec}$", alpha=0.65)
-    ax5.hist(hist_rinf, density=True, label = r"${\langle S \rangle}_{N \to \infty}$", alpha=0.65)
+    z5_plot = ax5.hist(hist_rfin, density=True, label = r"${S}_{rec}$", alpha=0.65)
+    ax5.hist(hist_rinf, density=True, label = r"${S}_{\infty}$", alpha=0.65)
     ax5.legend(prop={'size': 10})
 
     z6_plot = ax6.pcolormesh(xnodes, yprobs, heatmap_tauc)
     z7_plot = ax7.pcolormesh(xnodes, yprobs, heatmap_tfin, cmap = reversed, vmin = -4,vmax= -.3)
     z8_plot = ax8.pcolormesh(xnodes, yprobs, heatmap_tinf, cmap = reversed, vmin = -4,vmax= -.3)
-    z10_plot = ax10.hist(hist_tfin, density=True, label = r"${\langle S \rangle}_{rec}$", alpha=0.65)
-    ax10.hist(hist_tinf, density=True, label = r"${\langle S \rangle}_{N \to \infty}$", alpha=0.65)
+    z10_plot = ax10.hist(hist_tfin, density=True, label = r"${S}_{rec}$", alpha=0.65)
+    ax10.hist(hist_tinf, density=True, label = r"${S}_{\infty}$", alpha=0.65)
     ax10.legend(prop={'size': 10})
     ax5.set_ylim([0,1])
-    ax10.set_xlim([-6,0])
+    ax10.set_xlim([-7,0])
     ax10.set_ylim([0,1])
     
     ax2.set_yticklabels([])
@@ -218,25 +218,25 @@ def fig_3(max_n,total_p):
     ax6.set(xlabel=r'network size $N$',ylabel=r'edge probability $p$')
     ax7.set(xlabel=r'network size $N$')
     ax8.set(xlabel=r'network size $N$')
-    ax10.set(xlabel=r'$MSE$',ylabel=r'$frequency$')
+    ax10.set(xlabel=r'MSE', ylabel=r'$frequency$')
 
-    ax1.set_title(r"$\widebar{S} \, AUC$")
-    ax2.set_title(r"${\langle S \rangle}_{rec} \, MSE$")
-    ax3.set_title(r'${\langle S \rangle}_{N \to \infty} \, MSE$')
-    ax5.set_title("Histogram of " + r"$(MSE)$")
+    ax1.set_title(r"AUC of $\widebar{S}$")
+    ax2.set_title(r"MSE of ${S}_{rec}$")
+    ax3.set_title(r'MSE of ${S}_{\infty}$')
+    ax5.set_title("Histogram of " + "MSE")
     # ax6.set_title(r"$AUC$")
     # ax7.set_title(r"${\langle S \rangle} MSE$")
-    # ax8.set_title(r"${\langle S \rangle}_{N \to \infty} MSE$")
+    # ax8.set_title(r"${\langle S \rangle}_{\infty} MSE$")
     # ax10.set_title("MSE Histogram")
 
-    ax1.text(0.1, .1, '(a)', transform=ax1.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax2.text(0.1, .1, '(b)', transform=ax2.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax3.text(0.1, .1, '(c)', transform=ax3.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax5.text(0.1, .1, '(d)', transform=ax5.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax6.text(0.1, .1, '(e)', transform=ax6.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax7.text(0.1, .1, '(f)', transform=ax7.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax8.text(0.1, .1, '(g)', transform=ax8.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
-    ax10.text(0.1, .1, '(h)', transform=ax10.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax1.text(0.965, .965, '(a)', transform=ax1.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax2.text(0.965, .965, '(b)', transform=ax2.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax3.text(0.965, .965, '(c)', transform=ax3.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax5.text(0.965, .965, '(d)', transform=ax5.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax6.text(0.965, .965, '(e)', transform=ax6.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax7.text(0.965, .965, '(f)', transform=ax7.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax8.text(0.965, .965, '(g)', transform=ax8.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
+    ax10.text(0.965, .965, '(h)', transform=ax10.transAxes, fontsize=10, fontweight='normal', va='top', ha='right')
 
 
     plt.savefig("Fig_3_Final.pdf")

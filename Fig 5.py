@@ -151,9 +151,9 @@ plt.legend()
 
 
 
-distributions_for_plots=np.zeros((3,n0), dtype=object)
-distributions_for_plots[0,0]=[0,1,2]
-distributions_for_plots
+# distributions_for_plots=np.zeros((3,n0), dtype=object)
+# distributions_for_plots[0,0]=[0,1,2]
+# distributions_for_plots
 
 
 # Create a figure with the specified width and height
@@ -167,8 +167,8 @@ x0, y0 = 0.06, 0.125
 # Add the first subplot 
 ax1 = fig.add_axes([x0, y0, large_width, 0.94-y0])  # [left, bottom, width, height]
 #ax1.set_title('Subplot 1')
-ax1.set_xlabel(r"$f$")
-ax1.set_ylabel(r"$p'$")
+ax1.set_xlabel(r"fraction $f$")
+ax1.set_ylabel(r"subgraph edge probability $p'$")
 ax1.set_xlim([0-0.5/n0, 1+0.5/n0])
 ax1.text(0.92,0.93,'(a)',  ha='center', va='center', transform=ax1.transAxes)
 
@@ -194,8 +194,9 @@ for ri in range(2):
             ax.set_title(r'{} node removed'.format(data_index))
         else:
             ax.set_title(r'{} nodes removed'.format(data_index))
-        #print(distributions_for_plots[0,data_index])
+        print("yvals",distributions_for_plots[1,data_index])
         xvals = np.linspace(0,1,len(distributions_for_plots[0,data_index]))
+        print("xvals", xvals)
         axes[data_index].plot(xvals,distributions_for_plots[0,data_index], 
             marker='s', ms=6, color='lightblue', mec='darkblue', mfc='darkblue', label=r'exact $P(k)$')
         axes[data_index].plot(xvals,distributions_for_plots[1,data_index], 
@@ -209,7 +210,7 @@ for ri in range(2):
         xticks = ['' for x in xvals]
 
         if ri==1:
-            ax.set_xlabel(r'$k$')
+            ax.set_xlabel(r'degree $k$')
             xticks[0]='0'
             xticks[-1] = r'$k_{max}$'
             ax.set_xticklabels(xticks)

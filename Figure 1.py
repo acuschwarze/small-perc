@@ -109,8 +109,8 @@ for i in range(len(remove_bools)):
         sim_y[j] = np.nanmean(sim_data)
 
     axs[i].errorbar(x=nodes, y=sim_y, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "red")
-    axs[i].plot(nodes, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = "black")
-    axs[i].plot(nodes, fin, label = r"${\langle S \rangle}$", color = "blue", linestyle = '--')
+    axs[i].plot(nodes, inf, label = r"${S}_{\infty}$", color = "black")
+    axs[i].plot(nodes, fin, label = r"${S}_{rec}$", color = "blue", linestyle = '--')
     #axs[i].set_title("Fin/Inf Theory: n=" + str(n) + ", p=" + str(p) + ", removal " + str(remove))
     axs[i].set(xlabel= r'fraction $f$')
     if i==0:
@@ -125,6 +125,8 @@ axs[i].legend(loc='upper left', bbox_to_anchor=(.05, 1))
 handles, labels = plt.gca().get_legend_handles_labels()
 order = [2,0,1]
 plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+axs[0].text(0.05, .9, '(a)', transform=axs[0].transAxes, fontsize=10, fontweight='normal', va='bottom', ha='left')
+axs[1].text(0.05, .9, '(b)', transform=axs[1].transAxes, fontsize=10, fontweight='normal', va='bottom', ha='left')
 
 #axs[i].legend(loc='center right', bbox_to_anchor=(0, 0.1))
 

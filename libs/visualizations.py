@@ -46,7 +46,7 @@ def plot_graphs(numbers_of_nodes=[100], edge_probabilities=[0.1],
     performance : str (default='largest_connected_component')
        Performance measure to be used.
 
-    num_trials : int (default=10)
+    num_trials : int (default=100)
        Number of sample networks drawn from each random-graph model for each
        combination of numbers of nodes and numbers of edges.
 

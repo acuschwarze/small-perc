@@ -50,9 +50,8 @@ def execute_executable(executable_path):
         
         # Extract the output
         output = result.stdout.strip()
-        #print("EE Output", output)
-        #print("EE Output", output, "path", executable_path)
         return output
+    
     except subprocess.CalledProcessError as e:
         # Handle if the executable returns a non-zero exit code
         print("Error: Executable returned non-zero exit code.")
@@ -323,13 +322,11 @@ def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
     #executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
 
     # Execute the executable and capture its output
-    # print(os. getcwd())
     output = float(execute_executable([executable_path, str(p), str(i), str(n)]))
     #print("EEO output pmult", output)
     #output = float(output)
 
     # return
-    print("n",n)
     return output
 
 

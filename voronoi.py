@@ -89,9 +89,14 @@ nwnodes = []
 nwprobs=[]
 for i in range(len(mse_array)):
     if mse_array[i] < 10:
+    #if mse_array[i] < 1.819 and mse_array[i] > 1.57:
         nonweird.append(mse_array[i])
         nwnodes.append(nodes_array[i])
         nwprobs.append(probs_array[i])
+    else:
+        print("weird val:", mse_array[i])
+        print("weird n:",nodes_array[i])
+        print("weird p",probs_array[i])
 
 mse_array = np.array(nonweird)
 nodes_array = np.array(nwnodes)
@@ -99,11 +104,13 @@ probs_array = np.array(nwprobs)
 
 log_array = np.zeros(len(mse_array)) #[] #np.zeros(len(mse_array))
 for i in range(len(mse_array)):
+    if mse_array[i] < 1.819 and mse_array[i] > 1.57:
+        print(np.log(mse_array[i]))
     # if np.log(mse_array[i]) > 0:
     #     log_array[i] = 0
     if np.log(mse_array[i]) <= -4:
         log_array[i] = -4 #log_array.append(-4) #log_array[i] = -4
-    elif np.log(mse_array[i]) >= 10**.5:
+    elif np.log(mse_array[i]) >= .5:
         log_array[i] = 0
         #nodes_array.remove(i)
         #probs_array.(i)
@@ -116,6 +123,7 @@ for i in range(len(mse_array)):
         print(fullData.iloc[i][1])
         print("n",nodes_array[i])
         print("p",probs_array[i])
+        print("mse", mse_array[i])
     # else:
     #     #log_array.append(-4)
     #     log_array[i] = -4
@@ -159,7 +167,7 @@ areas = []
 counter = 0
 for region_index, region in enumerate(vor.regions):
     if not -1 in region and len(region) > 0:
-        print(counter)
+        # print(counter)
         polygon = [vor.vertices[i] for i in region]
         poly_array = np.array(polygon)
         x = poly_array[:,0]
@@ -199,7 +207,7 @@ for i in range(len(newticks1)):
         newticks2.append(r'$10^{{{}}}$'.format(newticks1[i]))
     # else:
     #     newticks2[i] = 
-c_bar = plt.colorbar(sm, ax=ax, label=r'$MSE$')
+c_bar = plt.colorbar(sm, ax=ax, label='MSE')
 print(newticks2)
 # c_bar.ax.set_yticklabels(newticks2)
 # for i in range(len(newticks1)):

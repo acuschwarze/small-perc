@@ -98,7 +98,7 @@ for i in range(len(probs)):
 fig, axs = plt.subplots(1,1, figsize = [5,3.5])
 plt.errorbar(x=probs, y=sim, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "red")
 #plt.plot(probs, fin, label = r'$\langle S \rangle$', linestyle = "--", color = "blue")
-plt.plot(probs, inf, label = r"${\langle S \rangle}_{N \to \infty}$", color = "black")
+plt.plot(probs, inf, label = r"${S}_{\infty}$", color = "black")
 #plt.plot(probs,sim,label="sim")
 plt.xlabel("edge probability " + r"$p$")
 plt.ylabel("rel. LCC size")
