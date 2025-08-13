@@ -1,3 +1,13 @@
+###############################################################################
+#
+# File to create Figure 5.
+#
+# This library also contains the following functions for targeted removal shortcoming exploration:
+#     expected_minimum_binomial
+#     plot_binomial_with_truncated_shifted
+#     
+###############################################################################
+
 import sys, pickle
 sys.path.insert(0, "libs")
 

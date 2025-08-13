@@ -1,3 +1,9 @@
+###############################################################################
+#
+# Code to create Figure 1 of paper
+#
+###############################################################################
+
 import sys, pickle
 sys.path.insert(0, "libs")
 
@@ -25,10 +31,12 @@ from performanceMeasures import *
 from infiniteTheory import *
 from finiteTheory import *
 
+# open precalculated values for recursion as part of finite theory S_rec (optional, not used in Fig 1)
 fvals = pickle.load(open('data/fvalues.p', 'rb'))
 pvals = pickle.load(open('data/Pvalues.p', 'rb'))
 
 
+# lambert function for infinite theory
 def myLambertW(x, k=0, tol=1E-20):
     '''Lambert-W function with interpolation close to the jump point of its 
     zero-th branch. (Using the scipy implementation sometimes does not return
@@ -56,16 +64,21 @@ def myLambertW(x, k=0, tol=1E-20):
 
     return lw
 
+# parameters for node number (n) and p values (here 0 to .5)
 n = 10
 probs = np.arange(51)/100
+
+# create curves for finite theory S_rec and simulated data
 fin = np.zeros(len(probs))
 inf = np.zeros(len(probs))
 sim = np.zeros(len(probs))
 
+# finite theory S_rec (optional)
 for i in range(len(probs)):
     fin[i] = calculate_S(probs[i], n, fdict=fvals, pdict=pvals,lcc_method = "pmult", executable_path='libs/p-recursion-float128.exe')/n
 
 
+# infinite theory S_inf
 for i in range(len(probs)):
         c = 2 * probs[i] * comb(n, 2) / n
 
@@ -80,6 +93,8 @@ for i in range(len(probs)):
         else:
             inf[i] = 0
 
+
+# simulated data with 3 standard error bars
 std_table = np.zeros(len(probs))
 
 for i in range(len(probs)):
@@ -90,16 +105,17 @@ for i in range(len(probs)):
         std[j] = len(max(nx.connected_components(G), key=len))/n
         lcc += len(max(nx.connected_components(G), key=len))/n
     std_value = np.std(std)
-    std_table[i] = std_value / 10 * 3
+    std_table[i] = std_value / 10 * 3 # 3 standard errors
 
     lcc /= 100
     sim[i] = lcc
 
+
+# plot figure
 fig, axs = plt.subplots(1,1, figsize = [5,3.5])
+# plt.plot(probs, fin, label = r'$\langle S \rangle$', linestyle = "--", color = "blue") # optional S_rec
 plt.errorbar(x=probs, y=sim, yerr = std_table, marker = 'o', markersize=2.5, label = r"$\widebar{S}$", lw=1, color = "red")
-#plt.plot(probs, fin, label = r'$\langle S \rangle$', linestyle = "--", color = "blue")
 plt.plot(probs, inf, label = r"${S}_{\infty}$", color = "black")
-#plt.plot(probs,sim,label="sim")
 plt.xlabel("edge probability " + r"$p$")
 plt.ylabel("rel. LCC size")
 plt.legend()
@@ -107,4 +123,4 @@ handles, labels = plt.gca().get_legend_handles_labels()
 order = [1,0]
 plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
 plt.subplots_adjust(left=0.12, right=.99, bottom=.15, top=0.99, wspace=0)
-plt.savefig("Intro_Figure.pdf")
+plt.savefig("Figure_1.pdf")

@@ -1,3 +1,4 @@
+# create fullData table file from the presaved rLCC values from Petter Holme's networks
 # collect data from simulating node removal on 1600+ networks
 
 import os
@@ -31,7 +32,7 @@ for i in range(1609):
         data.append([source_file_name, integer1, integer2, array1, array2, array3, array4])
 
 # Create a pandas DataFrame from the data
-df = pd.DataFrame(data, columns=['sourceFileName', 'numberOfNodes', 'numberOfEdges', 'array1', 'array2', 'array3', 'array4'])
+df = pd.DataFrame(data, columns=['sourceFileName', 'nodes', 'edges', 'real: random', 'real: targeted', 'fin theory: random', 'fin theory: targeted'])
 
 # Display the DataFrame
 df.to_csv('fullData.csv', sep=',', index=False, encoding='utf-8')
