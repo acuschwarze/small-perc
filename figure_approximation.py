@@ -165,7 +165,7 @@ dx, dy = 0.015, 0.115
 x0, y0 = 0.06, 0.125
 
 # Add the first subplot 
-ax1 = fig.add_axes([x0, y0, large_width, 0.94-y0])  # [left, bottom, width, height]
+ax1 = fig.add_axes([x0, y0, large_width, 0.94-y0])  # type: ignore # [left, bottom, width, height]
 #ax1.set_title('Subplot 1')
 ax1.set_xlabel(r"fraction $f$")
 ax1.set_ylabel(r"subgraph edge probability $p'$")
@@ -186,7 +186,7 @@ for ri in range(2):
         # Add the second subplot (semi-full height, 20% width, top)
         axes[data_index] = fig.add_axes([x0+large_width+(ci+1)*dx+ci*(small_width), 
                            y0+(1-ri)*(small_height+dy), 
-                           small_width, small_height])  # [left, bottom, width, height]
+                           small_width, small_height])  # type: ignore # [left, bottom, width, height]
         ax = axes[data_index]
         if data_index == 0:
             ax.set_title(r'no nodes removed'.format(data_index))
@@ -231,4 +231,4 @@ for ri in range(2):
         if data_index==3:
             plt.legend(labelspacing = 0.05, borderpad=0.3)
 
-plt.savefig('binomial-attack.pdf')
+plt.savefig('fig_approximation.pdf')
