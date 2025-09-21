@@ -14,16 +14,19 @@ Functions:
     compute_percolation_curve: Calculate expected largest component sizes under sequential node removal
     compute_relative_percolation_curve: Calculate relative largest component sizes under sequential node removal
     compute_percolation_points: Calculate expected largest component sizes for specific network sizes
-    update_edge_probability_after_attack: Update edge probability after targeted node removal
 """
 
+import os, sys
 import numpy as np
-import scipy.special
+from pathlib import Path
 from scipy.special import comb
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List, Tuple, Optional
 import subprocess
-import math
 
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+sys.path.insert(0, REPO_ROOT)
+from libs.utils import edge_probability_after_attack
 
 def execute_subprocess(executable_path: List[str]) -> Optional[str]:
     """Execute an external program and return its output.
@@ -308,27 +311,6 @@ def compute_expected_largest_component_size(edge_prob: float, network_size: int,
     return expected_size
 
 
-def update_edge_probability_after_attack(remaining_nodes: int, 
-                                        current_edge_prob: float) -> float:
-    """Update edge probability after targeted node removal.
-    
-    Parameters
-    ----------
-    remaining_nodes : int
-        Number of remaining nodes
-    current_edge_prob : float
-        Current edge probability
-        
-    Returns
-    -------
-    float
-        Updated edge probability
-    """
-    # Placeholder for actual implementation
-    # This would contain the logic for updating probability after targeted attack
-    return current_edge_prob
-
-
 def compute_percolation_curve(edge_prob: float, network_size: int,
                              targeted_attack: bool = False,
                              reverse: bool = False,
@@ -371,7 +353,7 @@ def compute_percolation_curve(edge_prob: float, network_size: int,
             method, executable_path)
         
         if targeted_attack:
-            current_prob = update_edge_probability_after_attack(i + 1, current_prob)
+            current_prob = edge_probability_after_attack(i + 1, current_prob)
     
     if reverse:
         sizes = sizes[::-1]

@@ -9,20 +9,13 @@
 #
 ###############################################################################
 
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any
 import numpy as np
-import scipy.stats as sst
-import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from random import choice
-from scipy.special import comb
-from data import *
 import infiniteTheory
 import finiteTheory
-from performanceMeasures import *
-from robustnessSimulations import *
-from scipy.signal import argrelextrema
+from robustnessSimulations import completeRCData
 
 
 def plot_graphs(
@@ -149,7 +142,7 @@ def plot_graphs(
                         is_attack = (remove_strategy == 'attack')
 
                         # Get and plot finite theory data
-                        finite_rel_s = finiteTheory.relSCurve(
+                        finite_rel_s = finiteTheory.relSCurve( # type: ignore
                             edge_prob, node_count,
                             attack=is_attack,
                             fdict=fdict,
@@ -166,7 +159,7 @@ def plot_graphs(
                         )
 
                         # Get and plot infinite theory data
-                        infinite_rel_s = infiniteTheory.relSCurve(
+                        infinite_rel_s = infiniteTheory.relSCurve( # type: ignore
                             node_count, edge_prob,
                             attack=is_attack,
                             smooth_end=smooth_end
@@ -180,7 +173,7 @@ def plot_graphs(
 
                     elif performance == "average small component size":
                         # Get and plot infinite theory data for small components
-                        infinite_rel_s = infiniteTheory.relSmallSCurve(
+                        infinite_rel_s = infiniteTheory.relSmallSCurve( # type: ignore
                             edge_prob, node_count,
                             attack=is_attack, # type: ignore
                             smooth_end=smooth_end # type: ignore

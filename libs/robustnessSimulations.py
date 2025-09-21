@@ -11,10 +11,9 @@
 
 import numpy as np
 import networkx as nx
-from typing import Tuple, List, Callable, Any
+from typing import Tuple, List
 from random import choice
-from data import *
-from utils import *
+from utils import sample_network
 from performanceMeasures import *
 
 
@@ -47,17 +46,17 @@ def robustnessCurve(graph: nx.Graph,
     # Map performance measure names to functions
     performance_functions = {
         'number_of_nodes': lambda g: g.number_of_nodes(),
-        'largest_connected_component': lambda g: sizeOfLCC(g),
-        'relative LCC': lambda g: relativeSizeOfLCC(g),
-        'average cluster size': lambda g: averageComponentSize(g),
-        'average small component size': lambda g: averageSmallComponentSize(g),
-        'mean shortest path': lambda g: meanShortestPathLength(g),
-        'efficiency': lambda g: getEfficiency(g),
-        'entropy': lambda g: getEntropy(g),
-        'reachability': lambda g: getReachability(g),
+        'largest_connected_component': lambda g: size_of_lcc(g),
+        'relative LCC': lambda g: relative_size_of_lcc(g),
+        'average cluster size': lambda g: average_component_size(g),
+        'average small component size': lambda g: average_small_component_size(g),
+        'mean shortest path': lambda g: mean_shortest_path_length(g),
+        'efficiency': lambda g: efficiency(g),
+        'entropy': lambda g: entropy(g),
+        'reachability': lambda g: reachability(g),
         'transitivity': lambda g: nx.transitivity(g),
-        'resistance distance': lambda g: resistanceDistance(g),
-        'natural connectivity': lambda g: meanCommunicability(g)
+        'resistance distance': lambda g: resistance_distance(g),
+        'natural connectivity': lambda g: mean_communicability(g)
     }
     
     if performance not in performance_functions:
@@ -116,8 +115,8 @@ def getRCSet(n: int = 100,
     trial_data[0] = np.arange(n)
 
     for trial_idx in range(num_trials):
-        sample_graph = sampleNetwork(n, p, graph_type=graph_type)
-        avg_degree = averageDegree(sample_graph)
+        sample_graph = sample_network(n, p, graph_type=graph_type)
+        avg_degree = average_degree(sample_graph)
         
         percolation_threshold = 0 if avg_degree == 0 else 1 / avg_degree
 

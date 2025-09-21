@@ -1,17 +1,17 @@
-import sys, pickle
-sys.path.insert(0, "libs")
-
-import networkx as nx
+import os, sys
+from pathlib import Path
 import numpy as np
 from scipy.stats import binom as binDist
 from scipy.stats import binom as binomialDistribution
 from scipy.interpolate import make_interp_spline
 from matplotlib import pyplot as plt
 from scipy.special import binom
-from itertools import product
-
 import matplotlib.colors as mcolors
-from libs.utils import *
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+sys.path.insert(0, REPO_ROOT)
+from libs.utils import edge_probability_after_attack
 
 
 def expected_minimum_binomial(m, n, p):
@@ -110,7 +110,10 @@ n0=8
 p0=0.5
 tab10 = list(mcolors.TABLEAU_COLORS.values())
 
-file = open(r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0), 'r')
+# TODO: If the file below does not exist, create it using max-degree.cpp
+file_path = os.path.join(REPO_ROOT, 'combinatorics_cache', 
+    r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0))
+file = open(file_path, 'r')
 distributions = []
 for line in file:
     numbers = [float(val) for val in line.split()]
@@ -145,7 +148,7 @@ for i in range(len(distributions)):
     p_values[1,i] = p2
 
     # calculate p' for next step
-    p2 = edgeProbabilityAfterTargetedAttack(n, p2)
+    p2 = edge_probability_after_attack(n, p2)
 
 plt.legend()
 
@@ -231,4 +234,4 @@ for ri in range(2):
         if data_index==3:
             plt.legend(labelspacing = 0.05, borderpad=0.3)
 
-plt.savefig('fig_approximation.pdf')
+plt.savefig(os.path.join(REPO_ROOT, 'figures', 'fig_approximation.pdf'))

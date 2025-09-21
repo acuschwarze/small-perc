@@ -15,7 +15,7 @@
 import numpy as np
 from typing import Tuple
 from scipy.special import comb, lambertw
-from utils import *
+from utils import edge_probability_after_attack
 from performanceMeasures import *
 
 
@@ -81,7 +81,7 @@ def largest_component_sequence(
             relative_sizes[i] = 2 / current_nodes
         elif mean_degree > 0:
             relative_sizes[i] = 1 + np.real(
-                lambert_w_safe(-mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8) / mean_degree
+                lambert_w_safe(-mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8) / mean_degree # type: ignore
             )
         else:
             relative_sizes[i] = 0
@@ -90,7 +90,7 @@ def largest_component_sequence(
             relative_sizes[i] = max(relative_sizes[i], 1 / current_nodes)
 
         if attack:
-            current_edge_prob = edgeProbabilityAfterTargetedAttack(current_nodes, current_edge_prob)
+            current_edge_prob = edge_probability_after_attack(current_nodes, current_edge_prob)
 
         if current_nodes > 1:
             current_nodes -= 1
@@ -130,16 +130,16 @@ def small_components_mean_size(
 
     for i in range(num_nodes):
         mean_degree = 2 * current_edge_prob * comb(current_nodes, 2) / current_nodes
-        largest_component_size = 1 + lambert_w_safe(
-            -mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8
-        ) / mean_degree
+        lambert_w_output = lambert_w_safe(-mean_degree * np.exp(-mean_degree),  # type: ignore
+                                          branch=0, tolerance=1e-8)
+        largest_component_size = 1 + lambert_w_output / mean_degree
         mean_sizes[i] = 1 / (1 - mean_degree + mean_degree * largest_component_size)
 
         if smooth_end:
             mean_sizes[i] = max(mean_sizes[i], 1 / current_nodes)
 
         if attack:
-            current_edge_prob = edgeProbabilityAfterTargetedAttack(current_nodes, current_edge_prob)
+            current_edge_prob = edge_probability_after_attack(current_nodes, current_edge_prob)
 
         if current_nodes > 1:
             current_nodes -= 1

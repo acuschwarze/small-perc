@@ -1,11 +1,14 @@
+import os, sys, time
+from pathlib import Path
+import pickle
 import numpy as np
-import scipy
-import scipy.stats as sst
-import networkx as nx
-import matplotlib.pyplot as plt
-from random import choice
-from scipy.special import comb
-from data import *
+import argparse
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+sys.path.insert(0, REPO_ROOT)
+from libs.finiteTheory import compute_connectivity_probability
+from libs.finiteTheory import compute_largest_component_probability
 
 if __name__ == "__main__":
     # this code is only executed when the script is run rather than imported
@@ -98,7 +101,8 @@ if __name__ == "__main__":
 
                     if compute == True:
                         # calculate f value
-                        fval = calculate_f(p, i, n, fdict=fvalues)
+                        fval = compute_connectivity_probability(p, i, n, 
+                                                                cache=fvalues)
 
                         # add f value to dictionary
                         fvalues[p][n][i] = fval
@@ -166,7 +170,9 @@ if __name__ == "__main__":
 
                     if compute == True:
                         # calculate f value
-                        Pval = calculate_P(p, i, n, fdict=fvalues, pdict=pvalues)
+                        Pval = compute_largest_component_probability(p, i, n, 
+                                connectivity_cache=fvalues, 
+                                probability_cache=pvalues)
 
                         # add f value to dictionary
                         pvalues[p][n][i] = Pval

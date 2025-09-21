@@ -2,6 +2,8 @@ param (
     [int]$MaxParallelJobs = 20
 )
 
+# Wrapper for parallelizing generating heatmap data / data grid
+
 $env:path += ';C:\Users\f00689q\AppData\Local\miniforge3\envs\mathai\'
 
 # Define the input parameters
