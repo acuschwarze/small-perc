@@ -3,188 +3,145 @@
 # Library of functions to calculate theoretical percolation results for 
 # infinite networks.
 #
-# This library contains the following functions:
-#     myLambertW (previously "my_lambertw")
-#     relSCurve (previously "perf_sim2")
-#     perf_sim2copy (previously "perf_sim2copy")
-#     relSmallSCurve (previously "s_sim")
-#
-# This library previously contained:
-#     perf_sim2_attack -> now merged into relSCurve with attack=True
-#     s_sim_attack -> now merged into relSmallSCurve with attack=True
+# Functions included:
+#   - lambert_w_safe: Lambert-W function with interpolation near jump points
+#   - largest_component_sequence: Expected relative sizes of largest connected
+#                                  component under sequential node removal
+#   - small_components_mean_size: Expected mean sizes of small connected
+#                                  components under sequential node removal
 #
 ###############################################################################
 
 import numpy as np
+from typing import Tuple
 from scipy.special import comb, lambertw
 from utils import *
 from performanceMeasures import *
-#from data import *
 
-def myLambertW(x, k=0, tol=1E-20):
-    '''Lambert-W function with interpolation close to the jump point of its 
-    zero-th branch. (Using the scipy implementation sometimes does not return
-    a number if evaluated too close to the jump point.)
+
+def lambert_w_safe(x: float, branch: int = 0, tolerance: float = 1E-20) -> float:
+    """Lambert-W function with interpolation close to the jump point of its 
+    zero-th branch.
 
     Parameters
     ----------
     x : float
-       Argument of the Lambert-W function.
-
-    k : int (default=0)
-       Branch of the Lambert-W function.
+        Argument of the Lambert-W function.
+    branch : int (default=0)
+        Branch of the Lambert-W function.
+    tolerance : float (default=1E-20)
+        Tolerance for detecting proximity to jump point.
 
     Returns
     -------
-    lw : float
-       Value of the Lambert-W function (with interpolation near jump point)
-    '''
-
-    if np.abs(x + 1 / np.exp(1)) < tol:
-        # if input is close to percolation threshold, set output to -1.0
-        lw = -1.0
-    else:
-        lw = lambertw(x, k=k)
-
-    return lw
+    float
+        Value of the Lambert-W function (with interpolation near jump point).
+    """
+    if np.abs(x + 1 / np.exp(1)) < tolerance:
+        return -1.0
+    return lambertw(x, k=branch)
 
 
-def relSCurve(n, p, attack=False, reverse=False, smooth_end=False):
-    '''Sequence of the expected relative sizes of the largest connected 
-    component of an Erdos--Renyi random graph with `n` nodes and edge 
-    probability `p` when removing nodes sequentially, either uniformly at
-    random or (adaptively) targeted by degree.
-
-    Results are from equations for percolation in the large-n limit.
+def largest_component_sequence(
+    num_nodes: int, 
+    edge_prob: float, 
+    attack: bool = False, 
+    reverse: bool = False, 
+    smooth_end: bool = False
+) -> np.ndarray:
+    """Sequence of expected relative sizes of the largest connected component
+    in an Erdos-Renyi random graph under sequential node removal.
 
     Parameters
     ----------
-    n : int
-       Number of nodes in a graph.
-       
-    p : float
-       Edge probability in a graph.
-
+    num_nodes : int
+        Number of nodes in the graph.
+    edge_prob : float
+        Edge probability in the graph.
     attack : bool (default=False)
-       If attack is True, target nodes by degree instead of uniformly at 
-       random.
-       
+        If True, target nodes by degree instead of uniformly at random.
     reverse : bool (default=False)
-       If reverse is True, return expected sizes in reverse order.
-
+        If True, return expected sizes in reverse order.
     smooth_end : bool (default=False)
-       If smooth_end is True, add inverse of current network size as lower 
-       bound for expected relative size of the largest connected component.
+        If True, add inverse of current network size as lower bound.
 
     Returns
     -------
-    relS : 1D numpy array
-       Sequence of the expected relative sizes of the largest connected 
-       component under sequential node removal.
-    '''
+    np.ndarray
+        Expected relative sizes of largest connected component.
+    """
+    relative_sizes = np.zeros(num_nodes)
+    current_nodes = num_nodes
+    current_edge_prob = edge_prob
 
-    # initialize S array
-    relS = np.zeros(n)
+    for i in range(num_nodes):
+        mean_degree = 2 * current_edge_prob * comb(current_nodes, 2) / current_nodes
 
-    # initialize current_n and current_p
-    current_n = n
-    current_p = p # could probably delete this now since p doesn't change
-
-
-    for i in range(n):
-        # compute mean degree
-        c = 2 * current_p * comb(current_n, 2) / current_n
-
-        # compute value of S from percolation theory for infinite networks
-        if c == 1 and n==2:
-            relS[i] = 2/current_n
-        
-        elif c > 0:
-            relS[i] = 1 + np.real(
-                myLambertW((-c * np.exp(-c)), k=0, tol=1e-8) / c)
-        
+        if mean_degree == 1 and num_nodes == 2:
+            relative_sizes[i] = 2 / current_nodes
+        elif mean_degree > 0:
+            relative_sizes[i] = 1 + np.real(
+                lambert_w_safe(-mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8) / mean_degree
+            )
         else:
-            relS[i] = 0
+            relative_sizes[i] = 0
             
-        if smooth_end == True:
-            relS[i] = max([relS[i], 1 / current_n])
+        if smooth_end:
+            relative_sizes[i] = max(relative_sizes[i], 1 / current_nodes)
 
-        # update current_p
         if attack:
-            current_p = edgeProbabilityAfterTargetedAttack(current_n,current_p)
-        else:
-            current_p = current_p
+            current_edge_prob = edgeProbabilityAfterTargetedAttack(current_nodes, current_edge_prob)
 
-        # update current_n
-        if current_n > 1:
-            current_n -= 1
+        if current_nodes > 1:
+            current_nodes -= 1
 
-    return relS
+    return relative_sizes
 
 
-def relSmallSCurve(n, p, attack=False, smoothing=False):
-    '''Sequence of the expected mean sizes of the small connected components of
-    an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
-    removing nodes sequentially, either uniformly at random or (adaptively) 
-    targeted by degree.
-
-    Results are from equations for percolation in the large-n limit.
+def small_components_mean_size(
+    num_nodes: int,
+    edge_prob: float,
+    attack: bool = False,
+    smooth_end: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Sequence of expected mean sizes of small connected components
+    in an Erdos-Renyi random graph under sequential node removal.
 
     Parameters
     ----------
-    n : list
-       Numbers of nodes in a graph.
-       
-    p : float
-       Edge probability in a graph.
-
+    num_nodes : int
+        Number of nodes in the graph.
+    edge_prob : float
+        Edge probability in the graph.
     attack : bool (default=False)
-       If attack is True, target nodes by degree instead of uniformly at 
-       random.
-       
-    reverse : bool (default=False)
-       If reverse is True, return expected sizes in reverse order.
-       
+        If True, target nodes by degree instead of uniformly at random.
     smooth_end : bool (default=False)
-       If smooth_end is True, add inverse of current network size as lower 
-       bound for expected relative size of the largest connected component.
+        If True, apply smoothing at the end of the sequence.
 
     Returns
     -------
-    rel_s : 1D numpy array
-       Sequence of the expected mean sizes of the small connected components
-       under sequential node removal.
-    '''
-    # get fraction of nodes "removed"
-    removed_fraction = np.arange(n) / n
+    Tuple[np.ndarray, np.ndarray]
+        Removed fraction and expected mean sizes of small components.
+    """
+    removed_fraction = np.arange(num_nodes) / num_nodes
+    mean_sizes = np.zeros(num_nodes)
+    current_nodes = num_nodes
+    current_edge_prob = edge_prob
 
-    # initialize S array
-    rel_s = np.zeros(n)
+    for i in range(num_nodes):
+        mean_degree = 2 * current_edge_prob * comb(current_nodes, 2) / current_nodes
+        largest_component_size = 1 + lambert_w_safe(
+            -mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8
+        ) / mean_degree
+        mean_sizes[i] = 1 / (1 - mean_degree + mean_degree * largest_component_size)
 
-    # initialize current_n and current_p
-    current_n = n
-    current_p = p # could probably delete this now since p doesn't change
+        if smooth_end:
+            mean_sizes[i] = max(mean_sizes[i], 1 / current_nodes)
 
-
-    for i in range(n):
-        # compute mean degree
-        c = 2 * current_p * comb(current_n, 2) / current_n
-        # compute value of S from percolation theory for infinite networks
-        S = 1 + myLambertW((-c * np.exp(-c)), k=0, tol=1e-8) / c
-        # compute size of mean small component size
-        rel_s[i] = 1 / (1 - c + c * S)
-
-        if smooth_end == True:
-            relS[i] = max([relS[i], 1 / new_n])
-
-        # update current_p
         if attack:
-            current_p = edgeProbabilityAfterTargetedAttack(current_n,current_p)
-        else:     
-            current_p = current_p
+            current_edge_prob = edgeProbabilityAfterTargetedAttack(current_nodes, current_edge_prob)
 
-        # update current_n
-        if current_n > 1:
-            current_n -= 1
+        if current_nodes > 1:
+            current_nodes -= 1
 
-    return removed_fraction, rel_s
+    return removed_fraction, mean_sizes

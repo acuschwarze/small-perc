@@ -1,19 +1,19 @@
 ###############################################################################
 #
-# Library of functions to compute performance measures.
+# Library of functions to compute graph performance measures.
 #
-# This library contains the following functions:
-#     averageDegree (previously "average_degree")
-#     getEfficiency (previously "compute_efficiency")
-#     meanShortestPathLength(previously "mean_shortest_path")
-#     meanCommunicability (previously "communicability")
-#     resistanceDistance
-#     getReachability
-#     sizeOfLCC
-#     relativeSizeOfLCC
-#     getEntropy
-#     averageComponentSize
-#     averageSmallComponentSize
+# Functions:
+#     averageDegree: Compute mean degree of a graph
+#     getEfficiency: Calculate graph efficiency (inverse path length average)
+#     meanShortestPathLength: Compute mean shortest path length
+#     meanCommunicability: Calculate natural connectivity via matrix exponential
+#     resistanceDistance: Compute resistance distance using Laplacian pseudo-inverse
+#     getReachability: Calculate fraction of connected node pairs
+#     sizeOfLCC: Get size of largest connected component
+#     relativeSizeOfLCC: Get relative size of largest connected component
+#     getEntropy: Calculate entropy of degree distribution
+#     averageComponentSize: Compute mean component size
+#     averageSmallComponentSize: Compute mean size of non-LCC components
 #
 ###############################################################################
 
@@ -21,118 +21,108 @@ import numpy as np
 import networkx as nx
 from scipy.special import comb
 from itertools import combinations
-#from data import *
 from utils import *
 
-def averageDegree(G):
-    '''Get average degree of a graph `G`.
+class PerformanceGraph(nx.Graph):
+
+    def __init__(self, incoming_graph_data=None, **attr):
+        super().__init__(incoming_graph_data, **attr)
+        self.performance_metrics = {}
+
+    def getAverageDegree(self, recompute : bool = False) -> float:
+        '''Get average degree of a graph.
+
+        Parameters
+        ----------
+        G : networkx.Graph
+            A graph.
+
+        Returns
+        -------
+        float
+            Mean degree of the graph.
+        '''
+        if recompute or "average_degree" not in self.performance_metrics.keys():
+            self.computeAverageDegree()
+
+        return self.performance_metrics["average_degree"]
+    
+    def computeAverageDegree(self):
+        average_degree = self.number_of_edges() * 2 / self.number_of_nodes()
+        self.performance_metrics["average_degree"]
+        return average_degree
+
+
+def getEfficiency(G: nx.Graph, lcc_only: bool = False) -> float:
+    '''Get efficiency of a graph.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    G : networkx.Graph
+        A graph.
+    lcc_only : bool, default=False
+        If True, compute efficiency only on the largest connected component.
 
     Returns
     -------
-    md : float
-       Mean degree of the graph G.
-    '''
-    md = G.number_of_edges() * 2 / G.number_of_nodes()
-
-    return md
-
-
-def getEfficiency(G, lcc_only=False):
-    '''Get efficiency of a graph `G`.
-    
-    ISSUE #1: Why do we set the efficiency for small graphs to 0 instead of 1?
-
-    Parameters
-    ----------
-    G : a networkX graph
-       A graph.
-    
-    lcc_only : bool (default=False)
-       If lcc_only is True, compute efficiency only on the largest connected
-       component of G.
-
-    Returns
-    -------
-    effi : float
-       Efficiency of the graph G.
+    float
+        Efficiency of the graph.
     '''
     if lcc_only:
         return getEfficiency(getLCC(G), lcc_only=False)
 
-    # get number of nodes
     n = G.number_of_nodes()
-
-    # set special case for small graphs (AS: is this necessary?)
     if n < 2:
         return 0
 
-    # get shortest path lengths
     lengths = dict(nx.all_pairs_shortest_path_length(G))
-
-    # count and sum pairwise efficiencies
+    
     sum_efficiencies = 0
-    for i,j in combinations(G.nodes(),2):
+    for i, j in combinations(G.nodes(), 2):
         if j in lengths[i].keys():
-            sum_efficiencies += 1/lengths[i][j]
+            sum_efficiencies += 1 / lengths[i][j]
 
-    # get mean of pairwise efficiencies
-    effi = sum_efficiencies / (n*(n-1))
-
-    return effi
+    return sum_efficiencies / (n * (n - 1))
 
 
-def meanShortestPathLength(G, lcc_only=True):
-    '''Get the mean-shortest-path length of a graph `G`.
+def meanShortestPathLength(G: nx.Graph, lcc_only: bool = True) -> float:
+    '''Get the mean shortest path length of a graph.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
-    
-    lcc_only : bool (default=True)
-       If lcc_only is True, compute the mean-shortest-path length only on the 
-       largest connected component of G.
+    G : networkx.Graph
+        A graph.
+    lcc_only : bool, default=True
+        If True, compute only on the largest connected component.
 
     Returns
     -------
-    mspl : float
-       Mean-shortest-path length of the graph G.
+    float
+        Mean shortest path length of the graph.
     '''
-
     if lcc_only:
-        mspl = nx.average_shortest_path_length(getLCC(G))
-        return mspl
-
+        return nx.average_shortest_path_length(getLCC(G))
     else:
         raise NotImplementedError(
             'No mean-shortest-path-length computation implemented for'
-            +' fragmented networks.')
+            ' fragmented networks.')
 
 
-def meanCommunicability(G, lcc_only=False):
-    '''Get the mean communicability (i.e., the natural connectivity) of a graph
-    `G`.
+def meanCommunicability(G: nx.Graph, lcc_only: bool = False) -> float:
+    '''Get the mean communicability (natural connectivity) of a graph.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
-    
-    lcc_only : bool (default=False)
-       If lcc_only is True, compute the mean communicability only on the 
-       largest connected component of G.
+    G : networkx.Graph
+        A graph.
+    lcc_only : bool, default=False
+        If True, compute only on the largest connected component.
 
     Returns
     -------
-    comm : float
-       Mean communicability of the graph G.
+    float
+        Mean communicability of the graph.
     '''
-    
     if lcc_only:
         return meanCommunicability(getLCC(G))
 
@@ -140,194 +130,164 @@ def meanCommunicability(G, lcc_only=False):
     if n < 2:
         return 0
 
-    # get adjacency matrix
-    A = nx.to_numpy_array(G)
-    # get matrix exponential of the adjacency matrix
-    expA = np.linalg.expm(A)
-    # get communicability
-    comm = np.log(np.trace(expA)) - np.log(n)
-
-    return comm
+    adjacency = nx.to_numpy_array(G)
+    exp_adjacency = np.linalg.expm(adjacency)
+    return np.log(np.trace(exp_adjacency)) - np.log(n)
 
 
-def resistanceDistance(G,lcc_only=False):
-    '''Get the resistance distance of a graph `G`.
+def resistanceDistance(G: nx.Graph, lcc_only: bool = False) -> float:
+    '''Get the resistance distance of a graph.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
-
-    lcc_only : bool (default=False)
-       If lcc_only is True, compute the resistance distance only on the
-       largest connected component of G.
+    G : networkx.Graph
+        A graph.
+    lcc_only : bool, default=False
+        If True, compute only on the largest connected component.
 
     Returns
     -------
-    rd : float
-       Resistance distance of the graph G.
+    float
+        Resistance distance of the graph.
     '''
-
     if lcc_only:
         return resistanceDistance(getLCC(G))
 
-    # get number of nodes
     n = G.number_of_nodes()
-    
-    # set special case for small networks
     if n < 1:
         return 0
 
-    # get pseudo-inverse of the Laplacian matrix
-    L = LaplacianMatrix(G)
-    L_plus = np.linalg.pinv(L)
-
-    # get resistance distance
-    rd =  n * np.trace(L_plus)
-
-    return rd
+    laplacian = LaplacianMatrix(G)
+    laplacian_pinv = np.linalg.pinv(laplacian)
+    return n * np.trace(laplacian_pinv)
 
 
-def getReachability(G):
-    '''Get the reachability of a graph `G`.
+def getReachability(G: nx.Graph) -> float:
+    '''Get the reachability of a graph.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    G : networkx.Graph
+        A graph.
 
     Returns
     -------
-    r : float
-       Reachability of the graph G.
+    float
+        Reachability (fraction of connected node pairs).
     '''
-    # get number of nodes
     n = G.number_of_nodes()
-
-    # count number of connected node pairs
-    r = 0
-    if n > 0:
-        for i, j in combinations(G.nodes(), 2):
-            if nx.has_path(G, i, j):
-                r += 1
-        # divide by number of node pairs
-        r = r / (2*comb(n, 2))
-
-    return r
-    
-
-def sizeOfLCC(G):
-    '''Get the size of the largest connected component of a graph `G`.
-
-    Parameters
-    ----------
-    G : a networkX graph
-       A graph.
-
-    Returns
-    -------
-    lcc_size : float
-       Size of the largest connected component of the graph G.
-    '''
-    if (G.number_of_nodes() == 0):
+    if n == 0:
         return 0
-    lcc_size = len(max(nx.connected_components(G), key=len))
-
-    return lcc_size
-
-
-def relativeSizeOfLCC(G):
-    '''Get the size of the relative largest connected component of a graph 
-    `G`.
-
-    Parameters
-    ----------
-    G : a networkX graph
-       A graph.
-
-    Returns
-    -------
-    rel_size : float
-       Relative size of the largest connected component of the graph G.
-    '''
-    # get number of nodes
-    n = G.number_of_nodes()
-    # get size of the LCC
-    rel_size = sizeOfLCC(G)
-    if n > 0:
-        # divide LCC size by number of nodes if G is not empty
-        rel_size = rel_size / n
-
-    return rel_size
+        
+    connected_pairs = 0
+    for i, j in combinations(G.nodes(), 2):
+        if nx.has_path(G, i, j):
+            connected_pairs += 1
     
+    return connected_pairs / (2 * comb(n, 2))
 
-def getEntropy(G):
-    '''Get the entropy (of the degree distribution) of a graph `G`.
+
+def sizeOfLCC(G: nx.Graph) -> int:
+    '''Get the size of the largest connected component.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    G : networkx.Graph
+        A graph.
 
     Returns
     -------
-    H : float
-       Entropy (of the degree distribution) of the graph G.
+    int
+        Size of the largest connected component.
+    '''
+    if G.number_of_nodes() == 0:
+        return 0
+    return len(max(nx.connected_components(G), key=len))
+
+
+def relativeSizeOfLCC(G: nx.Graph) -> float:
+    '''Get the relative size of the largest connected component.
+
+    Parameters
+    ----------
+    G : networkx.Graph
+        A graph.
+
+    Returns
+    -------
+    float
+        Relative size of the largest connected component.
+    '''
+    n = G.number_of_nodes()
+    if n == 0:
+        return 0
+    return sizeOfLCC(G) / n
+
+
+def getEntropy(G: nx.Graph) -> float:
+    '''Get the entropy of the degree distribution.
+
+    Parameters
+    ----------
+    G : networkx.Graph
+        A graph.
+
+    Returns
+    -------
+    float
+        Entropy of the degree distribution.
     '''
     if nx.number_of_nodes(G) == 0:
         return 0
+        
     max_degree = sorted(G.degree, key=lambda x: x[1], reverse=True)[0][1]
-    H = 0
+    entropy = 0
+    
     for k in range(max_degree):
         pk = degreeFraction(k, G)
-    if pk > 0:
-        H += -pk * np.log(pk)
-
-    return H
+        if pk > 0:
+            entropy += -pk * np.log(pk)
     
+    return entropy
 
-def averageComponentSize(G):
-    '''Get the average (i.e., mean) component size of a graph `G`.
+
+def averageComponentSize(G: nx.Graph) -> float:
+    '''Get the average component size of a graph.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    G : networkx.Graph
+        A graph.
 
     Returns
     -------
-    acs : float
-       Average (i.e., mean) component size of a graph `G`.
+    float
+        Average component size.
     '''
-
-    n = nx.number_of_nodes(G)
-    n_c = nx.number_connected_components(G)
-    if n_c == 0:
+    n_components = nx.number_connected_components(G)
+    if n_components == 0:
         return 0
-    acs = n / n_c
-    return acs
+    return nx.number_of_nodes(G) / n_components
 
 
-def averageSmallComponentSize(G):
-    '''Get the average (i.e., mean) component size of a graph `G`.
+def averageSmallComponentSize(G: nx.Graph) -> float:
+    '''Get the average size of non-LCC components.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    G : networkx.Graph
+        A graph.
 
     Returns
     -------
-    ascs : float
-       Average (i.e., mean) component size of a graph `G`.
+    float
+        Average size of components excluding the largest.
     '''
     n = nx.number_of_nodes(G)
     lcc_size = sizeOfLCC(G)
-    n_no_lcc = n - lcc_size
-    n_c = nx.number_connected_components(G) - 1
-    if n_c == 0:
+    nodes_not_in_lcc = n - lcc_size
+    n_small_components = nx.number_connected_components(G) - 1
+    
+    if n_small_components == 0:
         return 0
-    ascs = n_no_lcc / n_c
-
-    return ascs
-
+    return nodes_not_in_lcc / n_small_components

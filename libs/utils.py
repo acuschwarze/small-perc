@@ -1,294 +1,228 @@
 ###############################################################################
 #
-# Library of helper functions for the robustness library.
+# Network Robustness Analysis Library
 #
-# This library contains the following functions:
-#    degreeProbability (previously "degree_distr")
-#    expectedNodeNumber
-#    expectedMaxDegree (previously "maxdegree")
-#    edgeProbabilityAfterTargetedAttack
-#    sampleNetwork (previously "construct_a_network")
-#    LaplacianMatrix (previously "laplacian_matrix")
-#    getLCC
+# Functions:
+#    string_to_array - Convert string representation to numpy array
+#    degree_fraction - Calculate fraction of nodes with specific degree
+#    expected_node_count - Expected nodes with degree k in Erdos-Renyi graph
+#    expected_max_degree - Expected maximum degree in Erdos-Renyi graph
+#    edge_probability_after_attack - Edge probability after targeted removal
+#    sample_network - Generate random network (Erdos-Renyi or Barabasi-Albert)
+#    laplacian_matrix - Compute graph Laplacian matrix
+#    get_largest_component - Extract largest connected component
+#    load_percolation_curve - Load precalculated percolation data
 #
 ###############################################################################
 
 import os
 import networkx as nx
 import numpy as np
-from scipy.stats import binom as binomialDistribution
+from scipy.stats import binom as binomial_dist
 from scipy.special import binom
-import math
-
-def string2array(s, sep=" "):
-    list_of_nums = [float(x) for x in s.strip('[] ').split(sep) if x != '']
-    return np.array(list_of_nums)
+from typing import Union, List
 
 
-def degreeFraction(k, G):
-    '''Return the value of the fraction of nodes in the graph G that have 
-    degree k.
+def string_to_array(text: str, separator: str = " ") -> np.ndarray:
+    """Convert string representation to numpy array."""
+    values = [float(x) for x in text.strip('[] ').split(separator) if x != '']
+    return np.array(values)
+
+
+def degree_fraction(degree: int, graph: nx.Graph) -> float:
+    """Return fraction of nodes with specified degree.
     
     Parameters
     ----------
-    k : int
-       A node degree.
-    
-    G : a networkX graph
-       graph in which fraction of nodes with degree k is evaluated.
+    degree : int
+       Target node degree
+    graph : nx.Graph
+       Graph to analyze
        
     Returns
     -------
-    fraction (float)
-       The value of the fraction of nodes in G that have degree k.
-    '''
-
-    # get the graph's degree sequence
-    degree_sequence = [d for n, d in G.degree()]
-
-    # count nodes with of degree k
-    degree_count = degree_sequence.count(k)
-
-    # get fraction of nodes that have degree k
-    fraction = degree_count / G.number_of_nodes()
-
-    return fraction
+    float
+       Fraction of nodes with specified degree
+    """
+    degree_sequence = [d for _, d in graph.degree()] # type: ignore
+    count = degree_sequence.count(degree)
+    return count / graph.number_of_nodes()
     
 
-def expectedNodeNumber(n, p, k):
-    '''Expected value of the number of nodes with degree k in an Erdos--Renyi
-    graph with n nodes and edge probability p.
+def expected_node_count(nodes: int, edge_prob: float, degree: int) -> float:
+    """Expected number of nodes with degree k in Erdos-Renyi graph.
 
     Parameters
     ----------
-    n : int
-       Number of nodes.
-    
-    p : float
-       Edge probability in Erdos Renyi graph.
-       
-    k : int
-       A node degree.
+    nodes : int
+       Number of nodes
+    edge_prob : float
+       Edge probability
+    degree : int
+       Target degree
        
     Returns
     -------
-    expected_number (float)
-       The expected number of nodes with degree k (does not need to be an
-       integer).
-    '''
-    degree_probability = binomialDistribution(n, p).pmf(k)
-    expected_number = n * degree_probability
-    
-    return expected_number
+    float
+       Expected number of nodes with specified degree
+    """
+    prob = binomial_dist(nodes, edge_prob).pmf(degree) # type: ignore
+    return nodes * prob
 
-#    correct one
-def expectedMaxDegree(n, p):
-    '''Calculate expected value of the maximum degree in an Erdos--Renyi graph
-    with n nodes and edge probability p.
+
+def expected_max_degree(nodes: int, edge_prob: float) -> float:
+    """Calculate expected maximum degree in Erdos-Renyi graph.
 
     Parameters
     ----------
-    n : int
-       Number of nodes.
-
-    p : float
-       Edge probability in Erdos Renyi graph.
+    nodes : int
+       Number of nodes
+    edge_prob : float
+       Edge probability
 
     Returns
     -------
-    mean_k_max (float)
-       The expected value of the maximum degree.
-    '''
-    if n in [0, 1] or p == 0:
+    float
+       Expected maximum degree
+    """
+    if nodes in [0, 1] or edge_prob == 0:
         return 0
 
-    if n == 2:
-        return p
+    if nodes == 2:
+        return edge_prob
         
-    k_max = 0
-    probs_k_or_less = np.array([binomialDistribution.cdf(k, n - 1, p) for k in range(n)])
-    probs_at_least_k = np.concatenate([[1], np.array(1 - probs_k_or_less[:-1])])
-    probs_at_least_k = np.cumsum([binomialDistribution.pmf(k, n - 1, p) for k in range(n)][::-1])[::-1]
-    probs_at_least_one_node = 1 - (1 - probs_at_least_k) ** (n - k_max)
+    prob_at_least_k = np.cumsum([binomial_dist.pmf(k, nodes - 1, edge_prob) 
+                                  for k in range(nodes)][::-1])[::-1]
+    prob_at_least_one = 1 - (1 - prob_at_least_k) ** nodes
+    prob_at_least_one = np.concatenate([prob_at_least_one, [0]])
+    prob_max = prob_at_least_one[:-1] - prob_at_least_one[1:]
+    mean_max = np.sum([prob_max[k] * k for k in range(nodes)])
 
-    # every node has at least degree zero
-    #probs_at_least_one_node[0] = 1
-    # at least one node has degree 1 if the graph is not empty
-    #probs_at_least_one_node[1] = 1 - binomialDistribution.pmf(0, n * (n - 1) / 2, p)
-
-    probs_at_least_one_node = np.concatenate([probs_at_least_one_node, [0]])
-    probs_kmax = probs_at_least_one_node[:-1] - probs_at_least_one_node[1:]
-    mean_k_max = np.sum([probs_kmax[k] * k for k in range(n)])
+    return mean_max
 
 
-    return mean_k_max
-
-
-
-def edgeProbabilityAfterTargetedAttack(n, p):
-    '''Calculate edge probability in an Erdos--Renyi network with original size
-    `n` and original edge probability `p` after removing the node with the
-    highest degree.
+def edge_probability_after_attack(nodes: int, edge_prob: float) -> float:
+    """Edge probability after removing highest-degree node.
 
     Parameters
     ----------
-    n : int
-       Number of nodes.
-    
-    p : float
-       Edge probability in Erdos Renyi graph.
+    nodes : int
+       Original number of nodes
+    edge_prob : float
+       Original edge probability
        
     Returns
     -------
-    new_p (float)
-       Updated edge probability.
-    '''
-    if n <=2:
-        new_p = 0
+    float
+       Updated edge probability
+    """
+    if nodes <= 2:
+        return 0
 
-    else:
-        emd = expectedMaxDegree(n, p)
-
-        # new number of edges = old number of number of edges - emd
-        # new p = new number of edges/ n-1 choose 2
-        # old_number_of_number_of_edges = p*binom(n,2)
-        # new_number_of_edges = old_number_of_number_of_edges - emd
-        # new_p = new_number_of_edges/ binom(n-1,2)
-
-        new_p = p * n / (n - 2) - 2 * emd / ((n - 1) * (n - 2))
-        new_p = max([new_p, 0])
-
-    return new_p
+    max_deg = expected_max_degree(nodes, edge_prob)
+    new_prob = edge_prob * nodes / (nodes - 2) - 2 * max_deg / ((nodes - 1) * (nodes - 2))
+    return max(new_prob, 0)
 
 
-def sampleNetwork(n, p, graph_type='ER'):
-    '''Sample a network with `n` nodes and `m` edges per node from the Erdos--
-    Renyi model or the Barabasi--Albert model.
+def sample_network(nodes: int, prob: float, graph_type: str = 'ER') -> nx.Graph:
+    """Generate random network.
 
-    ISSUE #1: NetworkX's BA algorithm is flaky with the number of edges!
-    
     Parameters
     ----------
-    n : int
-       Number of nodes.
-    
-    p : float
-       Edge probability.
-       
+    nodes : int
+       Number of nodes
+    prob : float
+       Edge probability (ER) or attachment parameter (BA)
     graph_type : str
-       If graph_type=='ER', return an Erdos--Renyi graph; if graph_type=='BA',
-       return a Barabasi--Albert graph.
+       'ER' for Erdos-Renyi, 'SF' for scale-free Barabasi-Albert
        
     Returns
     -------
-    g : a networkX graph
-       An undirected graph with n nodes and m*n(?) edges.
-    '''
-
+    nx.Graph
+       Generated network
+    """
     if graph_type == 'ER':
-        # generate an Erdos--Renyi random graph
-        g = nx.erdos_renyi_graph(n, p, seed=None, directed=False)
-        return g
-
+        return nx.erdos_renyi_graph(nodes, prob, directed=False)
     elif graph_type == 'SF':
-        # generate a scale-free network using the Barabasi--Albert model
-        # since no initial graph is given, the algorithm starts with a 
-        # star graph with m+1 nodes
-        g = nx.barabasi_albert_graph(n, int(np.round(p*(n-1))))
-        return g
+        m = int(np.round(prob * (nodes - 1)))
+        return nx.barabasi_albert_graph(nodes, m)
     else:
         raise ValueError("Invalid graph_type")
 
 
-def LaplacianMatrix(G):
-    '''Construct the combinatorial Laplacian matrix for a graph `G`.
+def laplacian_matrix(graph: nx.Graph) -> np.ndarray:
+    """Compute combinatorial Laplacian matrix.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    graph : nx.Graph
+       Input graph
 
     Returns
     -------
-    L : 2D numpy array
-       The Laplacian matrix of the graph G.
-    '''
-    L = nx.laplacian_matrix(G).toarray()
-
-    return L
+    np.ndarray
+       Laplacian matrix
+    """
+    return nx.laplacian_matrix(graph).toarray()
 
 
-def getLCC(G):
-    '''Get the largest connected component of a graph `G`.
+def get_largest_component(graph: nx.Graph) -> nx.Graph:
+    """Extract largest connected component.
 
     Parameters
     ----------
-    G : a networkX graph
-       A graph.
+    graph : nx.Graph
+       Input graph
 
     Returns
     -------
-    g : a networkX graph
-       The largest connected component of a graph G.
-    '''
-
-    node_sets = sorted(nx.connected_components(G), key=len)
-    lcc_set = node_sets[-1]
-    g = G.subgraph(lcc_set).copy()
-
-    return g
-
-
-def relSCurve_precalculated(n, p, targeted_removal=False, simulated=False, finite=True):
+    nx.Graph
+       Largest connected component
     """
-    Retrieve the finite percolation data from precalculated files for network 
-    sizes 1 to 100 and probabilities between 0.01 and 1.00 (in steps of 0.01).
+    components = sorted(nx.connected_components(graph), key=len)
+    largest = components[-1]
+    return graph.subgraph(largest).copy()
 
-    If `simulated` is `False`, this function retrieves k-th row of data from
-    the 2D numpy array stored in the file 
-    "data/synthetic_data/relSCurve_attack{targeted_removal}_n{n}.npy"
-    where k is the closest integer to p/0.01.
 
-    If `simulated` is `True`, this function retrieves k-th slice of data from
-    the 3D numpy array stored in the file 
-    "data/synthetic_data/simRelSCurve_attack{targeted_removal}_n{n}.npy"
-    where k is the closest integer to p/0.01.
+def load_percolation_curve(nodes: int, prob: float, targeted: bool = False, 
+                           simulated: bool = False, finite: bool = True) -> np.ndarray:
+    """Load precalculated percolation data.
 
-    Parameters:
-    - n (int): The number of nodes.
-    - p (float): The probability value.
-    - targeted_removal (bool, optional): Whether the removal is targeted. 
-        Default is False.
-    - simulated (bool, optional): Whether to retrieve simulated data. 
-        Default is False.
+    Retrieves percolation data for networks with 1-100 nodes and 
+    probabilities 0.01-1.00 (in 0.01 steps).
 
-    Returns:
-    - numpy.ndarray: 1D of length n+1 or 2D array of shape (n+1,100)
+    Parameters
+    ----------
+    nodes : int
+       Number of nodes
+    prob : float
+       Probability value
+    targeted : bool
+       Whether removal is targeted
+    simulated : bool
+       Whether to retrieve simulated data
+    finite : bool
+       Whether to use finite percolation data
+
+    Returns
+    -------
+    np.ndarray
+       1D array of length nodes+1 or 2D array of shape (nodes+1, 100)
     """
-
-    # Define the path to the data file
     if simulated:
-        fstring = "simRelSCurve"
+        prefix = "simRelSCurve"
     elif finite:
-        fstring = "relSCurve"
+        prefix = "relSCurve"
     else:
-        fstring = "infRelSCurve"
+        prefix = "infRelSCurve"
 
-    file_name = "{}_attack{}_n{}.npy".format(fstring, targeted_removal, n)
+    filename = f"{prefix}_attack{targeted}_n{nodes}.npy"
+    filepath = os.path.join("data", "synthetic_data", filename)
+    
+    data = np.load(filepath)
+    index = int(round(prob / 0.01)) - 1
 
-      
-    file_path = os.path.join("data", "synthetic_data", file_name)
+    if index < 0 or index >= data.shape[0]:
+        raise ValueError(f"p={prob} is out of bounds for array with shape {data.shape}")
 
-    # Load the numpy array from the file
-    data_array = np.load(file_path)
-
-    # Calculate the row index k
-    k = int(round(p / 0.01))-1
-
-    # Retrieve the k-th row from the data array
-    if k < 0 or k >= data_array.shape[0]:
-        shape = data_array.shape
-        verr = "p={} is out of bounds for array with shape {}".format(p,shape)
-        raise ValueError(verr)
-
-    return data_array[k]
+    return data[index]

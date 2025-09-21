@@ -1,537 +1,461 @@
-###############################################################################
-#
-# Library of functions to calculate theoretical percolation results for finite
-# networks.
-#
-# This library contains the following functions:
-#     raw_f
-#     calculate_f
-#     calculate_g (previously "g")
-#     raw_P
-#     calculate_P
-#     calcA
-#     calcB
-#     calcC
-#     abc
-#     c_graph
-#     normalized
-#     normalized_table
-#     raw_S
-#     calculate_S
-#     SCurve (previously "big_S")
-#     relSCurve (previously "big_relS")
-#     SPoints (previously "S_calc_data")
-#
-# This library previously contained:
-#     S_attack -> now merged into SCurve with attack=True
-#
-###############################################################################
+"""
+Library for calculating theoretical percolation results for finite networks.
+
+Functions:
+    execute_subprocess: Execute an external program and return its output
+    compute_connectivity_probability_raw: Calculate probability that a subgraph is connected (no memoization)
+    compute_connectivity_probability: Calculate probability that a subgraph is connected (with memoization)
+    compute_isolation_probability: Calculate probability that nodes have no external neighbors
+    compute_largest_component_probability_raw: Calculate probability of largest component size (no memoization)
+    compute_largest_component_probability: Calculate probability of largest component size (with memoization)
+    compute_largest_component_probability_external: Calculate probability using external executable
+    compute_expected_largest_component_size_raw: Calculate expected largest component size (no memoization)
+    compute_expected_largest_component_size: Calculate expected largest component size (with memoization)
+    compute_percolation_curve: Calculate expected largest component sizes under sequential node removal
+    compute_relative_percolation_curve: Calculate relative largest component sizes under sequential node removal
+    compute_percolation_points: Calculate expected largest component sizes for specific network sizes
+    update_edge_probability_after_attack: Update edge probability after targeted node removal
+"""
 
 import numpy as np
 import scipy.special
-from scipy.special import comb, factorial
-from libs.utils import *
-import matplotlib.pyplot as plt
-import math, os
-#import cppimport.import_hook
-#import recursion
-
-#from glob import glob
-#from setuptools import setup
-#from pybind11.setup_helpers import Pybind11Extension
-
+from scipy.special import comb
+from typing import Dict, List, Tuple, Optional, Union
 import subprocess
+import math
 
-def execute_executable(executable_path):
-    #print('EE path', executable_path)
-    try:
-        # Run the executable and capture its output
-        result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
+
+def execute_subprocess(executable_path: List[str]) -> Optional[str]:
+    """Execute an external program and return its output.
+    
+    Parameters
+    ----------
+    executable_path : List[str]
+        Path to executable and its arguments
         
-        # Extract the output
-        output = result.stdout.strip()
-        return output
-    
-    except subprocess.CalledProcessError as e:
-        # Handle if the executable returns a non-zero exit code
-        print("Error: Executable returned non-zero exit code.")
-        return None
-    except FileNotFoundError:
-        # Handle if the executable file is not found
-        print("Error: Executable file not found.")
+    Returns
+    -------
+    Optional[str]
+        Output from the executable or None if error
+    """
+    try:
+        result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
-def raw_f(p, i, n):
-    '''Compute f (i.e., the probability that a subgraph with `i` nodes of an 
-    Erdos--Renyi random graph with `n` nodes and edge probability `p` is 
-    connected.
 
-    Parameters
-    ----------
-    p : float
-       Edge probability in a parent graph.
-
-    i : int
-       Number of nodes in a subgraph.
-       
-    n : int
-       Number of nodes in a parent graph.
-
-    Returns
-    -------
-    p_connect : float
-       The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with `n` nodes and edge probability `p` is connected.
-    '''
-
-    if i == 1:
-        p_connect = 1
-
-    else:
-        sum_f = 0
-        for i_n in range(1, i, 1):
-            sum_f += (raw_f(p, i_n, n)
-                * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
-        p_connect = 1 - sum_f
-
-    return p_connect
-
-
-def calculate_f(p, i, n, fdict={}): # using dictionary to calculate f values
-    '''Load or compute f (i.e., the probability that a subgraph with `i` nodes
-    of an Erdos--Renyi random graph with n nodes and edge probability p is 
-    connected.
-
-    Parameters
-    ----------
-    p : float
-       Edge probability in a parent graph.
-
-    i : int
-       Number of nodes in a subgraph.
-       
-    n : int
-       Number of nodes in a parent graph.
-       
-    fdict (default={})
-       Dictionary of precomputed values of f.
-
-    Returns
-    -------
-    f : float
-       The probability that a subgraph with `i` nodes of an Erdos--Renyi
-       random graph with `n` nodes and edge probability `p` is connected.
-    '''
-    # look for precomputed data
-    if p in fdict:
-        if n in fdict[p]:
-            if i in fdict[p][n]:
-                return fdict[p][n][i]
-
-    sum_f = 0
-    for i_n in range(1, i, 1):
-        sum_f += (calculate_f(p, i_n, n, fdict=fdict)
-            * comb(i - 1, i_n - 1) * (1 - p) ** ((i_n) * (i - i_n)))
-    f = 1 - sum_f
-
-    return f
-
-
-def calculate_g(p, i, n):
-    '''Compute g (i.e., the probability a selected set of `i` nodes 
-    Erdos--Renyi random graph with `n` nodes and edge probability `p` has no
-    neighbors in the remaining n-i nodes.
-
-    Parameters
-    ----------
-    p : float
-       Edge probability in a parent graph.
-
-    i : int
-       Number of nodes in a subgraph.
-       
-    n : int
-       Number of nodes in a parent graph.
-
-    Returns
-    -------
-    g : float
-       The the probability a selected set of `i` nodes Erdos--Renyi random
-       graph with `n` nodes and edge probability `p` has no neighbors in the 
-       remaining n-i nodes.
-    '''
-    g = (1 - p) ** (i * (n - i))
-
-    return g
- 
-
-def raw_P(p, i, n):
-    '''Compute P (i.e., the probability that an Erdos--Renyi random graph with 
-    `n` nodes and edge probability `p` has a largest connected component of 
-    size `i`.
-
-    ISSUE #1: Did we decide on the range of j values?
-
-    Parameters
-    ----------
-    p : float
-       Edge probability in a parent graph.
-
-    i : int
-       Number of nodes in a subgraph.
-       
-    n : int
-       Number of nodes in a parent graph.
-
-    Returns
-    -------
-    P_tot : float
-       The probability that an Erdos--Renyi random graph with `n` nodes and 
-       edge probability `p` has a largest connected component of size `i`.
-    '''
-
-    if i == 1 and n == 1:
-        P_tot = 1
-    elif i == 1 and n != 1:
-        P_tot = (1 - p) ** comb(n, 2)
-
-    else:
-        sum_P = 0
-        for j in range(0, i + 1, 1):
-            if j==i:
-                sum_P += .5*raw_P(p, j, n - i)
-            else:
-                sum_P += raw_P(p, j, n - i)
-        P_tot = comb(n, i) * raw_f(p, i, n) * calculate_g(p, i, n) * sum_P
-
-    return P_tot
-
-
-def calculate_P(p, i, n, fdict={}, pdict={}): # find P with dictionary
-    '''Load or compute P (i.e., the probability that an Erdos--Renyi random 
-    graph with `n` nodes and edge probability `p` has a largest connected 
-    component of size `i`.
-
-    Parameters
-    ----------
-    p : float
-       Edge probability in a parent graph.
-
-    i : int
-       Number of nodes in a subgraph.
-       
-    n : int
-       Number of nodes in a parent graph.
-
-    fdict (default={})
-       Dictionary of precomputed values of f.
-       
-    pdict (default={})
-       Dictionary of precomputed values of P.
-
-    Returns
-    -------
-    P_tot : float
-       The probability that an Erdos--Renyi random graph with `n` nodes and
-       edge probability `p` has a largest connected component of size `i`.
-    '''
-    if p in pdict:
-        if n in pdict[p]:
-            if i in pdict[p][n]:
-                return pdict[p][n][i]
-
-    if i == 1 and n == 1:
-        P_tot = 1
-    elif i == 1 and n != 1:
-        P_tot = (1 - p) ** comb(n, 2)
-
-    else:
-        sum_P = 0
-
-        for j in range(1, i + 1, 1):
-            if j==i:
-                sum_P += .5 * calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
-            else:
-                sum_P += calculate_P(p, j, n - i, fdict=fdict, pdict=pdict)
-
-        P_tot = (scipy.special.comb(n,i)*calculate_f(p, i, n, fdict=fdict)
-             * calculate_g(p, i, n) * sum_P) # * factor of ceiling(n/2)??
-
-    return P_tot
-
-
-
-def alice_helper(p,i,n,k,fdict={},pdict={}):
-    # (n - k*i choose i) * f * g(p,i,n-k*i)
-    return scipy.special.comb((n-(k-1)*i),i)*calculate_f(p, i, n, fdict=fdict)* calculate_g(p, i, (n-(k-1)*i))
-
-def alice(p,i,n,fdict={},pdict={}):
-    if i == 1 and n == 1:
-        P_tot = 1
-    elif i == 1 and n != 1:
-        P_tot = (1 - p) ** comb(n, 2)
-
-    else:
-        P_tot = 0
-        for k in range(1,n//i + 1): # each exact number of lcc's to calculate P for
-
-            # find (n choose i)* f * g *(n-i choose i) * f * g etc...
-            product = 1
-            for k_2 in range(1,k+1):
-                product *= alice_helper(p,i,n,k_2,fdict=fdict,pdict=pdict)
-
-            # find P(lcc in other n-k*i nodes < i)
-            sum_less = 0
-            for j in range(1, i, 1):
-                sum_less += alice(p, j, n-k*i, fdict=fdict, pdict=pdict)
-
-            P_tot += 1/math.factorial(k) * product * sum_less
-            #scipy.special.comb(scipy.special.comb(n, i), k)
-    return P_tot
-
-
-def raw_S(p, n):
-    '''Compute the expected size of the largest connected component of
-    an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
-    equations for percolation in finite networks.
-
-    Parameters
-    ----------
-    p : float
-       Edge probability in a graph.
-
-    n : int
-       Number of nodes in a graph.
-
-    Returns
-    -------
-    S : float
-       Expected size of the largest connected component of an Erdos--Renyi
-       random graph with `n` nodes and edge probability `p`.
-    '''
-    S = 0
-    for k in range(1, n + 1):
-        S += raw_P(p, k, n) * k
-
-    return S
-
-def calculate_P_mult(p, i, n, executable_path="p-recursion.exe"):
-
-    # Path to the executable
-    # pwd = os. getcwd()
-    #executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
-
-    # Execute the executable and capture its output
-    output = float(execute_executable([executable_path, str(p), str(i), str(n)]))
-    #print("EEO output pmult", output)
-    #output = float(output)
-
-    # return
-    return output
-
-
-def new_prob_attack(n,p,executable_path =r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"):
+def compute_connectivity_probability_raw(edge_prob: float, subgraph_size: int, 
+                                         network_size: int) -> float:
+    """Calculate probability that a subgraph is connected (without memoization).
     
-    # Path to the executable
-    # pwd = os. getcwd()
-    #executable_path = "p-recursion.exe" # {} {} {}".format(p, i, n)
-
-    # Execute the executable and capture its output
-    # print(os. getcwd())
-    output = float(execute_executable([executable_path, str(n), str(p)]))
-    print("EEO output attack", output)
-    #output = float(output)
-
-    # return
-    return output
-
-
-def calculate_S(p, n, fdict={}, pdict={},lcc_method = "pmult", executable_path='p-recursion.exe'):
-    '''Load or compute the expected size of the largest connected component of
-    an Erdos--Renyi random graph with `n` nodes and edge probability `p` using
-    equations for percolation in finite networks.
-
     Parameters
     ----------
-    p : float
-       Edge probability in a graph.
-
-    n : int
-       Number of nodes in a graph.
-
-    fdict (default={})
-       Dictionary of precomputed values of f.
-
-    pdict (default={})
-       Dictionary of precomputed values of P.
-
+    edge_prob : float
+        Edge probability in parent graph
+    subgraph_size : int
+        Number of nodes in subgraph
+    network_size : int
+        Number of nodes in parent graph
+        
     Returns
     -------
-    S : float
-       Expected size of the largest connected component of an Erdos--Renyi
-       random graph with `n` nodes and edge probability `p`.
-    '''
-    if lcc_method == "alice":
-        S=0
-        for m in range(1,n+1):
-            S+=m*alice(p,m,n,fdict=pdict,pdict=pdict)
-        return S
-
-    elif lcc_method == "pmult":
-        S=0
-        for m in range(1,n+1):
-            S+=m*calculate_P_mult(p,m,n, executable_path=executable_path)
-        return S
-
-
-def SCurve(p, n, attack=False, reverse=False, fdict={}, pdict={}, lcc_method_Scurve="pmult", executable_path='p-recursion.exe', executable2 = r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"):
-    '''Sequence of the expected sizes of the largest connected component of
-    an Erdos--Renyi random graph with `n` nodes and edge probability `p` when
-    removing nodes sequentially, either uniformly at random or (adaptively) 
-    targeted by degree.
+    float
+        Probability that the subgraph is connected
+    """
+    if subgraph_size == 1:
+        return 1.0
     
-    Results are from equations for percolation in finite networks.
+    total = 0.0
+    for k in range(1, subgraph_size):
+        total += (compute_connectivity_probability_raw(edge_prob, k, network_size) * 
+                 comb(subgraph_size - 1, k - 1) * 
+                 (1 - edge_prob) ** (k * (subgraph_size - k)))
+    
+    return 1 - total # type: ignore
 
-    ISSUE #1: Does this work properly for more than one element in n?
 
+def compute_connectivity_probability(edge_prob: float, subgraph_size: int, 
+                                    network_size: int, 
+                                    cache: Dict = {}) -> float:
+    """Calculate probability that a subgraph is connected (with memoization).
+    
     Parameters
     ----------
-    p : float
-       Edge probability in a graph.
-
-    n : list
-       Numbers of nodes in a graph.
-
-    attack : bool (default=False)
-       If attack is True, target nodes by degree instead of uniformly at 
-       random.
-       
-    reverse : bool (default=False)
-       If reverse is True, return expected sizes in reverse order.
-
-    fdict (default={})
-       Dictionary of precomputed values of f.
-
-    pdict (default={})
-       Dictionary of precomputed values of P.
-
+    edge_prob : float
+        Edge probability in parent graph
+    subgraph_size : int
+        Number of nodes in subgraph
+    network_size : int
+        Number of nodes in parent graph
+    cache : Dict
+        Dictionary for caching computed values
+        
     Returns
     -------
-    S : 1D numpy array
-       Sequence of the expected sizes of the largest connected component under
-       sequential node removal.
-    '''
+    float
+        Probability that the subgraph is connected
+    """
+    if edge_prob in cache:
+        if network_size in cache[edge_prob]:
+            if subgraph_size in cache[edge_prob][network_size]:
+                return cache[edge_prob][network_size][subgraph_size]
     
-    # initialize array (assume that n has only one entry for now)
-    S = np.zeros(n)
+    if subgraph_size == 1:
+        return 1.0
+    
+    total = 0.0
+    for k in range(1, subgraph_size):
+        total += (compute_connectivity_probability(edge_prob, k, network_size, cache) * 
+                 comb(subgraph_size - 1, k - 1) * 
+                 (1 - edge_prob) ** (k * (subgraph_size - k)))
+    
+    return 1 - total # type: ignore
 
-    current_p = p
-    for i in range(n-1, -1, -1):
-        # calculate S for each value <= n
-        S[i] = calculate_S(current_p, i+1, fdict=fdict, pdict=pdict, lcc_method=lcc_method_Scurve, executable_path=executable_path)
-        #S[i] = raw_S(current_p,i+1)
 
-        if attack:
-            # update p only if nodes are removed by degree
-            print("run attack")
-            current_p = edgeProbabilityAfterTargetedAttack(i+1, current_p) # old code # add plus 1?
+def compute_isolation_probability(edge_prob: float, subgraph_size: int, 
+                                 network_size: int) -> float:
+    """Calculate probability that selected nodes have no external neighbors.
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Edge probability in parent graph
+    subgraph_size : int
+        Number of selected nodes
+    network_size : int
+        Total number of nodes
+        
+    Returns
+    -------
+    float
+        Probability of no external connections
+    """
+    return (1 - edge_prob) ** (subgraph_size * (network_size - subgraph_size))
 
+
+def compute_largest_component_probability_raw(edge_prob: float, component_size: int, 
+                                             network_size: int) -> float:
+    """Calculate probability of largest component having specific size (no memoization).
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Edge probability
+    component_size : int
+        Size of largest component
+    network_size : int
+        Total number of nodes
+        
+    Returns
+    -------
+    float
+        Probability of largest component having specified size
+    """
+    if component_size == 1 and network_size == 1:
+        return 1.0
+    elif component_size == 1 and network_size != 1:
+        return (1 - edge_prob) ** comb(network_size, 2) # type: ignore
+    
+    total = 0.0
+    for j in range(0, component_size + 1):
+        weight = 0.5 if j == component_size else 1.0
+        total += weight * compute_largest_component_probability_raw(edge_prob, j, 
+                                                                    network_size - component_size)
+    
+    return (comb(network_size, component_size) * 
+            compute_connectivity_probability_raw(edge_prob, component_size, network_size) * 
+            compute_isolation_probability(edge_prob, component_size, network_size) * 
+            total) # type: ignore
+
+
+def compute_largest_component_probability(edge_prob: float, component_size: int, 
+                                         network_size: int,
+                                         connectivity_cache: Dict = {}, 
+                                         probability_cache: Dict = {}) -> float:
+    """Calculate probability of largest component having specific size (with memoization).
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Edge probability
+    component_size : int
+        Size of largest component  
+    network_size : int
+        Total number of nodes
+    connectivity_cache : Dict
+        Cache for connectivity probabilities
+    probability_cache : Dict
+        Cache for component probabilities
+        
+    Returns
+    -------
+    float
+        Probability of largest component having specified size
+    """
+    if edge_prob in probability_cache:
+        if network_size in probability_cache[edge_prob]:
+            if component_size in probability_cache[edge_prob][network_size]:
+                return probability_cache[edge_prob][network_size][component_size]
+    
+    if component_size == 1 and network_size == 1:
+        return 1.0
+    elif component_size == 1 and network_size != 1:
+        return (1 - edge_prob) ** comb(network_size, 2) # type: ignore
+    
+    total = 0.0
+    for j in range(1, component_size + 1):
+        weight = 0.5 if j == component_size else 1.0
+        total += weight * compute_largest_component_probability(edge_prob, j, 
+                                                               network_size - component_size,
+                                                               connectivity_cache, 
+                                                               probability_cache)
+    
+    return (comb(network_size, component_size) * 
+            compute_connectivity_probability(edge_prob, component_size, network_size, 
+                                           connectivity_cache) *
+            compute_isolation_probability(edge_prob, component_size, network_size) * 
+            total) # type: ignore
+
+
+def compute_largest_component_probability_external(edge_prob: float, component_size: int,
+                                                  network_size: int,
+                                                  executable_path: str = "p-recursion.exe") -> float:
+    """Calculate probability using external executable.
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Edge probability
+    component_size : int
+        Component size
+    network_size : int
+        Network size
+    executable_path : str
+        Path to external calculation program
+        
+    Returns
+    -------
+    float
+        Probability from external calculation
+    """
+    output = execute_subprocess([executable_path, str(edge_prob), 
+                                str(component_size), str(network_size)])
+    return float(output) if output else 0.0
+
+
+def compute_expected_largest_component_size_raw(edge_prob: float, 
+                                               network_size: int) -> float:
+    """Calculate expected largest component size (no memoization).
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Edge probability
+    network_size : int
+        Number of nodes
+        
+    Returns
+    -------
+    float
+        Expected size of largest component
+    """
+    expected_size = 0.0
+    for k in range(1, network_size + 1):
+        expected_size += compute_largest_component_probability_raw(edge_prob, k, 
+                                                                   network_size) * k
+    return expected_size
+
+
+def compute_expected_largest_component_size(edge_prob: float, network_size: int,
+                                           connectivity_cache: Dict = {},
+                                           probability_cache: Dict = {},
+                                           method: str = "internal",
+                                           executable_path: str = "p-recursion.exe") -> float:
+    """Calculate expected largest component size.
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Edge probability
+    network_size : int
+        Number of nodes
+    connectivity_cache : Dict
+        Cache for connectivity probabilities
+    probability_cache : Dict
+        Cache for component probabilities
+    method : str
+        Calculation method ('internal' or 'external')
+    executable_path : str
+        Path to external program if method='external'
+        
+    Returns
+    -------
+    float
+        Expected size of largest component
+    """
+    expected_size = 0.0
+    
+    if method == "external":
+        for m in range(1, network_size + 1):
+            expected_size += m * compute_largest_component_probability_external(
+                edge_prob, m, network_size, executable_path)
+    else:
+        for m in range(1, network_size + 1):
+            expected_size += m * compute_largest_component_probability(
+                edge_prob, m, network_size, connectivity_cache, probability_cache)
+    
+    return expected_size
+
+
+def update_edge_probability_after_attack(remaining_nodes: int, 
+                                        current_edge_prob: float) -> float:
+    """Update edge probability after targeted node removal.
+    
+    Parameters
+    ----------
+    remaining_nodes : int
+        Number of remaining nodes
+    current_edge_prob : float
+        Current edge probability
+        
+    Returns
+    -------
+    float
+        Updated edge probability
+    """
+    # Placeholder for actual implementation
+    # This would contain the logic for updating probability after targeted attack
+    return current_edge_prob
+
+
+def compute_percolation_curve(edge_prob: float, network_size: int,
+                             targeted_attack: bool = False,
+                             reverse: bool = False,
+                             connectivity_cache: Dict = {},
+                             probability_cache: Dict = {},
+                             method: str = "internal",
+                             executable_path: str = "p-recursion.exe") -> np.ndarray:
+    """Calculate expected largest component sizes under sequential node removal.
+    
+    Parameters
+    ----------
+    edge_prob : float
+        Initial edge probability
+    network_size : int
+        Initial network size
+    targeted_attack : bool
+        If True, remove nodes by degree; if False, remove randomly
+    reverse : bool
+        If True, return sizes in reverse order
+    connectivity_cache : Dict
+        Cache for connectivity probabilities
+    probability_cache : Dict
+        Cache for component probabilities
+    method : str
+        Calculation method
+    executable_path : str
+        Path to external program
+        
+    Returns
+    -------
+    np.ndarray
+        Sequence of expected largest component sizes
+    """
+    sizes = np.zeros(network_size)
+    current_prob = edge_prob
+    
+    for i in range(network_size - 1, -1, -1):
+        sizes[i] = compute_expected_largest_component_size(
+            current_prob, i + 1, connectivity_cache, probability_cache, 
+            method, executable_path)
+        
+        if targeted_attack:
+            current_prob = update_edge_probability_after_attack(i + 1, current_prob)
+    
     if reverse:
-        S = S[::-1]
+        sizes = sizes[::-1]
+    
+    return sizes
 
-    return S
 
-
-def relSCurve(p, n, attack=False, reverse=True, fdict={}, pdict={}, lcc_method_relS = "pmult", executable_path='p-recursion.exe',executable2 = r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"):
-    '''Sequence of the expected relative sizes of the largest connected 
-    component of an Erdos--Renyi random graph with `n` nodes and edge 
-    probability `p` when removing nodes sequentially, either uniformly at
-    random or (adaptively) targeted by degree.
-
-    Results are from equations for percolation in finite networks.
-
-    ISSUE #1: Does this work properly for more than one element in n?
-
+def compute_relative_percolation_curve(edge_prob: float, network_size: int,
+                                      targeted_attack: bool = False,
+                                      reverse: bool = True,
+                                      connectivity_cache: Dict = {},
+                                      probability_cache: Dict = {},
+                                      method: str = "internal",
+                                      executable_path: str = "p-recursion.exe") -> np.ndarray:
+    """Calculate relative largest component sizes under sequential node removal.
+    
     Parameters
     ----------
-    p : float
-       Edge probability in a graph.
-
-    n : list
-       Numbers of nodes in a graph.
-
-    attack : bool (default=False)
-       If attack is True, target nodes by degree instead of uniformly at 
-       random.
-       
-    reverse : bool (default=False)
-       If reverse is True, return expected sizes in reverse order.
-
-    fdict (default={})
-       Dictionary of precomputed values of f.
-       
-    pdict (default={})
-       Dictionary of precomputed values of P.
-
+    edge_prob : float
+        Initial edge probability
+    network_size : int
+        Initial network size
+    targeted_attack : bool
+        If True, remove nodes by degree; if False, remove randomly
+    reverse : bool
+        If True, return sizes in reverse order
+    connectivity_cache : Dict
+        Cache for connectivity probabilities
+    probability_cache : Dict
+        Cache for component probabilities
+    method : str
+        Calculation method
+    executable_path : str
+        Path to external program
+        
     Returns
     -------
-    relS : 1D numpy array
-       Sequence of the expected relative sizes of the largest connected 
-       component under sequential node removal.
-    '''
-
-    # assume that n has only one entry for now
-    network_sizes = np.arange(1,n+1)
+    np.ndarray
+        Sequence of relative largest component sizes
+    """
+    network_sizes = np.arange(1, network_size + 1)
     
     if reverse:
         network_sizes = network_sizes[::-1]
+    
+    absolute_sizes = compute_percolation_curve(
+        edge_prob, network_size, targeted_attack, reverse,
+        connectivity_cache, probability_cache, method, executable_path)
+    
+    return absolute_sizes / network_sizes
 
-    relS = (SCurve(p, n, attack=attack, reverse=reverse, executable_path=executable_path, executable2=executable2,
-        fdict=fdict, pdict=pdict, lcc_method_Scurve = lcc_method_relS) / network_sizes)
 
-    return relS
-
-
-def SPoints(p=.1, n=[20,50,100], attack=False, reverse=False, 
-    fdict={}, pdict={}):
-    '''List of the expected sizes of the largest connected component of
-    an Erdos--Renyi random graph with `n[i]` nodes and edge probability `p`.
-    Results are from equations for percolation in finite networks.
-
+def compute_percolation_points(edge_prob: float = 0.1,
+                              network_sizes: List[int] = [20, 50, 100],
+                              targeted_attack: bool = False,
+                              reverse: bool = False,
+                              connectivity_cache: Dict = {},
+                              probability_cache: Dict = {}) -> Tuple[np.ndarray, np.ndarray]:
+    """Calculate expected largest component sizes for specific network sizes.
+    
     Parameters
     ----------
-    p : float
-       Edge probability in a graph.
-
-    n : list
-       Numbers of nodes in a graph.
-       
-    attack : bool (default=False)
-       If attack is True, target nodes by degree instead of uniformly at 
-       random.
-       
-    reverse : bool (default=False)
-       If reverse is True, return expected sizes in reverse order.
-
-    fdict (default={})
-       Dictionary of precomputed values of f.
-       
-    pdict (default={})
-       Dictionary of precomputed values of P.
-
+    edge_prob : float
+        Edge probability
+    network_sizes : List[int]
+        List of network sizes to evaluate
+    targeted_attack : bool
+        If True, use targeted attack
+    reverse : bool
+        If True, reverse order
+    connectivity_cache : Dict
+        Cache for connectivity probabilities
+    probability_cache : Dict
+        Cache for component probabilities
+        
     Returns
     -------
-    n : 1D numpy array
-       List of network sizes.
-
-    sizes : 1D numpy array
-       List of corresponding expected sizes of the largest connected.
-    '''
-
+    Tuple[np.ndarray, np.ndarray]
+        Network sizes and corresponding expected largest component sizes
+    """
     sizes = np.array([
-        calculate_S(p, nval, attack=attack, reverse=reverse,
-            fdict=fdict, pdict=pdict) for nval in n])
-
-    return n, sizes
-
-
+        compute_expected_largest_component_size(
+            edge_prob, n, connectivity_cache, probability_cache)
+        for n in network_sizes
+    ])
+    
+    return np.array(network_sizes), sizes
