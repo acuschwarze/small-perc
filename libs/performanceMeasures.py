@@ -17,11 +17,21 @@
 #
 ###############################################################################
 
+# Import libraries
+import sys
+from pathlib import Path
 import numpy as np
 import networkx as nx
 from scipy.special import comb
 from itertools import combinations
-from utils import laplacian_matrix, degree_fraction, get_largest_component
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+from libs.utils import laplacian_matrix, degree_fraction, get_largest_component
 
 
 def average_degree(graph: nx.Graph) -> float:

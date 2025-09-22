@@ -9,13 +9,24 @@
 #
 ###############################################################################
 
+# Import libraries
+import os, sys
+from pathlib import Path
 from typing import List, Dict, Any
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-import infiniteTheory
-import finiteTheory
-from robustnessSimulations import completeRCData
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+FIGURE_PATH = os.path.join(REPO_ROOT, 'figures')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+import libs.infiniteTheory as infiniteTheory
+import libs.finiteTheory as finiteTheory
+from libs.robustnessSimulations import robustness_sweep
 
 
 def plot_graphs(
@@ -32,8 +43,8 @@ def plot_graphs(
     lcc_method_main: str = "pmult",
     savefig: str = '',
     simbool: bool = True,
-    executable_path: str = r"C:\Users\jj\Downloads\GitHub\small-perc\libs\p-recursion.exe",
-    executable2: str = r"C:\Users\jj\Downloads\GitHub\small-perc\max-degree.exe"
+    executable_recursion: str = "p-recursion.exe",
+    executable_max_degree: str = "max-degree.exe"
 ) -> Figure:
     '''Calculate edge probability in an Erdos--Renyi network with original size
     `n` and original edge probability `p` after removing the node with the
@@ -77,8 +88,9 @@ def plot_graphs(
        # TODO: Add description.
        
     savefig : str (default='')
-       If savefig is a non-empty string, save of copy of the figure to that
-       destination.
+       If savefig is a non-empty string, save of copy of the figure to 
+       `repository_root/figures/savefig'. Remember to include a file ending 
+       (e.g., '.png' or '.pdf').
        
     Returns
     -------
@@ -87,7 +99,7 @@ def plot_graphs(
     '''
 
     # Get simulation data
-    sim_data = completeRCData(
+    sim_data = robustness_sweep(
         numbers_of_nodes=numbers_of_nodes,
         edge_probabilities=edge_probabilities,
         num_trials=num_trials,
@@ -142,14 +154,14 @@ def plot_graphs(
                         is_attack = (remove_strategy == 'attack')
 
                         # Get and plot finite theory data
-                        finite_rel_s = finiteTheory.relSCurve( # type: ignore
+                        finite_rel_s = finiteTheory.relative_lcc_sequence( 
                             edge_prob, node_count,
-                            attack=is_attack,
-                            fdict=fdict,
-                            pdict=pdict,
-                            lcc_method_relS=lcc_method_main,
-                            executable_path=executable_path,
-                            executable2=executable2
+                            targeted_attack=is_attack,
+                            connectivity_cache=fdict,
+                            probability_cache=pdict,
+                            method=lcc_method_main,
+                            #executable_max_degree=executable_max_degree,
+                            executable_name=executable_recursion
                         )
                         print(finite_rel_s)
                         subplot.plot(
@@ -159,9 +171,9 @@ def plot_graphs(
                         )
 
                         # Get and plot infinite theory data
-                        infinite_rel_s = infiniteTheory.relSCurve( # type: ignore
+                        infinite_rel_s = infiniteTheory.relative_lcc_sequence( 
                             node_count, edge_prob,
-                            attack=is_attack,
+                            targeted_attack=is_attack,
                             smooth_end=smooth_end
                         )
                         subplot.plot(
@@ -173,10 +185,10 @@ def plot_graphs(
 
                     elif performance == "average small component size":
                         # Get and plot infinite theory data for small components
-                        infinite_rel_s = infiniteTheory.relSmallSCurve( # type: ignore
+                        infinite_rel_s = infiniteTheory.small_components_sequence(
                             edge_prob, node_count,
-                            attack=is_attack, # type: ignore
-                            smooth_end=smooth_end # type: ignore
+                            targeted_attack=is_attack, 
+                            smooth_end=smooth_end 
                         )
                         subplot.plot(
                             removed_fraction, infinite_rel_s,
@@ -196,6 +208,6 @@ def plot_graphs(
             subplot.set_ylabel(performance)
 
     if len(savefig) > 0:
-        plt.savefig(savefig)
+        plt.savefig(os.path.join(FIGURE_PATH,savefig))
 
     return fig

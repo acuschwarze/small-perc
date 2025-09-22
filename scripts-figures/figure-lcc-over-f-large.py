@@ -1,28 +1,34 @@
 """
 Script to generate network percolation plots comparing simulations with theoretical predictions.
-Produces two output figures: Fig_2_final.pdf (random removal) and Fig_2_final_attack.pdf (targeted removal).
+
+Output figures are saved to 'repository root/figures/fig_lcc_over_f_large-{REMOVAL_STRATEGY}.pdf'.
+
 """
 
-import sys
-import os
+# Import libraries
+import os, sys
 import pickle
 import numpy as np
-from typing import List, Tuple
+from typing import List
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-# Add custom libraries to path
-sys.path.insert(0, "libs")
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+FIGURE_PATH = os.path.join(REPO_ROOT, 'figures')
+CACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
-from libs.utils import *
-from libs.finiteTheory import *
-from libs.visualizations import *
-from libs.robustnessSimulations import *
-from libs.performanceMeasures import *
-from libs.infiniteTheory import *
+# Import from local libraries
+import libs.finiteTheory as finiteTheory
+import libs.infiniteTheory as infiniteTheory
+from libs.robustnessSimulations import robustness_sweep
+
 
 # Load precomputed data
-f_values = pickle.load(open('data/fvalues.p', 'rb'))
-p_values = pickle.load(open('data/Pvalues.p', 'rb'))
+fvals = pickle.load(open(os.path.join(CACHE_PATH, 'fvalues.p'), 'rb'))
+pvals = pickle.load(open(os.path.join(CACHE_PATH, 'Pvalues.p'), 'rb'))
 
 # Configuration parameters
 NETWORK_THRESHOLD: float = 0.2
@@ -62,7 +68,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         if edge_prob <= 0.1:
             # Run individual simulations for sparse networks
             for trial_idx in range(NUM_SIMULATION_TRIALS):
-                sim_result = completeRCData(
+                sim_result = robustness_sweep(
                     numbers_of_nodes=[fixed_network_size],
                     edge_probabilities=[edge_prob], 
                     num_trials=1,
@@ -112,10 +118,10 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
             )
         
         # Plot infinite theory curve
-        infinite_theory_curve = infiniteTheory.relSCurve(
+        infinite_theory_curve = infiniteTheory.relative_lcc_sequence(
             fixed_network_size, edge_prob, 
-            attack=USE_TARGETED_REMOVAL,
-            reverse=False, smooth_end=False
+            targeted_attack=USE_TARGETED_REMOVAL,
+            smooth_end=False
         )
         axes[0].plot(node_fractions, infinite_theory_curve, color=PLOT_COLORS[prob_idx])
         
@@ -137,7 +143,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         
         # Run simulations for all trials
         for trial_idx in range(NUM_SIMULATION_TRIALS):
-            sim_result = completeRCData(
+            sim_result = robustness_sweep(
                 numbers_of_nodes=[network_size],
                 edge_probabilities=[edge_prob], 
                 num_trials=1,
@@ -167,12 +173,12 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         
         # Plot finite theory curve
         if network_size > 100:
-            finite_theory_curve = finiteTheory.relSCurve(
+            finite_theory_curve = finiteTheory.relative_lcc_sequence(
                 edge_prob, network_size, 
-                attack=USE_TARGETED_REMOVAL, 
-                fdict=f_values, pdict=p_values, 
-                lcc_method_relS="pmult",
-                executable_path='libs/p-recursion-float128.exe'
+                targeted_attack=USE_TARGETED_REMOVAL, 
+                connectivity_cache=fvals, probability_cache=pvals, 
+                method="pmult",
+                executable_name='p-recursion-float128.exe'
             )
         else:
             finite_theory_curve = relSCurve_precalculated(
@@ -185,10 +191,10 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         
         # Plot infinite theory curve (only for the last network size)
         if size_idx == len(NETWORK_SIZES) - 1:
-            infinite_theory_curve = infiniteTheory.relSCurve(
+            infinite_theory_curve = infiniteTheory.relative_lcc_sequence(
                 network_size, edge_prob, 
-                attack=USE_TARGETED_REMOVAL,
-                reverse=False, smooth_end=False
+                targeted_attack=USE_TARGETED_REMOVAL,
+                smooth_end=False
             )
             axes[1].plot(node_fractions, infinite_theory_curve, color="black", label=r"$S_{\infty}$")
 
@@ -208,4 +214,4 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
     plt.subplots_adjust(left=0.06, right=0.99, bottom=0.15, top=0.90, wspace=0.04)
 
     # Save figures based on removal strategy
-    plt.savefig(f"fig_lcc_over_f_large-{REMOVAL_STRATEGY}.pdf")
+    plt.savefig(os.path.join(FIGURE_PATH, f"fig_lcc_over_f_large-{REMOVAL_STRATEGY}.pdf"))

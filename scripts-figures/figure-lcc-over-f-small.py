@@ -1,20 +1,32 @@
 """
 Network Robustness Visualization
+================================
 Compares the effect of random vs targeted node removal on network connectivity.
 Generates a two-panel figure showing simulation results alongside theoretical predictions.
+
+Output figure is saved to 'repository root/figures/fig_lcc_over_f_small.pdf'.
 """
 
-import sys
-import os
+# Import libraries
+import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+from typing import Tuple, Optional
+from matplotlib.axes import Axes
+import numpy.typing as npt
 
-# Add custom library path
-sys.path.insert(0, "libs")
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+FIGURE_PATH = os.path.join(REPO_ROOT, 'figures')
+SYNTH_DATA_PATH = os.path.join(REPO_ROOT, 'data-synthetic')
 
-# Import custom modules for simulations and theory
-from libs.robustnessSimulations import completeRCData
-from libs.infiniteTheory import relSCurve
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+from libs.robustnessSimulations import robustness_sweep
+from libs.infiniteTheory import relative_lcc_sequence
 
 # ============= Configuration Parameters =============
 NETWORK_SIZE = 20  # Number of nodes in the network
@@ -23,7 +35,7 @@ NUM_SIMULATIONS = 100  # Number of simulation trials for averaging
 PROBABILITY_INDEX = int(EDGE_PROBABILITY / 0.01 - 1)  # Index for probability lookup
 
 # ============= Main Figure Generation =============
-def generate_robustness_comparison_figure():
+def generate_robustness_comparison_figure() -> None:
     """
     Generate a two-panel figure comparing random vs targeted attack strategies
     on network robustness, showing simulations and theoretical predictions.
@@ -61,10 +73,10 @@ def generate_robustness_comparison_figure():
         
         # ============= Load Theoretical Predictions =============
         # Infinite network theory
-        infinite_theory = relSCurve(
+        infinite_theory = relative_lcc_sequence(
             NETWORK_SIZE, 
             EDGE_PROBABILITY, 
-            attack=strategy['is_targeted'], 
+            targeted_attack=strategy['is_targeted'], 
             smooth_end=False
         )
         
@@ -99,10 +111,15 @@ def generate_robustness_comparison_figure():
     
     # Adjust layout and save
     plt.subplots_adjust(left=0.08, right=0.98, bottom=0.15, top=0.99, wspace=0.1)
-    plt.savefig("fig_lcc_over_f_small.pdf")
+    plt.savefig(os.path.join(FIGURE_PATH, "fig_lcc_over_f_small.pdf"))
 
 
-def run_robustness_simulations(strategy, network_size, edge_prob, num_trials):
+def run_robustness_simulations(
+    strategy: str, 
+    network_size: int, 
+    edge_prob: float, 
+    num_trials: int
+) -> npt.NDArray[np.object_]:
     """
     Run multiple simulation trials for a given removal strategy.
     
@@ -119,7 +136,7 @@ def run_robustness_simulations(strategy, network_size, edge_prob, num_trials):
     
     for trial in range(num_trials):
         # Run single simulation
-        sim_result = completeRCData(
+        sim_result = robustness_sweep(
             numbers_of_nodes=[network_size],
             edge_probabilities=[edge_prob], 
             num_trials=1,
@@ -137,7 +154,11 @@ def run_robustness_simulations(strategy, network_size, edge_prob, num_trials):
     return simulation_data
 
 
-def calculate_simulation_statistics(sim_data, network_size, num_trials):
+def calculate_simulation_statistics(
+    sim_data: npt.NDArray[np.object_], 
+    network_size: int, 
+    num_trials: int
+) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """
     Calculate mean values and standard errors from simulation data.
     
@@ -163,7 +184,11 @@ def calculate_simulation_statistics(sim_data, network_size, num_trials):
     return mean_values, standard_errors
 
 
-def load_finite_theory(is_targeted, network_size, prob_index):
+def load_finite_theory(
+    is_targeted: bool, 
+    network_size: int, 
+    prob_index: int
+) -> npt.NDArray[np.float64]:
     """
     Load pre-computed finite network theory results.
     
@@ -176,13 +201,21 @@ def load_finite_theory(is_targeted, network_size, prob_index):
         Array of theoretical predictions
     """
     filename = f"RelSCurve_attack{is_targeted}_n{network_size}.npy"
-    filepath = os.path.join("data", "synthetic_data", filename)
+    filepath = os.path.join(SYNTH_DATA_PATH, filename)
     all_theory = np.load(filepath)
     return all_theory[prob_index]
 
 
-def plot_panel(ax, x_vals, sim_means, sim_errors, inf_theory, fin_theory, 
-               show_ylabel=True, show_legend=False):
+def plot_panel(
+    ax: Axes, 
+    x_vals: npt.NDArray[np.float64], 
+    sim_means: npt.NDArray[np.float64], 
+    sim_errors: npt.NDArray[np.float64], 
+    inf_theory: npt.NDArray[np.float64], 
+    fin_theory: npt.NDArray[np.float64], 
+    show_ylabel: bool = True, 
+    show_legend: bool = False
+) -> None:
     """
     Plot simulation results and theoretical predictions on a single panel.
     
@@ -220,7 +253,7 @@ def plot_panel(ax, x_vals, sim_means, sim_errors, inf_theory, fin_theory,
         ax.legend()
 
 
-def customize_legend(ax):
+def customize_legend(ax: Axes) -> None:
     """
     Customize the legend appearance and ordering.
     

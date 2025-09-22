@@ -1,10 +1,15 @@
 """
-Network Robustness Analysis and Visualization
-==============================================
-This module visualizes network robustness under random and targeted attacks,
-comparing simulated results with finite and infinite theoretical predictions.
+Visualization of N-p Grid of Network Robustness Results
+=======================================================
+This module visualizes network robustness results under random and targeted 
+attacks, comparing simulated results with theoretical predictions for a grid of
+various network sizes and edge probabilities.
+
+Output figure is saved to 'repository root/figures/fig_heatmaps.pdf'.
 """
 
+# Import libraries
+import os
 import sys
 import pickle
 import numpy as np
@@ -12,10 +17,20 @@ import scipy
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
+from matplotlib.colorbar import Colorbar
+from matplotlib.collections import QuadMesh
 from pathlib import Path
+from typing import Dict, Optional, Any, List, Union, Tuple
 
-# Import custom libraries
-sys.path.insert(0, "libs")
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+FIGURE_PATH = os.path.join(REPO_ROOT, 'figures')
+FCACHE_PATH = os.path.join(REPO_ROOT, 'cache-figures')
+CCACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
 from libs.utils import *
 from libs.visualizations import *
 from libs.robustnessSimulations import *
@@ -24,26 +39,30 @@ from libs.infiniteTheory import *
 from libs.finiteTheory import *
 
 # Load precomputed values
-F_VALUES = pickle.load(open('data/fvalues.p', 'rb'))
-P_VALUES = pickle.load(open('data/Pvalues.p', 'rb'))
+# Load precomputed data
+fvals = pickle.load(open(os.path.join(CCACHE_PATH, 'fvalues.p'), 'rb'))
+pvals = pickle.load(open(os.path.join(CCACHE_PATH, 'Pvalues.p'), 'rb'))
 
 # Cache configuration
-CACHE_DIR = Path('cache')
-CACHE_FILE = CACHE_DIR / 'heatmap_data.pkl'
+CACHE_FILE = Path(os.path.join(FCACHE_PATH, 'heatmap_data.pkl'))
 
 
-def ensure_cache_dir():
+def ensure_cache_dir() -> None:
     """Create cache directory if it doesn't exist."""
-    CACHE_DIR.mkdir(exist_ok=True)
+    Path(FCACHE_PATH).mkdir(exist_ok=True)
 
 
-def load_cached_heatmaps(cache_file, max_nodes, total_probs):
+def load_cached_heatmaps(
+    cache_file: Union[Path, str], 
+    max_nodes: int, 
+    total_probs: int
+) -> Optional[Dict[str, Any]]:
     """
     Load cached heatmap data if available and parameters match.
     
     Parameters:
     -----------
-    cache_file : Path
+    cache_file : Union[Path, str]
         Path to the cache file
     max_nodes : int
         Maximum number of nodes in the network
@@ -52,21 +71,23 @@ def load_cached_heatmaps(cache_file, max_nodes, total_probs):
         
     Returns:
     --------
-    dict or None
+    Optional[Dict[str, Any]]
         Dictionary containing cached heatmap data, or None if cache invalid
     """
-    if not cache_file.exists():
+    cache_path = Path(cache_file) if isinstance(cache_file, str) else cache_file
+    
+    if not cache_path.exists():
         print("Cache file not found. Computing heatmaps from scratch...")
         return None
     
     try:
-        with open(cache_file, 'rb') as f:
+        with open(cache_path, 'rb') as f:
             cached_data = pickle.load(f)
             
         # Verify cache parameters match
         if (cached_data['max_nodes'] == max_nodes and 
             cached_data['total_probs'] == total_probs):
-            print(f"Loading cached heatmap data from {cache_file}")
+            print(f"Loading cached heatmap data from {cache_path}")
             return cached_data
         else:
             print("Cache parameters don't match. Recomputing heatmaps...")
@@ -76,24 +97,32 @@ def load_cached_heatmaps(cache_file, max_nodes, total_probs):
         return None
 
 
-def save_heatmaps(cache_file, heatmap_data):
+def save_heatmaps(
+    cache_file: Union[Path, str], 
+    heatmap_data: Dict[str, Any]
+) -> None:
     """
     Save computed heatmap data to cache file.
     
     Parameters:
     -----------
-    cache_file : Path
+    cache_file : Union[Path, str]
         Path to save the cache file
-    heatmap_data : dict
+    heatmap_data : Dict[str, Any]
         Dictionary containing heatmap data and parameters
     """
     ensure_cache_dir()
-    with open(cache_file, 'wb') as f:
+    cache_path = Path(cache_file) if isinstance(cache_file, str) else cache_file
+    
+    with open(cache_path, 'wb') as f:
         pickle.dump(heatmap_data, f)
-    print(f"Heatmap data cached to {cache_file}")
+    print(f"Heatmap data cached to {cache_path}")
 
 
-def compute_robustness_heatmaps(max_nodes, total_probs):
+def compute_robustness_heatmaps(
+    max_nodes: int, 
+    total_probs: int
+) -> Dict[str, Any]:
     """
     Compute robustness heatmaps for random and targeted attacks.
     
@@ -110,7 +139,7 @@ def compute_robustness_heatmaps(max_nodes, total_probs):
         
     Returns:
     --------
-    dict
+    Dict[str, Any]
         Dictionary containing all computed heatmap arrays
     """
     nodes_array = np.arange(2, max_nodes + 1)
@@ -231,28 +260,31 @@ def compute_robustness_heatmaps(max_nodes, total_probs):
     }
 
 
-def add_colorbar_to_plot(mappable, use_log_scale=False):
+def add_colorbar_to_plot(
+    mappable: QuadMesh, 
+    use_log_scale: bool = False
+) -> Colorbar:
     """
     Add a colorbar to the current plot.
     
     Parameters:
     -----------
-    mappable : matplotlib mappable
+    mappable : QuadMesh
         The plot element to add colorbar for
     use_log_scale : bool
         Whether to format colorbar labels as powers of 10
         
     Returns:
     --------
-    colorbar
+    Colorbar
         The created colorbar object
     """
     current_axes = plt.gca()
     ax = mappable.axes
-    fig = ax.figure
+    fig = ax.figure # type: ignore
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
-    colorbar = fig.colorbar(mappable, cax=cax)
+    colorbar = fig.colorbar(mappable, cax=cax) # type: ignore
     
     if use_log_scale:
         tick_labels = colorbar.ax.get_yticklabels()
@@ -264,13 +296,16 @@ def add_colorbar_to_plot(mappable, use_log_scale=False):
     return colorbar
 
 
-def create_robustness_figure(heatmap_data, output_file="Fig_3_Final.pdf"):
+def create_robustness_figure(
+    heatmap_data: Dict[str, Any], 
+    output_file: str = "fig_heatmaps.pdf"
+) -> None:
     """
     Create the main robustness analysis figure with heatmaps and histograms.
     
     Parameters:
     -----------
-    heatmap_data : dict
+    heatmap_data : Dict[str, Any]
         Dictionary containing all heatmap arrays and parameters
     output_file : str
         Path to save the output figure
@@ -299,7 +334,7 @@ def create_robustness_figure(heatmap_data, output_file="Fig_3_Final.pdf"):
     
     # Create custom colormap (using last 75% of gnuplot2)
     base_cmap = cm.get_cmap('gnuplot2')
-    custom_cmap = cm.colors.ListedColormap(base_cmap(np.linspace(0.3, 1.0, 256)))
+    custom_cmap = cm.colors.ListedColormap(base_cmap(np.linspace(0.3, 1.0, 256))) # type: ignore
     reversed_cmap = custom_cmap.reversed()
     
     # Plot random attack results (top row)
@@ -377,11 +412,16 @@ def create_robustness_figure(heatmap_data, output_file="Fig_3_Final.pdf"):
         ax.text(0.965, 0.965, label, transform=ax.transAxes, 
                fontsize=10, fontweight='normal', va='top', ha='right')
     
-    plt.savefig(output_file)
-    print(f"Figure saved to {output_file}")
+    fname = os.path.join(FIGURE_PATH, output_file)
+    plt.savefig(fname)
+    print(f"Figure saved to {fname}")
 
 
-def generate_figure(max_nodes=30, total_probs=100, force_recompute=False):
+def generate_figure(
+    max_nodes: int = 30, 
+    total_probs: int = 100, 
+    force_recompute: bool = False
+) -> Dict[str, Any]:
     """
     Main function to generate Figure 3 with caching support.
     
@@ -396,7 +436,7 @@ def generate_figure(max_nodes=30, total_probs=100, force_recompute=False):
         
     Returns:
     --------
-    dict
+    Dict[str, Any]
         The heatmap data used for plotting
     """
     # Try to load cached data

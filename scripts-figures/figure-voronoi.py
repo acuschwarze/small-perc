@@ -1,5 +1,6 @@
 """
 Voronoi Diagram Visualization of Network MSE Values
+===================================================
 
 This script creates a Voronoi diagram where each cell represents a network configuration
 characterized by its size (number of nodes) and edge probability. The cells are colored
@@ -8,31 +9,34 @@ component after random or targeted node removal with the theoretical results obt
 from our combinatorial theory. MSE are displayed on a logarithmic scale.
 
 Output: fig_voronoi.pdf - A Voronoi diagram with MSE-based coloring
-"""
-"""
-Network Robustness Analysis Script
-Purpose: Analyzes network robustness through node removal simulations and creates
-         a histogram comparing MSD (Mean Squared Deviation) for random vs targeted attacks
-Output: voronoi_histogram.pdf - histogram of MSD values
+
+Output figure is saved to 'repository root/figures/fig_voronoi.pdf'.
+
 """
 
-from fnmatch import fnmatch
-from random import choice
-
+# Import libraries
+import os, sys
 import numpy as np
 import pandas as pd
-import networkx as nx
 import matplotlib.pyplot as plt
-from scipy.special import comb
-
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.cm as cm
 import matplotlib.ticker as ticker
+from matplotlib.axes import Axes
+from matplotlib.colorbar import Colorbar
+from matplotlib.cm import ScalarMappable
+from pathlib import Path
+from typing import List, Tuple, Optional, Union
 
-def polygon_area(vertices):
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+FIGURE_PATH = os.path.join(REPO_ROOT, 'figures')
+FCACHE_PATH = os.path.join(REPO_ROOT, 'cache-figures')
+CCACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+def polygon_area(vertices: List[Tuple[float, float]]) -> float:
     """
     Calculate the area of a polygon using the shoelace formula.
     
@@ -51,7 +55,7 @@ def polygon_area(vertices):
     return abs(area) / 2
 
 
-def add_colorbar_to_plot(mappable, use_log_scale=False):
+def add_colorbar_to_plot(mappable: ScalarMappable, use_log_scale: bool = False) -> Colorbar:
     """
     Add a colorbar to the current plot.
     
@@ -83,18 +87,19 @@ def add_colorbar_to_plot(mappable, use_log_scale=False):
     plt.sca(current_axes)
     return colorbar
 
-class mse_data_bucket():
+class mse_data_bucket:
 
-    def __init__(self: object, path: str):
-        self.sourcefile = path
-        self.data = None
-        self.num_networks = 0 # type: ignore
-        self.network_sizes = []
-        self.edge_probabilities = []
-        self.mse_values = []
-        self.voronoi = None
+    def __init__(self, path: str) -> None:
+        self.sourcefile: str = path
+        self.data: Optional[pd.DataFrame] = None
+        self.num_networks: int = 0
+        self.network_sizes: np.ndarray = np.array([])
+        self.edge_probabilities: np.ndarray = np.array([])
+        self.mse_values: np.ndarray = np.array([])
+        self.voronoi: Optional[Voronoi] = None
 
-    def load(self):
+    def load(self) -> None:
+        """Load data from CSV file and extract network properties."""
         self.data = pd.read_csv(self.sourcefile)
         self.num_networks = len(self.data)
         self.network_sizes = np.zeros(self.num_networks)
@@ -108,10 +113,18 @@ class mse_data_bucket():
             self.edge_probabilities[idx] = self.data.iloc[idx]['2']
             self.mse_values[idx] = self.data.iloc[idx]['3']
 
-    def filter(self, cutoff=10):
-        filtered_mse = []
-        filtered_sizes = []
-        filtered_probabilities = []
+    def filter(self, cutoff: float = 10) -> None:
+        """
+        Filter out MSE outliers above the cutoff threshold.
+        
+        Parameters:
+        -----------
+        cutoff : float
+            Maximum MSE value to keep (outliers above this are filtered)
+        """
+        filtered_mse: List[float] = []
+        filtered_sizes: List[float] = []
+        filtered_probabilities: List[float] = []
 
         for i in range(len(self.mse_values)):
             if self.mse_values[i] < cutoff:
@@ -127,15 +140,24 @@ class mse_data_bucket():
         self.network_sizes = np.array(filtered_sizes)
         self.edge_probabilities = np.array(filtered_probabilities)
 
-    def transform_to_bounded_logarithmic(self, lower=-7, upper=0.5):
-
+    def transform_to_bounded_logarithmic(self, lower: float = -7, upper: float = 0.5) -> None:
+        """
+        Transform MSE values to logarithmic scale with bounds.
+        
+        Parameters:
+        -----------
+        lower : float
+            Lower bound for log MSE values
+        upper : float
+            Upper bound for log MSE values
+        """
         log_mse_values = np.log(self.mse_values)
         log_mse_values[log_mse_values > upper] = upper
         log_mse_values[log_mse_values < lower] = lower
         self.mse_values = log_mse_values
 
-    def create_voronoi_diagram(self):
-
+    def create_voronoi_diagram(self) -> None:
+        """Create Voronoi diagram from network parameters."""
         # Prepare points for Voronoi diagram
         # Scale network sizes to [0,1] range to match probability scale
         cell_centers = np.column_stack((self.network_sizes / 100, self.edge_probabilities))
@@ -152,8 +174,15 @@ class mse_data_bucket():
         # Generate Voronoi diagram
         self.voronoi = Voronoi(all_cell_centers)
 
-    def plot_voronoi_diagram(self, ax=None):
-
+    def plot_voronoi_diagram(self, ax: Optional[Axes] = None) -> None:
+        """
+        Plot the Voronoi diagram colored by MSE values.
+        
+        Parameters:
+        -----------
+        ax : Optional[Axes]
+            Matplotlib axes to plot on (uses current axes if None)
+        """
         if ax is None:
             ax = plt.gca()
 
@@ -166,7 +195,7 @@ class mse_data_bucket():
                         line_colors='grey', line_width=1, line_alpha=0.6, point_size=0)
 
         # Color Voronoi regions based on MSE values
-        region_areas = []
+        region_areas: List[float] = []
 
         for region_index, region in enumerate(self.voronoi.regions):
             # Skip infinite regions and empty regions
@@ -190,11 +219,11 @@ class mse_data_bucket():
                             color="grey", marker=".", markersize=5)
 
         # Print area statistics for analysis
-        region_areas = np.array(region_areas)
-        print(f"Area statistics - Mean: {np.mean(region_areas):.4f}, "
-            f"Median: {np.median(region_areas):.4f}, "
-            f"Max: {np.max(region_areas):.4f}, "
-            f"Min: {np.min(region_areas):.4f}")
+        region_areas_array = np.array(region_areas)
+        print(f"Area statistics - Mean: {np.mean(region_areas_array):.4f}, "
+            f"Median: {np.median(region_areas_array):.4f}, "
+            f"Max: {np.max(region_areas_array):.4f}, "
+            f"Min: {np.min(region_areas_array):.4f}")
 
         # Add colorbar with logarithmic scale labels
         scalar_mappable = plt.cm.ScalarMappable(cmap="gnuplot2_r", norm=color_normalizer)
@@ -226,8 +255,17 @@ class mse_data_bucket():
         ax.xaxis.set_major_formatter(x_formatter)
 
 
-def create_mse_histogram(data_buckets, ax=None):
-    """Create histogram comparing MSE values for different removal strategies."""
+def create_mse_histogram(data_buckets: List[mse_data_bucket], ax: Optional[Axes] = None) -> None:
+    """
+    Create histogram comparing MSE values for different removal strategies.
+    
+    Parameters:
+    -----------
+    data_buckets : List[mse_data_bucket]
+        List of data bucket objects containing MSE values to plot
+    ax : Optional[Axes]
+        Matplotlib axes to plot on (uses current axes if None)
+    """
     colors = ["tab:blue", "orange"]
     labels = ["random", "targeted"]
     
@@ -235,7 +273,6 @@ def create_mse_histogram(data_buckets, ax=None):
         ax = plt.gca()
     
     for i, data_bucket in enumerate(data_buckets):
-
         # Plot histogram
         ax.hist(data_bucket.mse_values, density=True, bins=10, alpha=0.65, 
                 color=colors[i], label=labels[i])
@@ -258,7 +295,7 @@ def create_mse_histogram(data_buckets, ax=None):
 
 if __name__ == "__main__":
 
-    use_logarithmic = True # toggle for logarithmic color map
+    use_logarithmic: bool = True # toggle for logarithmic color map
 
     if True:
         fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4), width_ratios=[10,10,8])
@@ -272,8 +309,8 @@ if __name__ == "__main__":
         #plt.subplots_adjust(wspace=0.1, left=0.06, right=0.97)
 
     # make voronoi plots
-    data_paths = ["MSEdata3D2.csv", "MSEdata3D2targeted.csv"]
-    filtered_data_sets = []
+    data_paths: List[str] = ["MSEdata3D2.csv", "MSEdata3D2targeted.csv"]
+    filtered_data_sets: List[mse_data_bucket] = []
     for i, data_path in enumerate(data_paths):
 
         mse_data = mse_data_bucket(data_path)
@@ -292,10 +329,10 @@ if __name__ == "__main__":
     create_mse_histogram(filtered_data_sets, ax=axes[2])
 
     # Add subplot labels
-    subplot_labels = ['(a)', '(b)', '(c)']
+    subplot_labels: List[str] = ['(a)', '(b)', '(c)']
     for i in range(3):
         axes[i].text(0.965, 0.965, subplot_labels[i], transform=axes[i].transAxes, 
                fontsize=10, fontweight='normal', va='top', ha='right')
 
     # Save figure to PDF
-    plt.savefig("fig_voronoi.pdf")
+    plt.savefig(os.path.join(FIGURE_PATH, "fig_voronoi.pdf"))

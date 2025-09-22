@@ -3,21 +3,30 @@
 # Library of functions to run computational node-removal experiments.
 #
 # Functions:
-#     robustnessCurve - Run single node-removal experiment and track graph property changes
-#     getRCSet - Run multiple experiments on sampled graphs from random-graph ensembles  
-#     completeRCData - Run comprehensive experiments across multiple parameters and graph types
+#     robustness_sequence - Run single node-removal experiment and track graph property changes
+#     robustness_sequence_set - Run multiple experiments on sampled graphs from random-graph ensembles  
+#     robustness_sweep - Run comprehensive experiments across multiple parameters and graph types
 #
 ###############################################################################
 
+import sys
+from pathlib import Path
 import numpy as np
 import networkx as nx
 from typing import Tuple, List
 from random import choice
 from utils import sample_network
-from performanceMeasures import *
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+from libs.performanceMeasures import *
 
 
-def robustnessCurve(graph: nx.Graph, 
+def robustness_sequence(graph: nx.Graph, 
                    remove_nodes: str = 'random',
                    performance: str = 'largest_connected_component') -> np.ndarray:
     '''Run a computational node-removal experiment on a graph and record 
@@ -82,7 +91,7 @@ def robustnessCurve(graph: nx.Graph,
     return performance_data
 
 
-def getRCSet(n: int = 100,
+def robustness_sequence_set(n: int = 100,
             p: float = 0.1,
             num_trials: int = 10,
             graph_type: str = 'ER',
@@ -120,7 +129,7 @@ def getRCSet(n: int = 100,
         
         percolation_threshold = 0 if avg_degree == 0 else 1 / avg_degree
 
-        curve_data = robustnessCurve(sample_graph, 
+        curve_data = robustness_sequence(sample_graph, 
                                      remove_nodes=remove_nodes,
                                      performance=performance)
         trial_data[trial_idx + 1] = curve_data[1]
@@ -128,7 +137,7 @@ def getRCSet(n: int = 100,
     return trial_data, percolation_threshold # type: ignore
 
 
-def completeRCData(numbers_of_nodes: List[int] = [100],
+def robustness_sweep(numbers_of_nodes: List[int] = [100],
                   edge_probabilities: List[float] = [0.1],
                   num_trials: int = 10,
                   performance: str = 'largest_connected_component',
@@ -166,7 +175,7 @@ def completeRCData(numbers_of_nodes: List[int] = [100],
         for node_idx, node_count in enumerate(numbers_of_nodes):
             for edge_idx, edge_prob in enumerate(edge_probabilities):
                 for strategy_idx, strategy in enumerate(remove_strategies):
-                    experiment_data = getRCSet(n=node_count,
+                    experiment_data = robustness_sequence_set(n=node_count,
                                              p=edge_prob,
                                              num_trials=num_trials,
                                              graph_type=graph_type,

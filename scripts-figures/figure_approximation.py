@@ -1,5 +1,16 @@
+"""
+Visualization of degree distribution approximations
+===================================================
+This module visualizes exact solutions and approximations for the maximal
+degree of an ER network after degree-targeted node removal.
+
+Output figure is saved to 'repository root/figures/fig_approximation.pdf'.
+"""
+
+# Import libraries
 import os, sys
 from pathlib import Path
+from typing import Optional, List, Any
 import numpy as np
 from scipy.stats import binom as binDist
 from scipy.stats import binom as binomialDistribution
@@ -10,11 +21,14 @@ import matplotlib.colors as mcolors
 
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
-sys.path.insert(0, REPO_ROOT)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
 from libs.utils import edge_probability_after_attack
 
 
-def expected_minimum_binomial(m, n, p):
+def expected_minimum_binomial(m: int, n: int, p: float) -> float:
     # Calculate P(X_i >= k) for each k
     prob_x_geq_k = np.array([sum(binDist.pmf(range(k, n+1), n, p)) for k in range(n+1)])
 
@@ -31,7 +45,14 @@ def expected_minimum_binomial(m, n, p):
     
     return expected_value_y
 
-def plot_binomial_with_truncated_shifted(n, p, i, colors=None, plot=False):
+
+def plot_binomial_with_truncated_shifted(
+    n: int, 
+    p: float, 
+    i: int, 
+    colors: Optional[List[Any]] = None, 
+    plot: bool = False
+) -> np.ndarray:
 
     # set colors
     if colors is None:
@@ -67,7 +88,7 @@ def plot_binomial_with_truncated_shifted(n, p, i, colors=None, plot=False):
         k_star_index = np.where(cumulative_spline <= 1/n*(grid))[0][0]
         k_star = x_spline[k_star_index]
         if plot:
-            plt.axvline(x=k_star, color=colors[j%len(colors)], linestyle='--', label=r'$k_j* = {:.3f}$'.format(k_star, j))
+            plt.axvline(x=k_star, color=colors[j%len(colors)], linestyle='--', label=r'$k_j* = {:.3f}$'.format(k_star, j)) # type: ignore
 
 
         mean_k = np.sum(x_spline*binomial_spline)/grid
@@ -110,7 +131,7 @@ n0=8
 p0=0.5
 tab10 = list(mcolors.TABLEAU_COLORS.values())
 
-# TODO: If the file below does not exist, create it using max-degree.cpp
+# TODO: If the file below does not exist, create it using max-degree.exe
 file_path = os.path.join(REPO_ROOT, 'combinatorics_cache', 
     r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0))
 file = open(file_path, 'r')

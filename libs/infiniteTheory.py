@@ -5,18 +5,28 @@
 #
 # Functions included:
 #   - lambert_w_safe: Lambert-W function with interpolation near jump points
-#   - largest_component_sequence: Expected relative sizes of largest connected
-#                                  component under sequential node removal
-#   - small_components_mean_size: Expected mean sizes of small connected
-#                                  components under sequential node removal
+#   - relative_lcc_sequence: Expected relative sizes of largest connected
+#                            component under sequential node removal
+#   - small_components_sequence: Expected mean sizes of small connected
+#                                components under sequential node removal
 #
 ###############################################################################
 
+# Import libraries
+import sys
+from pathlib import Path
 import numpy as np
 from typing import Tuple
 from scipy.special import comb, lambertw
-from utils import edge_probability_after_attack
-from performanceMeasures import *
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+from libs.utils import edge_probability_after_attack
+from libs.performanceMeasures import *
 
 
 def lambert_w_safe(x: float, branch: int = 0, tolerance: float = 1E-20) -> float:
@@ -42,11 +52,10 @@ def lambert_w_safe(x: float, branch: int = 0, tolerance: float = 1E-20) -> float
     return lambertw(x, k=branch)
 
 
-def largest_component_sequence(
+def relative_lcc_sequence(
     num_nodes: int, 
     edge_prob: float, 
-    attack: bool = False, 
-    reverse: bool = False, 
+    targeted_attack: bool = False, 
     smooth_end: bool = False
 ) -> np.ndarray:
     """Sequence of expected relative sizes of the largest connected component
@@ -89,7 +98,7 @@ def largest_component_sequence(
         if smooth_end:
             relative_sizes[i] = max(relative_sizes[i], 1 / current_nodes)
 
-        if attack:
+        if targeted_attack:
             current_edge_prob = edge_probability_after_attack(current_nodes, current_edge_prob)
 
         if current_nodes > 1:
@@ -98,10 +107,10 @@ def largest_component_sequence(
     return relative_sizes
 
 
-def small_components_mean_size(
+def small_components_sequence(
     num_nodes: int,
     edge_prob: float,
-    attack: bool = False,
+    targeted_attack: bool = False,
     smooth_end: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Sequence of expected mean sizes of small connected components
@@ -138,7 +147,7 @@ def small_components_mean_size(
         if smooth_end:
             mean_sizes[i] = max(mean_sizes[i], 1 / current_nodes)
 
-        if attack:
+        if targeted_attack:
             current_edge_prob = edge_probability_after_attack(current_nodes, current_edge_prob)
 
         if current_nodes > 1:

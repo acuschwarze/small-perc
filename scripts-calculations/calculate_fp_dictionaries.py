@@ -1,3 +1,29 @@
+###############################################################################
+#
+# This is a script to generate data for the recursion equation used in the
+# finite theory for percolation on small networks.
+#
+# The script has the following command line arguments:
+#     --pmin (-p): Minimum edge probability (default=0.1)
+#     --pmin (-P): Maximum edge probability (default=0.6)
+#     --dp(-dp): Step size for edge probability (default=0.1)
+#     --nmin(-n): Minimum network size (default=1)
+#     --nmax(-N): Maximum network size (default=500)
+#     --dn(-dn): Step size for network size (default=1)
+#     --ffile (-ff):  Path to f file without file extension 
+#        (default='data/fvalues')
+#     --pfile (-pf):  Path to P file without file extension
+#        (default='data/Pvalues')
+#     --overwritevalue (-ov): If True, overwrite existing data values.
+#        CAREFUL! THIS MAY REMOVE ALL SAVED DATA! (default=False)
+#     --compute-f (-cf): If True, update existing f data. (default=False)
+#     --compute-p (-cp): If True, update existing p data. (default=False)
+#
+# Default settings save results of the calculations to two dictionaries in
+# the `cache-combinatorics` folder in the repository root directory.
+#
+###############################################################################
+
 import os, sys, time
 from pathlib import Path
 import pickle
@@ -36,6 +62,10 @@ if __name__ == "__main__":
                         help='Path to f file (without file extension)')
     parser.add_argument('-pf', '--pfile', type=str, default='Pvalues',
                         help='Path to P file (without file extension)')
+    parser.add_argument('-fp', '--fpath', type=str, default='cache-combinatorics',
+                        help='Path from repository root to f file location')
+    parser.add_argument('-pp', '--ppath', type=str, default='cache-combinatorics',
+                        help='Path from repository root to P file location')
     parser.add_argument('-ov', '--overwritevalue', type=bool,
                         default=False, nargs='?', const=True,
                         help='If True, overwrite existing data values.')
@@ -53,21 +83,22 @@ if __name__ == "__main__":
 
     # parse arguments
     args = parser.parse_args()
-    # print(args.__dir__())
+
+    abs_fpath = os.path.join(REPO_ROOT, args.fpath, args.ffile) + '.p'
+    abs_ppath = os.path.join(REPO_ROOT, args.ppath, args.pfile) + '.p'
 
     if args.compute_f:
+
         # LOAD OR MAKE DATA FILES
 
         # load or make pickle file
         if not args.overwritefile:
-
-            if os.path.exists('fvalues.p' + '.p'):
+            if os.path.exists(abs_fpath):
                 # open existing pickle file
-                fvalues = pickle.load(open(args.ffile + '.p', 'rb'))
+                fvalues = pickle.load(open(abs_fpath, 'rb'))
             else:
                 # create an empty dictionary
                 fvalues = {}
-
         else:
             # create an empty dictionary
             fvalues = {}
@@ -112,14 +143,14 @@ if __name__ == "__main__":
                   "{:.3f}".format(time.time() - t0), 's')
 
         # SAVE DATA
-        pickle.dump(fvalues, open(args.ffile + '.p', 'wb'))
-        print('Data saved to', args.ffile + '.p')
+        pickle.dump(fvalues, open(abs_fpath, 'wb'))
+        print('Data saved to', abs_fpath)
 
     else:
         # just load existing data for p calculation
-        if os.path.exists(args.ffile + '.p'):
+        if os.path.exists(abs_fpath):
             # open existing pickle file
-            fvalues = pickle.load(open(args.ffile + '.p', 'rb'))
+            fvalues = pickle.load(open(abs_fpath, 'rb'))
         else:
             # create an empty dictionary
             fvalues = {}
@@ -130,9 +161,9 @@ if __name__ == "__main__":
         # load or make pickle file
         if not args.overwritefile:
 
-            if os.path.exists(args.pfile + '.p'):
+            if os.path.exists(abs_ppath):
                 # open existing pickle file
-                pvalues = pickle.load(open(args.pfile + '.p', 'rb'))
+                pvalues = pickle.load(open(abs_ppath, 'rb'))
             else:
                 # create an empty dictionary
                 pvalues = {}
@@ -182,10 +213,6 @@ if __name__ == "__main__":
                   "{:.3f}".format(time.time() - t0), 's')
 
         # SAVE DATA
-        pickle.dump(pvalues, open(args.pfile + '.p', 'wb'))
-        print('Data saved to', args.pfile + '.p')
+        pickle.dump(pvalues, open(abs_ppath, 'wb'))
+        print('Data saved to', abs_ppath)
 
-
-#get f and p values
-fvalues = pickle.load(open('fvalues.p', 'rb'))
-pvalues = pickle.load(open('Pvalues.p', 'rb'))

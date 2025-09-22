@@ -3,19 +3,20 @@ Library for calculating theoretical percolation results for finite networks.
 
 Functions:
     execute_subprocess: Execute an external program and return its output
-    compute_connectivity_probability_raw: Calculate probability that a subgraph is connected (no memoization)
-    compute_connectivity_probability: Calculate probability that a subgraph is connected (with memoization)
-    compute_isolation_probability: Calculate probability that nodes have no external neighbors
-    compute_largest_component_probability_raw: Calculate probability of largest component size (no memoization)
-    compute_largest_component_probability: Calculate probability of largest component size (with memoization)
-    compute_largest_component_probability_external: Calculate probability using external executable
-    compute_expected_largest_component_size_raw: Calculate expected largest component size (no memoization)
-    compute_expected_largest_component_size: Calculate expected largest component size (with memoization)
-    compute_percolation_curve: Calculate expected largest component sizes under sequential node removal
-    compute_relative_percolation_curve: Calculate relative largest component sizes under sequential node removal
-    compute_percolation_points: Calculate expected largest component sizes for specific network sizes
+    connectedness_probability_raw: Calculate probability that a subgraph is connected (no memoization)
+    connectedness_probability: Calculate probability that a subgraph is connected (with memoization)
+    isolation_probability: Calculate probability that nodes have no external neighbors
+    lcc_probability_raw: Calculate probability of largest component size (no memoization)
+    lcc_probability: Calculate probability of largest component size (with memoization)
+    lcc_probability_external: Calculate probability using external executable
+    expected_lcc_size_raw: Calculate expected largest component size (no memoization)
+    expected_lcc_size: Calculate expected largest component size (with memoization)
+    lcc_sequence: Calculate expected largest component sizes under sequential node removal
+    relative_lcc_sequence: Calculate relative largest component sizes under sequential node removal
+    relative_lcc_points: Calculate expected largest component sizes for specific network sizes
 """
 
+# Import libraries
 import os, sys
 import numpy as np
 from pathlib import Path
@@ -25,8 +26,13 @@ import subprocess
 
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
-sys.path.insert(0, REPO_ROOT)
+CPP_PATH = os.path.join(REPO_ROOT, 'cpp')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
 from libs.utils import edge_probability_after_attack
+
 
 def execute_subprocess(executable_path: List[str]) -> Optional[str]:
     """Execute an external program and return its output.
@@ -48,7 +54,7 @@ def execute_subprocess(executable_path: List[str]) -> Optional[str]:
         return None
 
 
-def compute_connectivity_probability_raw(edge_prob: float, subgraph_size: int, 
+def connectedness_probability_raw(edge_prob: float, subgraph_size: int, 
                                          network_size: int) -> float:
     """Calculate probability that a subgraph is connected (without memoization).
     
@@ -71,14 +77,14 @@ def compute_connectivity_probability_raw(edge_prob: float, subgraph_size: int,
     
     total = 0.0
     for k in range(1, subgraph_size):
-        total += (compute_connectivity_probability_raw(edge_prob, k, network_size) * 
+        total += (connectedness_probability_raw(edge_prob, k, network_size) * 
                  comb(subgraph_size - 1, k - 1) * 
                  (1 - edge_prob) ** (k * (subgraph_size - k)))
     
     return 1 - total # type: ignore
 
 
-def compute_connectivity_probability(edge_prob: float, subgraph_size: int, 
+def connectedness_probability(edge_prob: float, subgraph_size: int, 
                                     network_size: int, 
                                     cache: Dict = {}) -> float:
     """Calculate probability that a subgraph is connected (with memoization).
@@ -109,14 +115,14 @@ def compute_connectivity_probability(edge_prob: float, subgraph_size: int,
     
     total = 0.0
     for k in range(1, subgraph_size):
-        total += (compute_connectivity_probability(edge_prob, k, network_size, cache) * 
+        total += (connectedness_probability(edge_prob, k, network_size, cache) * 
                  comb(subgraph_size - 1, k - 1) * 
                  (1 - edge_prob) ** (k * (subgraph_size - k)))
     
     return 1 - total # type: ignore
 
 
-def compute_isolation_probability(edge_prob: float, subgraph_size: int, 
+def isolation_probability(edge_prob: float, subgraph_size: int, 
                                  network_size: int) -> float:
     """Calculate probability that selected nodes have no external neighbors.
     
@@ -137,7 +143,7 @@ def compute_isolation_probability(edge_prob: float, subgraph_size: int,
     return (1 - edge_prob) ** (subgraph_size * (network_size - subgraph_size))
 
 
-def compute_largest_component_probability_raw(edge_prob: float, component_size: int, 
+def lcc_probability_raw(edge_prob: float, component_size: int, 
                                              network_size: int) -> float:
     """Calculate probability of largest component having specific size (no memoization).
     
@@ -163,16 +169,16 @@ def compute_largest_component_probability_raw(edge_prob: float, component_size: 
     total = 0.0
     for j in range(0, component_size + 1):
         weight = 0.5 if j == component_size else 1.0
-        total += weight * compute_largest_component_probability_raw(edge_prob, j, 
+        total += weight * lcc_probability_raw(edge_prob, j, 
                                                                     network_size - component_size)
     
     return (comb(network_size, component_size) * 
-            compute_connectivity_probability_raw(edge_prob, component_size, network_size) * 
-            compute_isolation_probability(edge_prob, component_size, network_size) * 
+            connectedness_probability_raw(edge_prob, component_size, network_size) * 
+            isolation_probability(edge_prob, component_size, network_size) * 
             total) # type: ignore
 
 
-def compute_largest_component_probability(edge_prob: float, component_size: int, 
+def lcc_probability(edge_prob: float, component_size: int, 
                                          network_size: int,
                                          connectivity_cache: Dict = {}, 
                                          probability_cache: Dict = {}) -> float:
@@ -209,21 +215,23 @@ def compute_largest_component_probability(edge_prob: float, component_size: int,
     total = 0.0
     for j in range(1, component_size + 1):
         weight = 0.5 if j == component_size else 1.0
-        total += weight * compute_largest_component_probability(edge_prob, j, 
+        total += weight * lcc_probability(edge_prob, j, 
                                                                network_size - component_size,
                                                                connectivity_cache, 
                                                                probability_cache)
     
     return (comb(network_size, component_size) * 
-            compute_connectivity_probability(edge_prob, component_size, network_size, 
+            connectedness_probability(edge_prob, component_size, network_size, 
                                            connectivity_cache) *
-            compute_isolation_probability(edge_prob, component_size, network_size) * 
+            isolation_probability(edge_prob, component_size, network_size) * 
             total) # type: ignore
 
 
-def compute_largest_component_probability_external(edge_prob: float, component_size: int,
-                                                  network_size: int,
-                                                  executable_path: str = "p-recursion.exe") -> float:
+def lcc_probability_external(
+        edge_prob: float, 
+        component_size: int,
+        network_size: int,
+        executable_name: str = "p-recursion.exe") -> float:
     """Calculate probability using external executable.
     
     Parameters
@@ -234,20 +242,21 @@ def compute_largest_component_probability_external(edge_prob: float, component_s
         Component size
     network_size : int
         Network size
-    executable_path : str
-        Path to external calculation program
+    executable_name : str
+        Name of external executable program located in `repository_root/cpp`
         
     Returns
     -------
     float
         Probability from external calculation
     """
+    executable_path = os.path.join(CPP_PATH, executable_name)
     output = execute_subprocess([executable_path, str(edge_prob), 
                                 str(component_size), str(network_size)])
     return float(output) if output else 0.0
 
 
-def compute_expected_largest_component_size_raw(edge_prob: float, 
+def expected_lcc_size_raw(edge_prob: float, 
                                                network_size: int) -> float:
     """Calculate expected largest component size (no memoization).
     
@@ -265,16 +274,16 @@ def compute_expected_largest_component_size_raw(edge_prob: float,
     """
     expected_size = 0.0
     for k in range(1, network_size + 1):
-        expected_size += compute_largest_component_probability_raw(edge_prob, k, 
+        expected_size += lcc_probability_raw(edge_prob, k, 
                                                                    network_size) * k
     return expected_size
 
 
-def compute_expected_largest_component_size(edge_prob: float, network_size: int,
+def expected_lcc_size(edge_prob: float, network_size: int,
                                            connectivity_cache: Dict = {},
                                            probability_cache: Dict = {},
                                            method: str = "internal",
-                                           executable_path: str = "p-recursion.exe") -> float:
+                                           executable_name: str = "p-recursion.exe") -> float:
     """Calculate expected largest component size.
     
     Parameters
@@ -289,8 +298,9 @@ def compute_expected_largest_component_size(edge_prob: float, network_size: int,
         Cache for component probabilities
     method : str
         Calculation method ('internal' or 'external')
-    executable_path : str
-        Path to external program if method='external'
+    executable_name : str
+        Name of external executable program located in `repository_root/cpp`
+        to be used if method='external'
         
     Returns
     -------
@@ -301,23 +311,23 @@ def compute_expected_largest_component_size(edge_prob: float, network_size: int,
     
     if method == "external":
         for m in range(1, network_size + 1):
-            expected_size += m * compute_largest_component_probability_external(
-                edge_prob, m, network_size, executable_path)
+            expected_size += m * lcc_probability_external(
+                edge_prob, m, network_size, executable_name)
     else:
         for m in range(1, network_size + 1):
-            expected_size += m * compute_largest_component_probability(
+            expected_size += m * lcc_probability(
                 edge_prob, m, network_size, connectivity_cache, probability_cache)
     
     return expected_size
 
 
-def compute_percolation_curve(edge_prob: float, network_size: int,
+def lcc_sequence(edge_prob: float, network_size: int,
                              targeted_attack: bool = False,
                              reverse: bool = False,
                              connectivity_cache: Dict = {},
                              probability_cache: Dict = {},
                              method: str = "internal",
-                             executable_path: str = "p-recursion.exe") -> np.ndarray:
+                             executable_name: str = "p-recursion.exe") -> np.ndarray:
     """Calculate expected largest component sizes under sequential node removal.
     
     Parameters
@@ -336,8 +346,8 @@ def compute_percolation_curve(edge_prob: float, network_size: int,
         Cache for component probabilities
     method : str
         Calculation method
-    executable_path : str
-        Path to external program
+    executable_name : str
+        Name of external executable program located in `repository_root/cpp`
         
     Returns
     -------
@@ -348,9 +358,9 @@ def compute_percolation_curve(edge_prob: float, network_size: int,
     current_prob = edge_prob
     
     for i in range(network_size - 1, -1, -1):
-        sizes[i] = compute_expected_largest_component_size(
+        sizes[i] = expected_lcc_size(
             current_prob, i + 1, connectivity_cache, probability_cache, 
-            method, executable_path)
+            method, executable_name)
         
         if targeted_attack:
             current_prob = edge_probability_after_attack(i + 1, current_prob)
@@ -361,13 +371,13 @@ def compute_percolation_curve(edge_prob: float, network_size: int,
     return sizes
 
 
-def compute_relative_percolation_curve(edge_prob: float, network_size: int,
+def relative_lcc_sequence(edge_prob: float, network_size: int,
                                       targeted_attack: bool = False,
                                       reverse: bool = True,
                                       connectivity_cache: Dict = {},
                                       probability_cache: Dict = {},
                                       method: str = "internal",
-                                      executable_path: str = "p-recursion.exe") -> np.ndarray:
+                                      executable_name: str = "p-recursion.exe") -> np.ndarray:
     """Calculate relative largest component sizes under sequential node removal.
     
     Parameters
@@ -386,8 +396,8 @@ def compute_relative_percolation_curve(edge_prob: float, network_size: int,
         Cache for component probabilities
     method : str
         Calculation method
-    executable_path : str
-        Path to external program
+    executable_name : str
+        Name of external executable program located in `repository_root/cpp`
         
     Returns
     -------
@@ -399,14 +409,14 @@ def compute_relative_percolation_curve(edge_prob: float, network_size: int,
     if reverse:
         network_sizes = network_sizes[::-1]
     
-    absolute_sizes = compute_percolation_curve(
+    absolute_sizes = lcc_sequence(
         edge_prob, network_size, targeted_attack, reverse,
-        connectivity_cache, probability_cache, method, executable_path)
+        connectivity_cache, probability_cache, method, executable_name)
     
     return absolute_sizes / network_sizes
 
 
-def compute_percolation_points(edge_prob: float = 0.1,
+def relative_lcc_points(edge_prob: float = 0.1,
                               network_sizes: List[int] = [20, 50, 100],
                               targeted_attack: bool = False,
                               reverse: bool = False,
@@ -435,7 +445,7 @@ def compute_percolation_points(edge_prob: float = 0.1,
         Network sizes and corresponding expected largest component sizes
     """
     sizes = np.array([
-        compute_expected_largest_component_size(
+        expected_lcc_size(
             edge_prob, n, connectivity_cache, probability_cache)
         for n in network_sizes
     ])

@@ -15,13 +15,11 @@
 #
 ###############################################################################
 
+# Import libraries
 import os
 import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomial_dist
-from scipy.special import binom
-from typing import Union, List
-
 
 def string_to_array(text: str, separator: str = " ") -> np.ndarray:
     """Convert string representation to numpy array."""

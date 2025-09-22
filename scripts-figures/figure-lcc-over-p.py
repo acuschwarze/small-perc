@@ -1,17 +1,33 @@
 """
+Visual recap of percolation results and their applicability to finite networks
+==============================================================================
 Script to generate Intro_Figure.pdf comparing simulated and theoretical LCC sizes.
-Output: Intro_Figure.pdf - Plot comparing relative LCC sizes for different edge probabilities
+The output figure is a plot comparing relative LCC sizes for different edge probabilities.
+
+The output figure is saved to 'repository root/figures/fig_intro.pdf'
 """
 
-import pickle
+# Import libraries
+import os, sys, pickle
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from scipy.special import comb, lambertw
+from pathlib import Path
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+FIGURE_PATH = os.path.join(REPO_ROOT, 'figures')
+CACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+from libs.infiniteTheory import lambert_w_safe
 
 # Load precomputed data
-fvals = pickle.load(open('data/fvalues.p', 'rb'))
-pvals = pickle.load(open('data/Pvalues.p', 'rb'))
+fvals = pickle.load(open(os.path.join(CACHE_PATH, 'fvalues.p'), 'rb'))
+pvals = pickle.load(open(os.path.join(CACHE_PATH, 'Pvalues.p'), 'rb'))
 
 
 def lambert_w_with_interpolation(x: float, k: int = 0, tol: float = 1E-20) -> complex:
@@ -97,4 +113,4 @@ plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order])
 
 # Adjust layout and save
 plt.subplots_adjust(left=0.12, right=.99, bottom=.15, top=0.99, wspace=0)
-plt.savefig("fig_intro.pdf")
+plt.savefig(os.path.join(FIGURE_PATH, "fig_intro.pdf"))
