@@ -176,13 +176,11 @@ file_path = os.path.join(CCACHE_PATH, fname)
 if not os.path.exists(file_path):
     print(f'''No cached data found under {fname}. Compute exact degree distribution 
           for n={n0} and p={p0:.2f}. This may take some time ...''')
-    p_current = p0
-    for 
-    exact_distribution = execute_subprocess([os.path.join(CPP_PATH, 'max-degree.exe'), 
-                                             str(n0), str(p0)])
-    print(f'exact distribution for n={n0}, p={p0}')
-    print(type(exact_distribution))
-    print(exact_distribution)
+    exact_distributions = execute_subprocess([os.path.join(CPP_PATH, 'exact_distributions.exe'), 
+                                              str(n0), str(p0)])
+    print(f'exact distributions for n={n0}, p={p0}')
+    print(type(exact_distributions))
+    print(exact_distributions)
     #TODO: Save exact distribution to file
 
 
