@@ -55,7 +55,7 @@ def lambert_w_safe(x: float, branch: int = 0, tolerance: float = 1E-20) -> float
 def relative_lcc_sequence(
     num_nodes: int, 
     edge_prob: float, 
-    targeted_attack: bool = False, 
+    targeted_removal: bool = False, 
     smooth_end: bool = False
 ) -> np.ndarray:
     """Sequence of expected relative sizes of the largest connected component
@@ -90,7 +90,7 @@ def relative_lcc_sequence(
             relative_sizes[i] = 2 / current_nodes
         elif mean_degree > 0:
             relative_sizes[i] = 1 + np.real(
-                lambert_w_safe(-mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8) / mean_degree # type: ignore
+                lambert_w_safe(-mean_degree * np.exp(-mean_degree), branch=0, tolerance=1e-8) / mean_degree 
             )
         else:
             relative_sizes[i] = 0
@@ -98,7 +98,7 @@ def relative_lcc_sequence(
         if smooth_end:
             relative_sizes[i] = max(relative_sizes[i], 1 / current_nodes)
 
-        if targeted_attack:
+        if targeted_removal:
             current_edge_prob = edge_probability_after_attack(current_nodes, current_edge_prob)
 
         if current_nodes > 1:
@@ -110,7 +110,7 @@ def relative_lcc_sequence(
 def small_components_sequence(
     num_nodes: int,
     edge_prob: float,
-    targeted_attack: bool = False,
+    targeted_removal: bool = False,
     smooth_end: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Sequence of expected mean sizes of small connected components
@@ -139,7 +139,7 @@ def small_components_sequence(
 
     for i in range(num_nodes):
         mean_degree = 2 * current_edge_prob * comb(current_nodes, 2) / current_nodes
-        lambert_w_output = lambert_w_safe(-mean_degree * np.exp(-mean_degree),  # type: ignore
+        lambert_w_output = lambert_w_safe(-mean_degree * np.exp(-mean_degree),  
                                           branch=0, tolerance=1e-8)
         largest_component_size = 1 + lambert_w_output / mean_degree
         mean_sizes[i] = 1 / (1 - mean_degree + mean_degree * largest_component_size)
@@ -147,7 +147,7 @@ def small_components_sequence(
         if smooth_end:
             mean_sizes[i] = max(mean_sizes[i], 1 / current_nodes)
 
-        if targeted_attack:
+        if targeted_removal:
             current_edge_prob = edge_probability_after_attack(current_nodes, current_edge_prob)
 
         if current_nodes > 1:

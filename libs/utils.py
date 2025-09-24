@@ -3,6 +3,8 @@
 # Network Robustness Analysis Library
 #
 # Functions:
+#    execute_subprocess - Execute an external program and return its output
+#    load_recursion_cache - Load cached data for finite-theory calculations
 #    string_to_array - Convert string representation to numpy array
 #    degree_fraction - Calculate fraction of nodes with specific degree
 #    expected_node_count - Expected nodes with degree k in Erdos-Renyi graph
@@ -16,10 +18,43 @@
 ###############################################################################
 
 # Import libraries
-import os
+import os, pickle
 import networkx as nx
 import numpy as np
 from scipy.stats import binom as binomial_dist
+from typing import List, Optional, Tuple
+import subprocess
+
+
+def execute_subprocess(executable_path: List[str]) -> Optional[str]:
+    """Execute an external program and return its output.
+    
+    Parameters
+    ----------
+    executable_path : List[str]
+        Path to executable and its arguments
+        
+    Returns
+    -------
+    Optional[str]
+        Output from the executable or None if error
+    """
+    try:
+        result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+    
+
+def load_recursion_cache(path: str, connectivity_cache_name: str='fvalues.p', 
+   probability_cache_name: str='Pvalues.p') -> Tuple:
+   """ load connectivity cache and probability cache for finite-theory calculations
+   """
+
+   output = (pickle.load(open(os.path.join(path, connectivity_cache_name), 'rb')),
+        pickle.load(open(os.path.join(path, probability_cache_name), 'rb')))
+   return output
+
 
 def string_to_array(text: str, separator: str = " ") -> np.ndarray:
     """Convert string representation to numpy array."""
@@ -42,7 +77,7 @@ def degree_fraction(degree: int, graph: nx.Graph) -> float:
     float
        Fraction of nodes with specified degree
     """
-    degree_sequence = [d for _, d in graph.degree()] # type: ignore
+    degree_sequence = [d for _, d in graph.degree()] 
     count = degree_sequence.count(degree)
     return count / graph.number_of_nodes()
     
@@ -64,7 +99,7 @@ def expected_node_count(nodes: int, edge_prob: float, degree: int) -> float:
     float
        Expected number of nodes with specified degree
     """
-    prob = binomial_dist(nodes, edge_prob).pmf(degree) # type: ignore
+    prob = binomial_dist(nodes, edge_prob).pmf(degree) 
     return nodes * prob
 
 
@@ -182,7 +217,7 @@ def get_largest_component(graph: nx.Graph) -> nx.Graph:
     return graph.subgraph(largest).copy()
 
 
-def load_percolation_curve(nodes: int, prob: float, targeted: bool = False, 
+def load_percolation_curve(nodes: int, prob: float, targeted_removal: bool = False, 
                            simulated: bool = False, finite: bool = True) -> np.ndarray:
     """Load precalculated percolation data.
 
@@ -214,7 +249,7 @@ def load_percolation_curve(nodes: int, prob: float, targeted: bool = False,
     else:
         prefix = "infRelSCurve"
 
-    filename = f"{prefix}_attack{targeted}_n{nodes}.npy"
+    filename = f"{prefix}_attack{targeted_removal}_n{nodes}.npy"
     filepath = os.path.join("data", "synthetic_data", filename)
     
     data = np.load(filepath)

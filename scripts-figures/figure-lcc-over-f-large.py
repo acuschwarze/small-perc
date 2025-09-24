@@ -23,6 +23,7 @@ if REPO_ROOT not in sys.path:
 # Import from local libraries
 import libs.finiteTheory as finiteTheory
 import libs.infiniteTheory as infiniteTheory
+from libs.utils import load_percolation_curve
 from libs.robustnessSimulations import robustness_sweep
 
 
@@ -56,7 +57,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
 
     for prob_idx, edge_prob in enumerate(probability_values):
         # Calculate finite theory curve
-        finite_theory_curve = relSCurve_precalculated(
+        finite_theory_curve = load_percolation_curve(
             fixed_network_size, edge_prob, 
             targeted_removal=USE_TARGETED_REMOVAL,
             simulated=False, finite=True
@@ -96,7 +97,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
             )
         else:
             # Use precalculated simulations for dense networks
-            precalc_sims = relSCurve_precalculated(
+            precalc_sims = load_percolation_curve(
                 fixed_network_size, edge_prob, 
                 targeted_removal=USE_TARGETED_REMOVAL,
                 simulated=True, finite=False
@@ -181,7 +182,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
                 executable_name='p-recursion-float128.exe'
             )
         else:
-            finite_theory_curve = relSCurve_precalculated(
+            finite_theory_curve = load_percolation_curve(
                 network_size, edge_prob, 
                 targeted_removal=USE_TARGETED_REMOVAL,
                 simulated=False, finite=True

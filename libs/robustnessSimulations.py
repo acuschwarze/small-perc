@@ -6,24 +6,34 @@
 #     robustness_sequence - Run single node-removal experiment and track graph property changes
 #     robustness_sequence_set - Run multiple experiments on sampled graphs from random-graph ensembles  
 #     robustness_sweep - Run comprehensive experiments across multiple parameters and graph types
+#     random_removal - Create LCC sequence under random node removal from a graph
+#     targeted_removal - Create LCC sequence under degree-based targeted node removal from a graph
+#     read_from_adj - Create graph from adjacency list file in Petter Holme's format
+#     fullDataTable - Create table of percolation results for real networks
+#     create_list_of_real_networks - Generate list of network files from specified directory
 #
 ###############################################################################
 
-import sys
+import os, sys, time
 from pathlib import Path
+import scipy
 import numpy as np
+import pandas as pd
 import networkx as nx
-from typing import Tuple, List
+from typing import Tuple, List, Optional, Union
 from random import choice
 from utils import sample_network
+from fnmatch import fnmatch
 
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
+REAL_DATA_PATH = os.path.join(REPO_ROOT, 'data-real')
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 # Import from local libraries
 from libs.performanceMeasures import *
+from libs.finiteTheory import relative_lcc_sequence
 
 
 def robustness_sequence(graph: nx.Graph, 
@@ -82,7 +92,7 @@ def robustness_sequence(graph: nx.Graph,
         if remove_nodes == 'random':
             node_to_remove = choice(list(graph.nodes()))
         elif remove_nodes == 'attack':
-            node_to_remove = sorted(graph.degree, key=lambda x: x[1], reverse=True)[0][0] # type: ignore
+            node_to_remove = sorted(graph.degree, key=lambda x: x[1], reverse=True)[0][0] 
         else:
             raise ValueError(f'Unknown node removal strategy: {remove_nodes}')
             
@@ -134,7 +144,7 @@ def robustness_sequence_set(n: int = 100,
                                      performance=performance)
         trial_data[trial_idx + 1] = curve_data[1]
 
-    return trial_data, percolation_threshold # type: ignore
+    return trial_data, percolation_threshold 
 
 
 def robustness_sweep(numbers_of_nodes: List[int] = [100],
@@ -181,6 +191,258 @@ def robustness_sweep(numbers_of_nodes: List[int] = [100],
                                              graph_type=graph_type,
                                              remove_nodes=strategy,
                                              performance=performance)[0]
-                    results[graph_idx][node_idx][edge_idx][strategy_idx] = np.copy(experiment_data) # type: ignore
+                    results[graph_idx][node_idx][edge_idx][strategy_idx] = np.copy(experiment_data) 
                     
-    return results # type: ignore
+    return results 
+
+
+def random_removal(G0: nx.Graph) -> np.ndarray:
+    '''Create array of sequential LCC values when removing nodes uniformly at random from a graph.
+
+    Parameters
+    ----------
+    G0 : nx.Graph
+        Graph to remove nodes from.
+
+    Returns
+    -------
+    np.ndarray
+        Sequence of the LCC values of graph G0 under sequential random node removal.
+    '''
+    
+    # make a copy of input graph
+    G = G0.copy()
+    n = G.number_of_nodes()
+    
+    data_array = np.zeros(n, dtype=float)
+    
+    for i in range(n):
+        # get LCC size
+        data_array[i] = len(max(nx.connected_components(G), key=len)) / (n - i)
+        # find a random node to remove
+        if G.number_of_nodes() != 0:
+            v = choice(list(G.nodes()))
+            G.remove_node(v)
+            
+    return data_array
+
+            
+def targeted_removal(G0: nx.Graph) -> np.ndarray:
+    '''Create array of sequential LCC values when removing the highest degree nodes from a graph.
+
+    Parameters
+    ----------
+    G0 : nx.Graph
+        Graph to remove nodes from.
+
+    Returns
+    -------
+    np.ndarray
+        Sequence of the LCC values of graph G0 under sequential degree-targeted node removal.
+    '''
+        
+    # make a copy of input graph
+    G = G0.copy()
+    n = G.number_of_nodes()
+    
+    data_array = np.zeros(n, dtype=float)
+    for i in range(n):
+        # get LCC size
+        data_array[i] = len(max(nx.connected_components(G), key=len)) / (n - i)
+        # find highest-degree node and remove it
+        if G.number_of_nodes() != 0:
+            v = sorted(G.degree, key=lambda x: x[1], reverse=True)[0][0]
+            G.remove_node(v)
+            
+    return data_array
+
+
+def read_from_adj(filename: str) -> nx.Graph:
+    '''Create graph from the adjacency list within one of Petter Holme's network files.
+
+    Parameters
+    ----------
+    filename : str
+        Name of file with network adjacency list.
+
+    Returns
+    -------
+    nx.Graph
+        Graph representation of network.
+    '''    
+    file = open(filename, "r")
+    content = file.readlines()
+
+    # convert into networkx graph
+    node_list = []
+    edge_list = [] #np.empty(len(content), dtype=object)
+    
+    if len(content) == 0:
+        G = nx.Graph()
+        return G
+    
+    edge_count = 0
+    for i in range(len(content)):
+        
+        edge = content[i].strip()
+        edge = edge.split(" ")
+        
+        if len(edge)==2:
+            
+            edge_list.append([int(edge[0]), int(edge[1])])
+            node_list.append(int(edge[0]))
+            node_list.append(int(edge[1]))
+
+    node_list = list(set(node_list))
+    
+    if 0 in node_list:
+        n = max(node_list) + 1
+        offset = 0
+    else:
+        n = max(node_list)
+        offset = min(node_list)
+    
+    # create adjacency list
+    adj = np.zeros((n, n))
+        
+    for k in range(len(edge_list)):
+        adj[int(edge_list[k][0])-offset, int(edge_list[k][1])-offset] = 1
+        adj[int(edge_list[k][1])-offset, int(edge_list[k][0])-offset] = 1
+
+    G = nx.from_numpy_array(adj)
+    file.close()
+            
+    return G
+
+
+def fullDataTable(nwks_list: Optional[List[str]] = None, 
+                  num_tries: int = 100, 
+                  max_size: int = 100, 
+                  min_counter: int = 0) -> pd.DataFrame:
+    '''Create table of percolation results values for real networks.
+
+    Parameters
+    ----------
+    nwks_list : Optional[List[str]]
+        Array of names of files with network data. If None, uses create_list_of_real_networks().
+    
+    num_tries : int, default=100
+        Number of times to sample node removals from each network.
+
+    max_size : int, default=100
+        Maximum size of network to include in table creation.
+
+    min_counter : int, default=0
+        Minimum counter value to start processing networks (for resuming interrupted runs).
+        
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe of network properties and AUC values for targeted and random node removals,
+        using sampled removals and the finite theory model.
+    '''
+
+    if nwks_list == None:
+        nwks_list = create_list_of_real_networks()
+
+    table = np.zeros((len(nwks_list),7), dtype=object)
+    
+    counter = 0
+    for i, nwpath in enumerate(nwks_list):
+        
+        # extract file name from file path
+        nwname = os.path.basename(nwpath)
+        # add name of network to table
+        table[counter,0] =  str(nwname)
+        # read graph from ".adj" file
+        print('{} {}'.format(i, nwname), end='')
+        G = read_from_adj(nwpath)
+        # set p for G(n,p) graph
+        n = G.number_of_nodes()
+        m = G.number_of_edges()
+        p = m / scipy.special.comb(n, 2)
+        print(' has (n,m) = ({}, {})'.format(n, m), end='')
+        
+        # check if network meets size limitation
+        if n > max_size:
+            print (' --- omit')
+            continue
+        elif n < 2:
+            print(' --- omit')
+            continue
+        else:
+            print(' --- compute', end='')
+
+        if counter >= min_counter:
+            t0 = time.time()
+            # add number of nodes and edges to info table
+            table[counter,1] = n
+            table[counter,2] = m
+    
+            # get data for random and targeted node removal 
+            nw_r = np.nanmean([random_removal(G) for i in range(num_tries)], axis=0)
+            nw_t = targeted_removal(G)
+            
+            # finite-theory results for random and targeted node removal
+            theory_r = relative_lcc_sequence(p, n, targeted_removal=False, reverse=True, method="pmult")
+            theory_t = relative_lcc_sequence(p, n, targeted_removal=True, reverse=True, method="pmult")
+        
+            # rel LCC arrays
+            results = [nw_r, nw_t, theory_r, theory_t]
+            for i, array in enumerate(results): 
+                # store in info table
+                table[counter,3+i] = array
+    
+            fpath = os.path.join(REAL_DATA_PATH, 'fulldata-{}.txt'.format(counter))
+            with open(fpath, 'w') as file:
+                # Write four lines to the file
+                file.write("{} {} {}\n".format(nwname, n, m))
+                file.write(' '.join(map(str, nw_r))+"\n")
+                file.write(' '.join(map(str, nw_t))+"\n")
+                file.write(' '.join(map(str, theory_r))+"\n")
+                file.write(' '.join(map(str, theory_t))+"\n")
+
+            print(' in {} s'.format(time.time()-t0))
+        
+        counter+=1
+
+    # remove empty rows from table
+    table2 = table[:counter]
+
+    # convert to data frame and name its columns
+    df = pd.DataFrame(table2)
+    df.columns = ["network", "nodes", "edges", "real rand rLCC", "real attack rLCC",
+                    "fin theory rand rLCC", "fin theory attack rLCC"]
+    
+    return df
+
+
+def create_list_of_real_networks(folder_name: str = 'pholme_networks', 
+                                  pattern: str = "*.adj") -> List[str]:
+    '''Generate a list of network files from a specified directory.
+
+    Parameters
+    ----------
+    folder_name : str, default='pholme_networks'
+        Name of the folder containing network files, relative to REPO_ROOT.
+    
+    pattern : str, default="*.adj"
+        File pattern to match when searching for network files.
+
+    Returns
+    -------
+    List[str]
+        List of full paths to network files matching the specified pattern.
+    '''
+
+    folder = os.path.join(REPO_ROOT, folder_name)
+    nwks_list = []
+
+    for path, subdirs, files in os.walk(folder):
+        for name in files:
+            if fnmatch(name, pattern):
+                nwks_list.append(os.path.join(path, name))
+            # elif fnmatch(name, pattern2):
+            #     nwks_list2.append(os.path.join(path, name)
+
+    return nwks_list

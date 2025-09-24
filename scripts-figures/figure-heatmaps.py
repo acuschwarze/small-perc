@@ -31,15 +31,11 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 # Import from local libraries
-from libs.utils import *
-from libs.visualizations import *
-from libs.robustnessSimulations import *
-from libs.performanceMeasures import *
-from libs.infiniteTheory import *
-from libs.finiteTheory import *
+from libs.utils import load_percolation_curve
+import libs.infiniteTheory as infiniteTheory
+#import libs.finiteTheory as finiteTheory
 
 # Load precomputed values
-# Load precomputed data
 fvals = pickle.load(open(os.path.join(CCACHE_PATH, 'fvalues.p'), 'rb'))
 pvals = pickle.load(open(os.path.join(CCACHE_PATH, 'Pvalues.p'), 'rb'))
 
@@ -164,7 +160,7 @@ def compute_robustness_heatmaps(
             
         for prob_idx, edge_prob in enumerate(probs_array):
             # Random attack simulations
-            random_sim_all = relSCurve_precalculated(
+            random_sim_all = load_percolation_curve(
                 num_nodes, edge_prob, targeted_removal=False, 
                 simulated=True, finite=False
             )
@@ -174,17 +170,17 @@ def compute_robustness_heatmaps(
             random_sim /= num_nodes
             
             # Random attack theoretical curves
-            random_finite = relSCurve_precalculated(
+            random_finite = load_percolation_curve(
                 num_nodes, edge_prob, targeted_removal=False,
                 simulated=False, finite=True
             )[:num_nodes]
             
-            random_infinite = infiniteTheory.relSCurve(
-                num_nodes, edge_prob, attack=False, smooth_end=False
+            random_infinite = infiniteTheory.relative_lcc_sequence(
+                num_nodes, edge_prob, targeted_attack=False, smooth_end=False
             )
             
             # Targeted attack simulations
-            targeted_sim_all = relSCurve_precalculated(
+            targeted_sim_all = load_percolation_curve(
                 num_nodes, edge_prob, targeted_removal=True,
                 simulated=True, finite=False
             )
@@ -194,13 +190,13 @@ def compute_robustness_heatmaps(
             targeted_sim /= num_nodes
             
             # Targeted attack theoretical curves
-            targeted_finite = relSCurve_precalculated(
+            targeted_finite = load_percolation_curve(
                 num_nodes, edge_prob, targeted_removal=True,
                 simulated=False, finite=True
             )[:num_nodes]
             
-            targeted_infinite = infiniteTheory.relSCurve(
-                num_nodes, edge_prob, attack=True, smooth_end=False
+            targeted_infinite = infiniteTheory.relative_lcc_sequence(
+                num_nodes, edge_prob, targeted_attack=True, smooth_end=False
             )
             
             # Calculate AUC (Area Under Curve)

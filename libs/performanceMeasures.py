@@ -127,7 +127,7 @@ def mean_communicability(graph: nx.Graph, lcc_only: bool = False) -> float:
         return 0
 
     adjacency = nx.to_numpy_array(graph)
-    exp_adjacency = np.linalg.expm(adjacency) # type: ignore
+    exp_adjacency = np.linalg.expm(adjacency) 
     
     return np.log(np.trace(exp_adjacency)) - np.log(n_nodes)
 
@@ -179,8 +179,8 @@ def reachability(graph: nx.Graph) -> float:
     
     connected_pairs = sum(1 for i, j in combinations(graph.nodes(), 2) 
                           if nx.has_path(graph, i, j))
-    
-    return connected_pairs / (2 * comb(n_nodes, 2)) # type: ignore
+    result = connected_pairs / (2 * comb(n_nodes, 2)) 
+    return float(result)
 
 
 def size_of_lcc(graph: nx.Graph) -> int:
@@ -238,10 +238,10 @@ def entropy(graph: nx.Graph) -> float:
     if graph.number_of_nodes() == 0:
         return 0
     
-    max_deg = max(dict(graph.degree).values()) # type: ignore
+    max_deg = max(dict(graph.degree).values()) 
     entropy_sum = 0
     
-    for k in range(max_deg + 1): # type: ignore
+    for k in range(max_deg + 1): 
         pk = degree_fraction(k, graph)
         if pk > 0:
             entropy_sum -= pk * np.log(pk)

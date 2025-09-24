@@ -17,8 +17,10 @@ Output figure is saved to 'repository root/figures/fig_voronoi.pdf'.
 # Import libraries
 import os, sys
 import numpy as np
+import scipy
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.cm as cm
 import matplotlib.ticker as ticker
@@ -26,7 +28,7 @@ from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
 from matplotlib.cm import ScalarMappable
 from pathlib import Path
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional
 
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
@@ -35,6 +37,10 @@ FCACHE_PATH = os.path.join(REPO_ROOT, 'cache-figures')
 CCACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
+
+# Import from local libraries
+from libs.utils import string_to_array
+from libs.robustnessSimulations import fullDataTable
 
 def polygon_area(vertices: List[Tuple[float, float]]) -> float:
     """
@@ -87,6 +93,44 @@ def add_colorbar_to_plot(mappable: ScalarMappable, use_log_scale: bool = False) 
     plt.sca(current_axes)
     return colorbar
 
+def compute_mse_data(targeted_removal=False, fname='real_networks_MSEs.csv', 
+                     resource='real_networks_data.csv'):
+
+    resource_path = os.path.join(FCACHE_PATH, resource)
+    if not os.path.exists(resource_path):
+        data = fullDataTable(num_tries=100, max_size=100, min_counter=1167)
+        data.to_csv(resource_path, sep=',', index=False, encoding='utf-8')
+
+    fullData = pd.read_csv(os.path.join(FCACHE_PATH, resource))
+    k = len(fullData)
+    mse_array = np.zeros((k,4),dtype=object)
+    
+    for i in range(k):
+        # retrieve n and p values
+        n = fullData.iloc[i][1]
+        p = fullData.iloc[i][2] / scipy.special.comb(n,2)
+
+        # retrieve simulated and finite theory data
+        if not targeted_removal:
+            sim = string_to_array(fullData.iloc[i][3], separator=" ")
+            fin = string_to_array(fullData.iloc[i][5], separator=" ")
+        else:
+            sim = string_to_array(fullData.iloc[i][4], separator=" ")
+            fin = string_to_array(fullData.iloc[i][6], separator=" ")
+
+        # calculate mean square error
+        mse = ((fin-sim)**2).mean()
+
+        mse_array[i][0] = fullData.iloc[i][0]
+        mse_array[i][1] = n
+        mse_array[i][2] = p
+        mse_array[i][3] = mse
+
+    df = pd.DataFrame(mse_array)
+    # df.columns = ["network", "n", "p", "mse"]
+    df.to_csv(os.path.join(FCACHE_PATH, fname))
+
+    
 class mse_data_bucket:
 
     def __init__(self, path: str) -> None:
@@ -100,6 +144,12 @@ class mse_data_bucket:
 
     def load(self) -> None:
         """Load data from CSV file and extract network properties."""
+        fpath = os.path.join(FCACHE_PATH, self.sourcefile)
+        if not os.path.exists(fpath):
+            targeted_removal = ('targeted' in self.sourcefile)
+            compute_mse_data(targeted_removal=targeted_removal, 
+                             fname=self.sourcefile)
+
         self.data = pd.read_csv(self.sourcefile)
         self.num_networks = len(self.data)
         self.network_sizes = np.zeros(self.num_networks)
@@ -309,8 +359,10 @@ if __name__ == "__main__":
         #plt.subplots_adjust(wspace=0.1, left=0.06, right=0.97)
 
     # make voronoi plots
-    data_paths: List[str] = ["MSEdata3D2.csv", "MSEdata3D2targeted.csv"]
+    # data_paths = ["MSEdata3D2.csv", "MSEdata3D2targeted.csv"]
+    data_paths = ["real_network_mses_random.csv", "real_network_mses_targeted.csv"]
     filtered_data_sets: List[mse_data_bucket] = []
+
     for i, data_path in enumerate(data_paths):
 
         mse_data = mse_data_bucket(data_path)

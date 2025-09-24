@@ -11,9 +11,9 @@
 #     --nmax(-N): Maximum network size (default=500)
 #     --dn(-dn): Step size for network size (default=1)
 #     --ffile (-ff):  Path to f file without file extension 
-#        (default='data/fvalues')
+#        (default='cache-combinatorics/fvalues')
 #     --pfile (-pf):  Path to P file without file extension
-#        (default='data/Pvalues')
+#        (default='cache-combinatorics/Pvalues')
 #     --overwritevalue (-ov): If True, overwrite existing data values.
 #        CAREFUL! THIS MAY REMOVE ALL SAVED DATA! (default=False)
 #     --compute-f (-cf): If True, update existing f data. (default=False)
@@ -33,8 +33,8 @@ import argparse
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
 sys.path.insert(0, REPO_ROOT)
-from libs.finiteTheory import compute_connectivity_probability
-from libs.finiteTheory import compute_largest_component_probability
+from libs.finiteTheory import connectedness_probability
+from libs.finiteTheory import lcc_probability
 
 if __name__ == "__main__":
     # this code is only executed when the script is run rather than imported
@@ -132,8 +132,8 @@ if __name__ == "__main__":
 
                     if compute == True:
                         # calculate f value
-                        fval = compute_connectivity_probability(p, i, n, 
-                                                                cache=fvalues)
+                        fval = connectedness_probability(p, i, n, 
+                                cache=fvalues)
 
                         # add f value to dictionary
                         fvalues[p][n][i] = fval
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
                     if compute == True:
                         # calculate f value
-                        Pval = compute_largest_component_probability(p, i, n, 
+                        Pval = lcc_probability(p, i, n, 
                                 connectivity_cache=fvalues, 
                                 probability_cache=pvalues)
 

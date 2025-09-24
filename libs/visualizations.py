@@ -116,7 +116,7 @@ def plot_graphs(
     
     # Select colors for plotting
     num_lines = len(numbers_of_nodes) * len(edge_probabilities)
-    colors = plt.cm.jet(np.linspace(0, 1, num_lines)) # type: ignore
+    colors = plt.cm.jet(np.linspace(0, 1, num_lines)) 
 
     # Plot performance as function of the number of nodes removed
     subplot_index = 0
@@ -150,13 +150,13 @@ def plot_graphs(
                             label=f"n={node_count}, p={edge_prob}"
                         )
 
+                    is_attack = bool(remove_strategy == 'attack')
                     if performance == 'relative LCC':
-                        is_attack = (remove_strategy == 'attack')
 
                         # Get and plot finite theory data
                         finite_rel_s = finiteTheory.relative_lcc_sequence( 
                             edge_prob, node_count,
-                            targeted_attack=is_attack,
+                            targeted_removal=is_attack,
                             connectivity_cache=fdict,
                             probability_cache=pdict,
                             method=lcc_method_main,
@@ -173,7 +173,7 @@ def plot_graphs(
                         # Get and plot infinite theory data
                         infinite_rel_s = infiniteTheory.relative_lcc_sequence( 
                             node_count, edge_prob,
-                            targeted_attack=is_attack,
+                            targeted_removal=is_attack,
                             smooth_end=smooth_end
                         )
                         subplot.plot(
@@ -186,8 +186,8 @@ def plot_graphs(
                     elif performance == "average small component size":
                         # Get and plot infinite theory data for small components
                         infinite_rel_s = infiniteTheory.small_components_sequence(
-                            edge_prob, node_count,
-                            targeted_attack=is_attack, 
+                            node_count, edge_prob, 
+                            targeted_removal=is_attack, 
                             smooth_end=smooth_end 
                         )
                         subplot.plot(

@@ -1,48 +1,49 @@
 # conduct a 2d parameter sweep for n and p of the expected LCC size under node removal
 # expected LCC size is computed using the finite theory
+# Input: float p (edge probability)
+# Input files: fvalues.p, Pvalues.p under `repository-root/data-synthetic/` (optional)
+# Output files: Finite theory results stored in 100 files (each corresponding to a 
+# different value of the network size parameter n) under 
+# `repository-root/data/synthetic/` as `
+# relSCurve{num_trials}_attack{bool}_n{n}_p{p:.2f}.npy`
 
-import sys, pickle, time, os
-sys.path.insert(0, "C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\libs")
-
+# Import libraries
+import sys, time, os
 import numpy as np
+from pathlib import Path
 
-from scipy.special import comb
-from scipy.integrate import simpson
-from scipy.signal import argrelextrema
-from random import choice
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+CACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
+SYNTH_PATH = os.path.join(REPO_ROOT, 'data-synthetic')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
-from libs.utils import *
-from libs.finiteTheory import *
-#from visualizations import *
-#from libs.utils import *
-#from robustnessSimulations import *
-#from performanceMeasures import *
-#from infiniteTheory import *
-#from finiteTheory import *
+# Import from local libraries
+from libs.utils import load_recursion_cache
+from libs.finiteTheory import relative_lcc_sequence
 
-fvals = {} #pickle.load(open('data/fvalues.p', 'rb'))
-pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
+# use cached values or recalculate (toggle as needed)
+#fvals, pvals = {}, {} 
+fvals, pvals = load_recursion_cache(CACHE_PATH)
 
 # get p from command line
 p = float(sys.argv[1])
-attack = True
+attack = True # toggle as needed
 
-path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'heatmaps', 'p{:.2f}'.format(p))
-if not os.path.exists(path):
-    os.mkdir(path)
-
+# Start calculating data
 for i in range(0,100,1):
 
     t0 = time.time()
     n = i+1
-    name = 'relSCurve_attack{}_n{}_p{:.2f}'.format(attack,n,p)
+    fname = 'relSCurve_attack{}_n{}_p{:.2f}'.format(attack,n,p)
 
     print ('Number of nodes:', n)
 
-    fin_curve = relSCurve(p, n,
-        attack=attack, fdict=fvals, pdict=pvals,
-        lcc_method_relS="pmult", executable_path="C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\libs\\p-recursion.exe")
+    fin_curve = relative_lcc_sequence(p, n, targeted_removal=attack, 
+        connectivity_cache=fvals, probability_cache=pvals,
+        method="pmult", executable_name='p-recursion.exe')
 
-    np.save(os.path.join(path,'{}.npy'.format(name)), fin_curve)
-
-    print (os.path.join(path,'{}.npy'.format(name)), 'saved after', time.time()-t0)
+    fpath = os.path.join(SYNTH_PATH, f'{fname}.npy')
+    np.save(fpath, fin_curve)
+    print (fpath, 'saved after', time.time()-t0)

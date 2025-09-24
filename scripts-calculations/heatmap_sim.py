@@ -1,53 +1,46 @@
-import sys, pickle, time, os
-sys.path.insert(0, "C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\libs")
+# Generate synthetic percolation data for random networks
+# Input: float p (edge probability)
+# Output files: Simulation data stored in 100 files (each corresponding to a 
+# different value of the network size parameter n) under 
+# `repository-root/data/synthetic/` as `
+# simRelSCurve{num_trials}_attack{bool}_n{n}_p{p:.2f}.npy`
 
+# Import libraries
+import sys, time, os
 import numpy as np
+from pathlib import Path
 
-from scipy.special import comb
-from scipy.integrate import simpson
-from scipy.signal import argrelextrema
-from random import choice
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+SYNTH_PATH = os.path.join(REPO_ROOT, 'data-synthetic')
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
-from libs.utils import *
-# from libs.finiteTheory import *
-#from visualizations import *
-#from libs.utils import *
-from libs.robustnessSimulations import *
-#from performanceMeasures import *
-#from infiniteTheory import *
-#from finiteTheory import *
+# Import from local libraries
+from libs.robustnessSimulations import robustness_sweep
 
-fvals = {} #pickle.load(open('data/fvalues.p', 'rb'))
-pvals = {} #pickle.load(open('data/Pvalues.p', 'rb'))
 
 # get p from command line
 p = float(sys.argv[1])
-attack = True
+
+# set other parameters
+attack = True # toggle as needed
 num_trials = 1000
 
-if attack:
-    remove_strategies = ['attack']
-else:
-    remove_strategies = ['random']
-
-path = os.path.join('C:\\Users\\f00689q\\My Drive\\jupyter\\small-perc\\data', 'synthetic_data', 'p{:.2f}'.format(p))
-if not os.path.exists(path):
-    os.mkdir(path)
-
+# start data generation
+remove_strategies = [('attack' if attack else 'random')]
 for i in range(0,100,1):
 
     t0 = time.time()
     n = i+1
-    name = 'simRelSCurve{}_attack{}_n{}_p{:.2f}'.format(num_trials,attack,n,p)
+    fname = 'simRelSCurve{}_attack{}_n{}_p{:.2f}'.format(num_trials,attack,n,p)
 
-    print ('Number of nodes:', n)
-    data = completeRCData(numbers_of_nodes=[n], edge_probabilities=[p],
+    print ('Compute data for number of nodes:', n)
+    data = robustness_sweep(numbers_of_nodes=[n], edge_probabilities=[p],
         num_trials=num_trials, performance='relative LCC',
         graph_types=['ER'], remove_strategies=remove_strategies)[0][0][0][0][1:]
-    #data = 
-    #print('data', np.array(data).shape)
-
-    np.save(os.path.join(path,'{}.npy'.format(name)), data)
-
-    print (os.path.join(path,'{}.npy'.format(name)), 'saved after', time.time()-t0)
+    
+    fpath = os.path.join(SYNTH_PATH, f'{fname}.npy')
+    np.save(fpath, data)
+    print (fpath, 'saved after', time.time()-t0)
     

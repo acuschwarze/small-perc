@@ -21,8 +21,7 @@ import os, sys
 import numpy as np
 from pathlib import Path
 from scipy.special import comb
-from typing import Dict, List, Tuple, Optional
-import subprocess
+from typing import Dict, List, Tuple
 
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
@@ -31,27 +30,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 # Import from local libraries
-from libs.utils import edge_probability_after_attack
-
-
-def execute_subprocess(executable_path: List[str]) -> Optional[str]:
-    """Execute an external program and return its output.
-    
-    Parameters
-    ----------
-    executable_path : List[str]
-        Path to executable and its arguments
-        
-    Returns
-    -------
-    Optional[str]
-        Output from the executable or None if error
-    """
-    try:
-        result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
-        return result.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
+from libs.utils import execute_subprocess, edge_probability_after_attack
 
 
 def connectedness_probability_raw(edge_prob: float, subgraph_size: int, 
@@ -81,7 +60,7 @@ def connectedness_probability_raw(edge_prob: float, subgraph_size: int,
                  comb(subgraph_size - 1, k - 1) * 
                  (1 - edge_prob) ** (k * (subgraph_size - k)))
     
-    return 1 - total # type: ignore
+    return float(1 - total)
 
 
 def connectedness_probability(edge_prob: float, subgraph_size: int, 
@@ -119,7 +98,7 @@ def connectedness_probability(edge_prob: float, subgraph_size: int,
                  comb(subgraph_size - 1, k - 1) * 
                  (1 - edge_prob) ** (k * (subgraph_size - k)))
     
-    return 1 - total # type: ignore
+    return float(1 - total)
 
 
 def isolation_probability(edge_prob: float, subgraph_size: int, 
@@ -164,7 +143,8 @@ def lcc_probability_raw(edge_prob: float, component_size: int,
     if component_size == 1 and network_size == 1:
         return 1.0
     elif component_size == 1 and network_size != 1:
-        return (1 - edge_prob) ** comb(network_size, 2) # type: ignore
+        output = (1 - edge_prob) ** comb(network_size, 2) 
+        return float(output)
     
     total = 0.0
     for j in range(0, component_size + 1):
@@ -172,10 +152,12 @@ def lcc_probability_raw(edge_prob: float, component_size: int,
         total += weight * lcc_probability_raw(edge_prob, j, 
                                                                     network_size - component_size)
     
-    return (comb(network_size, component_size) * 
+    output = (comb(network_size, component_size) * 
             connectedness_probability_raw(edge_prob, component_size, network_size) * 
             isolation_probability(edge_prob, component_size, network_size) * 
-            total) # type: ignore
+            total) 
+
+    return float(output)
 
 
 def lcc_probability(edge_prob: float, component_size: int, 
@@ -210,7 +192,8 @@ def lcc_probability(edge_prob: float, component_size: int,
     if component_size == 1 and network_size == 1:
         return 1.0
     elif component_size == 1 and network_size != 1:
-        return (1 - edge_prob) ** comb(network_size, 2) # type: ignore
+        output = (1 - edge_prob) ** comb(network_size, 2) 
+        return float(output)
     
     total = 0.0
     for j in range(1, component_size + 1):
@@ -219,12 +202,14 @@ def lcc_probability(edge_prob: float, component_size: int,
                                                                network_size - component_size,
                                                                connectivity_cache, 
                                                                probability_cache)
-    
-    return (comb(network_size, component_size) * 
+        
+    output = (comb(network_size, component_size) * 
             connectedness_probability(edge_prob, component_size, network_size, 
                                            connectivity_cache) *
             isolation_probability(edge_prob, component_size, network_size) * 
-            total) # type: ignore
+            total)
+    
+    return float(output)
 
 
 def lcc_probability_external(
@@ -280,10 +265,9 @@ def expected_lcc_size_raw(edge_prob: float,
 
 
 def expected_lcc_size(edge_prob: float, network_size: int,
-                                           connectivity_cache: Dict = {},
-                                           probability_cache: Dict = {},
-                                           method: str = "internal",
-                                           executable_name: str = "p-recursion.exe") -> float:
+    connectivity_cache: Dict = {}, probability_cache: Dict = {},
+    method: str = "internal",
+    executable_name: str = "p-recursion.exe") -> float:
     """Calculate expected largest component size.
     
     Parameters
@@ -322,7 +306,7 @@ def expected_lcc_size(edge_prob: float, network_size: int,
 
 
 def lcc_sequence(edge_prob: float, network_size: int,
-                             targeted_attack: bool = False,
+                             targeted_removal: bool = False,
                              reverse: bool = False,
                              connectivity_cache: Dict = {},
                              probability_cache: Dict = {},
@@ -336,7 +320,7 @@ def lcc_sequence(edge_prob: float, network_size: int,
         Initial edge probability
     network_size : int
         Initial network size
-    targeted_attack : bool
+    targeted_removal : bool
         If True, remove nodes by degree; if False, remove randomly
     reverse : bool
         If True, return sizes in reverse order
@@ -362,7 +346,7 @@ def lcc_sequence(edge_prob: float, network_size: int,
             current_prob, i + 1, connectivity_cache, probability_cache, 
             method, executable_name)
         
-        if targeted_attack:
+        if targeted_removal:
             current_prob = edge_probability_after_attack(i + 1, current_prob)
     
     if reverse:
@@ -372,7 +356,7 @@ def lcc_sequence(edge_prob: float, network_size: int,
 
 
 def relative_lcc_sequence(edge_prob: float, network_size: int,
-                                      targeted_attack: bool = False,
+                                      targeted_removal: bool = False,
                                       reverse: bool = True,
                                       connectivity_cache: Dict = {},
                                       probability_cache: Dict = {},
@@ -386,7 +370,7 @@ def relative_lcc_sequence(edge_prob: float, network_size: int,
         Initial edge probability
     network_size : int
         Initial network size
-    targeted_attack : bool
+    targeted_removal : bool
         If True, remove nodes by degree; if False, remove randomly
     reverse : bool
         If True, return sizes in reverse order
@@ -410,18 +394,16 @@ def relative_lcc_sequence(edge_prob: float, network_size: int,
         network_sizes = network_sizes[::-1]
     
     absolute_sizes = lcc_sequence(
-        edge_prob, network_size, targeted_attack, reverse,
+        edge_prob, network_size, targeted_removal, reverse,
         connectivity_cache, probability_cache, method, executable_name)
     
     return absolute_sizes / network_sizes
 
 
 def relative_lcc_points(edge_prob: float = 0.1,
-                              network_sizes: List[int] = [20, 50, 100],
-                              targeted_attack: bool = False,
-                              reverse: bool = False,
-                              connectivity_cache: Dict = {},
-                              probability_cache: Dict = {}) -> Tuple[np.ndarray, np.ndarray]:
+    network_sizes: List[int] = [20, 50, 100],
+    connectivity_cache: Dict = {},
+    probability_cache: Dict = {}) -> Tuple[np.ndarray, np.ndarray]:
     """Calculate expected largest component sizes for specific network sizes.
     
     Parameters
@@ -430,7 +412,7 @@ def relative_lcc_points(edge_prob: float = 0.1,
         Edge probability
     network_sizes : List[int]
         List of network sizes to evaluate
-    targeted_attack : bool
+    targeted_removal : bool
         If True, use targeted attack
     reverse : bool
         If True, reverse order

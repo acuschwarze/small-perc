@@ -21,11 +21,13 @@ import matplotlib.colors as mcolors
 
 # Add the parent directory to the path to import local libraries
 REPO_ROOT = str(Path(__file__).parent.parent)
+CCACHE_PATH = os.path.join(REPO_ROOT, 'cache-combinatorics')
+CPP_PATH = os.path.join(REPO_ROOT, 'cpp')
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 # Import from local libraries
-from libs.utils import edge_probability_after_attack
+from libs.utils import execute_subprocess, edge_probability_after_attack
 
 
 def expected_minimum_binomial(m: int, n: int, p: float) -> float:
@@ -44,6 +46,44 @@ def expected_minimum_binomial(m: int, n: int, p: float) -> float:
     expected_value_y = np.sum([k * prob_y_eq_k[k] for k in range(n+1)])
     
     return expected_value_y
+
+
+def exact_degree_distribution(n,p):
+    n0=8
+    p0=0.5
+    tab10 = list(mcolors.TABLEAU_COLORS.values())
+
+    file = open(r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0), 'r')
+    distributions = []
+    for line in file:
+        numbers = [float(val) for val in line.split()]
+        distributions += [np.array(numbers)]  
+
+    p2 = p0
+    p_values = np.zeros((2,n0))
+    distributions_for_plots=np.zeros((3,n0), dtype=object)
+
+    for i in range(len(distributions)):
+        n = n0 - i
+        # exact distribution
+        distributions_for_plots[0,i] = distributions[i]/n
+
+        # comparable binomial
+        mean_k = np.sum(distributions[i]/n*np.arange(len(distributions[i])))   
+        p = mean_k*n/2/binom(n,2)
+        binomial_probs = binomialDistribution.pmf(np.arange(0, n), n-1, p)
+        distributions_for_plots[1,i] = binomial_probs
+
+        # comparable binomial with estimated kmax
+        binomial_probs = binomialDistribution.pmf(np.arange(0, n), n-1, p2)
+        distributions_for_plots[2,i] = binomial_probs
+        
+        # save results
+        p_values[0,i] = p
+        p_values[1,i] = p2
+
+        # calculate p' for next step
+        p2 = edgeProbabilityAfterTargetedAttack(n, p2)
 
 
 def plot_binomial_with_truncated_shifted(
@@ -127,13 +167,25 @@ def plot_binomial_with_truncated_shifted(
     return max_degrees
 
 
-n0=8
+n0=4
 p0=0.5
 tab10 = list(mcolors.TABLEAU_COLORS.values())
 
-# TODO: If the file below does not exist, create it using max-degree.exe
-file_path = os.path.join(REPO_ROOT, 'combinatorics_cache', 
-    r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0))
+fname = r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0)
+file_path = os.path.join(CCACHE_PATH, fname)
+if not os.path.exists(file_path):
+    print(f'''No cached data found under {fname}. Compute exact degree distribution 
+          for n={n0} and p={p0:.2f}. This may take some time ...''')
+    p_current = p0
+    for 
+    exact_distribution = execute_subprocess([os.path.join(CPP_PATH, 'max-degree.exe'), 
+                                             str(n0), str(p0)])
+    print(f'exact distribution for n={n0}, p={p0}')
+    print(type(exact_distribution))
+    print(exact_distribution)
+    #TODO: Save exact distribution to file
+
+
 file = open(file_path, 'r')
 distributions = []
 for line in file:
@@ -255,4 +307,5 @@ for ri in range(2):
         if data_index==3:
             plt.legend(labelspacing = 0.05, borderpad=0.3)
 
-plt.savefig(os.path.join(REPO_ROOT, 'figures', 'fig_approximation.pdf'))
+plt.show()
+#plt.savefig(os.path.join(REPO_ROOT, 'figures', 'fig_approximation.pdf'))
