@@ -4,15 +4,8 @@
 #include <algorithm>
 #include <chrono>
 #include <numeric>
-#include <fstream>
-#include <string>
-#include <iomanip>  // For setting precision
-#include <sstream>  // For converting double to string
-#include <sys/stat.h>
-#include <sys/types.h>
-
-
-// TODO: add more node removals and return degree distributions in a useful format
+#include <iomanip>
+#include <sstream>
 
 // Function to calculate the degree sequence of a graph
 std::vector<int> calculate_degree_sequence(int n, const std::vector<int>& graph) {
@@ -27,38 +20,15 @@ std::vector<int> calculate_degree_sequence(int n, const std::vector<int>& graph)
             }
         }
     }
-
-    // std::cout << "ds ";
-    // for (double value : degree) {
-    //    std::cout << value << " ";
-    // }
-    // std::cout << std::endl;
-
     return degree;
 }
 
 // Function to calculate the degree distribution of a graph
 std::vector<int> calculate_degree_distribution(int n, const std::vector<int>& degree) {
-
-    // Calculate the degree distribution (number of nodes for each degree)
     std::vector<int> degree_distribution(n, 0.0);
     for (int d : degree) {
         degree_distribution[d]++;
     }
-
-    // std::cout << "dd ";
-    // for (double value : degree_distribution) {
-    //    std::cout << value << " ";
-    // }
-    // std::cout << std::endl;
-
-    // double sum = std::accumulate(degree_distribution.begin(), degree_distribution.end(), 0.0);
-
-    // Step 2: Divide each element by the sum
-    // for (int& element : degree_distribution) {
-    //    element /= sum;
-    // }
-
     return degree_distribution;
 }
 
@@ -70,20 +40,17 @@ std::vector<int> remove_highest_degree_vertex(int n, const std::vector<int>& deg
     int index = 0;
     for (int i = 0; i < n; ++i) {
         for (int j = i + 1; j < n; ++j) {
-            // Skip all edges connected to the vertex with the highest degree
             if (i != max_degree_index && j != max_degree_index) {
                 new_graph.push_back(graph[index]);
             }
             index++;
         }
     }
-
     return new_graph;
 }
 
 // Function to generate the lists of doubles
 std::vector<std::vector<double>> calculate_expected_distributions(int n, double p) {
-
     int total_edges = n * (n - 1) / 2;
     int num_graphs = 1 << total_edges; // 2^(n*(n-1)/2) graphs
     double sum_probabilities = 0.0;
@@ -100,7 +67,6 @@ std::vector<std::vector<double>> calculate_expected_distributions(int n, double 
     }
 
     for (int i = 0; i < num_graphs; ++i) {
-
         std::vector<int> graph(total_edges);
         std::vector<std::vector<int>> subgraphs;
 
@@ -115,7 +81,6 @@ std::vector<std::vector<double>> calculate_expected_distributions(int n, double 
         sum_probabilities += probability;
 
         for (int k = 0; k < n-1; k++) {
-
             std::vector<int> current_degree_sequence = 
                 calculate_degree_sequence(n-k, subgraphs[k]);
             std::vector<int> current_degree_distribution = 
@@ -126,79 +91,41 @@ std::vector<std::vector<double>> calculate_expected_distributions(int n, double 
             }
             subgraphs.push_back(remove_highest_degree_vertex(n, current_degree_sequence, subgraphs[k]));
         }
-
     }
 
     return expected_degree_distributions;
 }
 
-// Function to write lists to a file
-void write_to_file(int n, double p, const std::vector<std::vector<double>>& lists) {
-    // Create the output filename
-    std::ostringstream filename;
-
-        filename << "exact_degree_distributions_n" << n << "_p" << std::fixed << std::setprecision(2) << p << ".txt";
-
-    // Open the output file
-    std::cout << "Results will be saved to " << filename.str() << std::endl;
-    std::ofstream output_file(filename.str());
-
-    if (!output_file.is_open()) {
-        std::cerr << "Failed to open the file: " << filename.str() << std::endl;
-        return;
-    }
-
-    // Write each list to the file
+// Function to write lists to console output
+void write_to_console(const std::vector<std::vector<double>>& lists) {
+    // Write each list to console
     for (const auto& list : lists) {
         for (size_t i = 0; i < list.size(); ++i) {
-            output_file << std::fixed << std::setprecision(6) << list[i];
+            std::cout << std::fixed << std::setprecision(6) << list[i];
             if (i != list.size() - 1) {
-                output_file << " ";
+                std::cout << " ";
             }
         }
-        output_file << std::endl;
+        std::cout << std::endl;
     }
-
-    output_file.close();
 }
 
-
 int main(int argc, char* argv[]) {
-
-    // Record start time
-    auto start = std::chrono::high_resolution_clock::now();
-
+    // Default values
     int n = 6;
     double p = 0.2;
 
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <n> <p>" << std::endl;
-        // return 1;
-    }
-    else {
+    // Parse command line arguments if provided
+    if (argc == 3) {
         n = std::stoi(argv[1]);
         p = std::stod(argv[2]);
     }
 
-    // Call the function you want to time
-    // distribution_after_node_removal();
-
     // Generate the lists of doubles
     std::vector<std::vector<double>> distributions = calculate_expected_distributions(n, p);
 
-    // Write the lists to the file
-    write_to_file(n, p, distributions);
-
-    std::cout << "Data written to file successfully." << std::endl;
-
-    // Record end time
-    auto end = std::chrono::high_resolution_clock::now();
-
-    // Calculate the duration
-    std::chrono::duration<double> duration = end - start;
-
-    // Output the time taken
-    std::cout << "Time taken by function: " << duration.count() << " seconds" << std::endl;
+    // Write the lists to console
+    write_to_console(distributions);
 
     return 0;
 }

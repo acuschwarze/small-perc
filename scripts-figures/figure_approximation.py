@@ -83,7 +83,7 @@ def exact_degree_distribution(n,p):
         p_values[1,i] = p2
 
         # calculate p' for next step
-        p2 = edgeProbabilityAfterTargetedAttack(n, p2)
+        p2 = edge_probability_after_attack(n, p2)
 
 
 def plot_binomial_with_truncated_shifted(
@@ -167,21 +167,22 @@ def plot_binomial_with_truncated_shifted(
     return max_degrees
 
 
-n0=4
+n0=8
 p0=0.5
 tab10 = list(mcolors.TABLEAU_COLORS.values())
 
 fname = r'exact_degree_distributions_n{}_p{:.2f}.txt'.format(n0,p0)
 file_path = os.path.join(CCACHE_PATH, fname)
+
 if not os.path.exists(file_path):
     print(f'''No cached data found under {fname}. Compute exact degree distribution 
           for n={n0} and p={p0:.2f}. This may take some time ...''')
-    exact_distributions = execute_subprocess([os.path.join(CPP_PATH, 'exact_distributions.exe'), 
-                                              str(n0), str(p0)])
-    print(f'exact distributions for n={n0}, p={p0}')
-    print(type(exact_distributions))
-    print(exact_distributions)
-    #TODO: Save exact distribution to file
+    executable_path = os.path.join(CPP_PATH, 'exact-distributions_v3.exe')
+    exact_distributions = execute_subprocess([os.path.join(CPP_PATH, executable_path), 
+                                              str(n0), str(p0)], return_error=True)
+    file = open(file_path, 'w')
+    file.write(exact_distributions)
+    file.close()
 
 
 file = open(file_path, 'r')

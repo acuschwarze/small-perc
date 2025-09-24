@@ -26,7 +26,7 @@ from typing import List, Optional, Tuple
 import subprocess
 
 
-def execute_subprocess(executable_path: List[str]) -> Optional[str]:
+def execute_subprocess(executable_path: List[str], return_error=False) -> Optional[str]:
     """Execute an external program and return its output.
     
     Parameters
@@ -43,7 +43,11 @@ def execute_subprocess(executable_path: List[str]) -> Optional[str]:
         result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
+        result = subprocess.run(executable_path, capture_output=True, text=True, check=True)
+        if return_error:
+            return result.stdout.strip()
+        else:
+            return None
     
 
 def load_recursion_cache(path: str, connectivity_cache_name: str='fvalues.p', 
