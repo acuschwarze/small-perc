@@ -310,7 +310,7 @@ def lcc_sequence(edge_prob: float, network_size: int,
                              reverse: bool = False,
                              connectivity_cache: Dict = {},
                              probability_cache: Dict = {},
-                             method: str = "internal",
+                             method: str = "external",
                              executable_name: str = "p-recursion.exe") -> np.ndarray:
     """Calculate expected largest component sizes under sequential node removal.
     

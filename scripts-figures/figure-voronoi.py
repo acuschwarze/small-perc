@@ -94,11 +94,11 @@ def add_colorbar_to_plot(mappable: ScalarMappable, use_log_scale: bool = False) 
     return colorbar
 
 def compute_mse_data(targeted_removal=False, fname='real_networks_MSEs.csv', 
-                     resource='real_networks_data.csv'):
+                     resource='real_networks_data.csv', recompute=False):
 
     resource_path = os.path.join(FCACHE_PATH, resource)
     if not os.path.exists(resource_path):
-        data = fullDataTable(num_tries=100, max_size=100, min_counter=1167)
+        data = fullDataTable(num_tries=100, max_size=100, recompute=recompute)
         data.to_csv(resource_path, sep=',', index=False, encoding='utf-8')
 
     fullData = pd.read_csv(os.path.join(FCACHE_PATH, resource))
@@ -107,21 +107,22 @@ def compute_mse_data(targeted_removal=False, fname='real_networks_MSEs.csv',
     
     for i in range(k):
         # retrieve n and p values
-        n = fullData.iloc[i][1]
-        p = fullData.iloc[i][2] / scipy.special.comb(n,2)
+        n = fullData.iloc[i]['nodes']
+        p = fullData.iloc[i]['edges'] / scipy.special.comb(n,2)
 
         # retrieve simulated and finite theory data
+        print('fullData.iloc[i]', fullData.iloc[i])
         if not targeted_removal:
-            sim = string_to_array(fullData.iloc[i][3], separator=" ")
-            fin = string_to_array(fullData.iloc[i][5], separator=" ")
+            sim = string_to_array(fullData.iloc[i]["real attack rLCC"], separator=" ")
+            fin = string_to_array(fullData.iloc[i]["fin theory rand rLCC"], separator=" ")
         else:
-            sim = string_to_array(fullData.iloc[i][4], separator=" ")
-            fin = string_to_array(fullData.iloc[i][6], separator=" ")
+            sim = string_to_array(fullData.iloc[i]["real rand rLCC"], separator=" ")
+            fin = string_to_array(fullData.iloc[i]["fin theory attack rLCC"], separator=" ")
 
         # calculate mean square error
         mse = ((fin-sim)**2).mean()
 
-        mse_array[i][0] = fullData.iloc[i][0]
+        mse_array[i][0] = fullData.iloc[i]['network']
         mse_array[i][1] = n
         mse_array[i][2] = p
         mse_array[i][3] = mse
@@ -150,7 +151,7 @@ class mse_data_bucket:
             compute_mse_data(targeted_removal=targeted_removal, 
                              fname=self.sourcefile)
 
-        self.data = pd.read_csv(self.sourcefile)
+        self.data = pd.read_csv(fpath)
         self.num_networks = len(self.data)
         self.network_sizes = np.zeros(self.num_networks)
         self.edge_probabilities = np.zeros(self.num_networks)

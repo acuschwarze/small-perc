@@ -121,7 +121,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         # Plot infinite theory curve
         infinite_theory_curve = infiniteTheory.relative_lcc_sequence(
             fixed_network_size, edge_prob, 
-            targeted_attack=USE_TARGETED_REMOVAL,
+            targeted_removal=USE_TARGETED_REMOVAL,
             smooth_end=False
         )
         axes[0].plot(node_fractions, infinite_theory_curve, color=PLOT_COLORS[prob_idx])
@@ -176,9 +176,9 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         if network_size > 100:
             finite_theory_curve = finiteTheory.relative_lcc_sequence(
                 edge_prob, network_size, 
-                targeted_attack=USE_TARGETED_REMOVAL, 
+                targeted_removal=USE_TARGETED_REMOVAL, 
                 connectivity_cache=fvals, probability_cache=pvals, 
-                method="pmult",
+                method="external",
                 executable_name='p-recursion-float128.exe'
             )
         else:
@@ -194,7 +194,7 @@ for REMOVAL_STRATEGY in ['attack', 'random']:
         if size_idx == len(NETWORK_SIZES) - 1:
             infinite_theory_curve = infiniteTheory.relative_lcc_sequence(
                 network_size, edge_prob, 
-                targeted_attack=USE_TARGETED_REMOVAL,
+                targeted_removal=USE_TARGETED_REMOVAL,
                 smooth_end=False
             )
             axes[1].plot(node_fractions, infinite_theory_curve, color="black", label=r"$S_{\infty}$")

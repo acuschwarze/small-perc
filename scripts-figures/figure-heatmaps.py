@@ -176,7 +176,7 @@ def compute_robustness_heatmaps(
             )[:num_nodes]
             
             random_infinite = infiniteTheory.relative_lcc_sequence(
-                num_nodes, edge_prob, targeted_attack=False, smooth_end=False
+                num_nodes, edge_prob, targeted_removal=False, smooth_end=False
             )
             
             # Targeted attack simulations
@@ -196,7 +196,7 @@ def compute_robustness_heatmaps(
             )[:num_nodes]
             
             targeted_infinite = infiniteTheory.relative_lcc_sequence(
-                num_nodes, edge_prob, targeted_attack=True, smooth_end=False
+                num_nodes, edge_prob, targeted_removal=True, smooth_end=False
             )
             
             # Calculate AUC (Area Under Curve)

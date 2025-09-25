@@ -22,7 +22,6 @@ import pandas as pd
 import networkx as nx
 from typing import Tuple, List, Optional, Union
 from random import choice
-from utils import sample_network
 from fnmatch import fnmatch
 
 # Add the parent directory to the path to import local libraries
@@ -34,6 +33,7 @@ if REPO_ROOT not in sys.path:
 # Import from local libraries
 from libs.performanceMeasures import *
 from libs.finiteTheory import relative_lcc_sequence
+from libs.utils import sample_network
 
 
 def robustness_sequence(graph: nx.Graph, 
@@ -132,17 +132,20 @@ def robustness_sequence_set(n: int = 100,
     '''
     trial_data = np.zeros((num_trials + 1, n), dtype=float)
     trial_data[0] = np.arange(n)
+    percolation_threshold = 0
 
     for trial_idx in range(num_trials):
         sample_graph = sample_network(n, p, graph_type=graph_type)
         avg_degree = average_degree(sample_graph)
         
-        percolation_threshold = 0 if avg_degree == 0 else 1 / avg_degree
+        percolation_threshold += 0 if avg_degree == 0 else 1 / avg_degree
 
         curve_data = robustness_sequence(sample_graph, 
                                      remove_nodes=remove_nodes,
                                      performance=performance)
         trial_data[trial_idx + 1] = curve_data[1]
+
+    percolation_threshold /= num_trials
 
     return trial_data, percolation_threshold 
 
@@ -318,7 +321,8 @@ def read_from_adj(filename: str) -> nx.Graph:
 def fullDataTable(nwks_list: Optional[List[str]] = None, 
                   num_tries: int = 100, 
                   max_size: int = 100, 
-                  min_counter: int = 0) -> pd.DataFrame:
+                  min_counter: int = 0,
+                  recompute=False) -> pd.DataFrame:
     '''Create table of percolation results values for real networks.
 
     Parameters
@@ -348,62 +352,83 @@ def fullDataTable(nwks_list: Optional[List[str]] = None,
     table = np.zeros((len(nwks_list),7), dtype=object)
     
     counter = 0
+    nw_r = np.array([])
+    nw_t = np.array([])
+    theory_r = np.array([])
+    theory_t = np.array([])
     for i, nwpath in enumerate(nwks_list):
         
         # extract file name from file path
-        nwname = os.path.basename(nwpath)
+        nwfile = os.path.basename(nwpath)
+        nwname = nwfile.split('.')[0]
+        print(f'{i}({counter}): {nwfile}', end='')
         # add name of network to table
-        table[counter,0] =  str(nwname)
-        # read graph from ".adj" file
-        print('{} {}'.format(i, nwname), end='')
-        G = read_from_adj(nwpath)
-        # set p for G(n,p) graph
-        n = G.number_of_nodes()
-        m = G.number_of_edges()
-        p = m / scipy.special.comb(n, 2)
-        print(' has (n,m) = ({}, {})'.format(n, m), end='')
-        
-        # check if network meets size limitation
-        if n > max_size:
-            print (' --- omit')
-            continue
-        elif n < 2:
-            print(' --- omit')
-            continue
+        table[counter,0] =  str(nwfile)
+        # search for existing data
+        fpath = os.path.join(REAL_DATA_PATH, 'fulldata-{}.txt'.format(nwname))
+
+        if os.path.exists(fpath) and not recompute:
+            with open(fpath, 'r') as file:
+                header = (file.readline()).split('\n')[0]
+                _, n, m = header.split(" ")
+                nw_r = (file.readline()).split('\n')[0]
+                nw_t = (file.readline()).split('\n')[0]
+                theory_r = (file.readline()).split('\n')[0]
+                theory_t = (file.readline()).split('\n')[0]
+                print (' --- load from file')
+
         else:
-            print(' --- compute', end='')
-
-        if counter >= min_counter:
-            t0 = time.time()
-            # add number of nodes and edges to info table
-            table[counter,1] = n
-            table[counter,2] = m
-    
-            # get data for random and targeted node removal 
-            nw_r = np.nanmean([random_removal(G) for i in range(num_tries)], axis=0)
-            nw_t = targeted_removal(G)
-            
-            # finite-theory results for random and targeted node removal
-            theory_r = relative_lcc_sequence(p, n, targeted_removal=False, reverse=True, method="pmult")
-            theory_t = relative_lcc_sequence(p, n, targeted_removal=True, reverse=True, method="pmult")
+            # read graph from ".adj" file
+            print('{} {}'.format(i, nwfile), end='')
+            G = read_from_adj(nwpath)
+            # set p for G(n,p) graph
+            n = G.number_of_nodes()
+            m = G.number_of_edges()
+            print(' has (n,m) = ({}, {})'.format(n, m), end='')
+            p = m / scipy.special.comb(n, 2)
         
-            # rel LCC arrays
-            results = [nw_r, nw_t, theory_r, theory_t]
-            for i, array in enumerate(results): 
-                # store in info table
-                table[counter,3+i] = array
-    
-            fpath = os.path.join(REAL_DATA_PATH, 'fulldata-{}.txt'.format(counter))
-            with open(fpath, 'w') as file:
-                # Write four lines to the file
-                file.write("{} {} {}\n".format(nwname, n, m))
-                file.write(' '.join(map(str, nw_r))+"\n")
-                file.write(' '.join(map(str, nw_t))+"\n")
-                file.write(' '.join(map(str, theory_r))+"\n")
-                file.write(' '.join(map(str, theory_t))+"\n")
+            # check if network meets size limitation
+            if n > max_size:
+                print (' --- omit')
+                continue
+            elif n < 2:
+                print(' --- omit')
+                continue
+            else:
+                print(' --- compute', end='')
 
-            print(' in {} s'.format(time.time()-t0))
+            if counter >= min_counter:
+                t0 = time.time()
+                # add number of nodes and edges to info table
+                table[counter,1] = n
+                table[counter,2] = m
         
+                # get data for random and targeted node removal 
+                nw_r = np.nanmean([random_removal(G) for i in range(num_tries)], axis=0)
+                nw_t = targeted_removal(G)
+                
+                # finite-theory results for random and targeted node removal
+                theory_r = relative_lcc_sequence(p, n, targeted_removal=False, 
+                                                 reverse=True, method="external")
+                theory_t = relative_lcc_sequence(p, n, targeted_removal=True, 
+                                                 reverse=True, method="external")
+
+                with open(fpath, 'w') as file:
+                    # Write four lines to the file
+                    file.write("{} {} {}\n".format(nwfile, n, m))
+                    file.write(' '.join(map(str, nw_r))+"\n")
+                    file.write(' '.join(map(str, nw_t))+"\n")
+                    file.write(' '.join(map(str, theory_r))+"\n")
+                    file.write(' '.join(map(str, theory_t))+"\n")
+
+                print(' in {} s'.format(time.time()-t0))
+
+        # rel LCC arrays
+        results = [nw_r, nw_t, theory_r, theory_t]
+        for j, array in enumerate(results): 
+            # store in info table
+            table[counter,3+j] = array
+    
         counter+=1
 
     # remove empty rows from table
@@ -411,8 +436,9 @@ def fullDataTable(nwks_list: Optional[List[str]] = None,
 
     # convert to data frame and name its columns
     df = pd.DataFrame(table2)
-    df.columns = ["network", "nodes", "edges", "real rand rLCC", "real attack rLCC",
-                    "fin theory rand rLCC", "fin theory attack rLCC"]
+    df.columns = ["network", "nodes", "edges", "real rand rLCC", 
+                  "real attack rLCC", "fin theory rand rLCC", 
+                  "fin theory attack rLCC"]
     
     return df
 

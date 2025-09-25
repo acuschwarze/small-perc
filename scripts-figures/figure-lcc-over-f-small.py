@@ -76,7 +76,7 @@ def generate_robustness_comparison_figure() -> None:
         infinite_theory = relative_lcc_sequence(
             NETWORK_SIZE, 
             EDGE_PROBABILITY, 
-            targeted_attack=strategy['is_targeted'], 
+            targeted_removal=strategy['is_targeted'], 
             smooth_end=False
         )
         

@@ -42,7 +42,7 @@ for i in range(0,100,1):
 
     fin_curve = relative_lcc_sequence(p, n, targeted_removal=attack, 
         connectivity_cache=fvals, probability_cache=pvals,
-        method="pmult", executable_name='p-recursion.exe')
+        method="external", executable_name='p-recursion.exe')
 
     fpath = os.path.join(SYNTH_PATH, f'{fname}.npy')
     np.save(fpath, fin_curve)

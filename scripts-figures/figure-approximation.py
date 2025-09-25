@@ -181,7 +181,8 @@ if not os.path.exists(file_path):
     exact_distributions = execute_subprocess([os.path.join(CPP_PATH, executable_path), 
                                               str(n0), str(p0)], return_error=True)
     file = open(file_path, 'w')
-    file.write(exact_distributions)
+    if exact_distributions is not None:
+        file.write(exact_distributions) 
     file.close()
 
 
@@ -306,5 +307,5 @@ for ri in range(2):
         if data_index==3:
             plt.legend(labelspacing = 0.05, borderpad=0.3)
 
-plt.show()
-#plt.savefig(os.path.join(REPO_ROOT, 'figures', 'fig_approximation.pdf'))
+#plt.show()
+plt.savefig(os.path.join(REPO_ROOT, 'figures', 'fig_approximation.pdf'))

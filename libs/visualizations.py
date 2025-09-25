@@ -40,7 +40,7 @@ def plot_graphs(
     forbidden_values: List[float] = [],
     fdict: Dict[Any, Any] = {},
     pdict: Dict[Any, Any] = {},
-    lcc_method_main: str = "pmult",
+    lcc_method_main: str = "external",
     savefig: str = '',
     simbool: bool = True,
     executable_recursion: str = "p-recursion.exe",

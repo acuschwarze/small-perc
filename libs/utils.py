@@ -24,6 +24,11 @@ import numpy as np
 from scipy.stats import binom as binomial_dist
 from typing import List, Optional, Tuple
 import subprocess
+from pathlib import Path
+
+# Add the parent directory to the path to import local libraries
+REPO_ROOT = str(Path(__file__).parent.parent)
+SYNTH_PATH = os.path.join(REPO_ROOT, 'data-synthetic')
 
 
 def execute_subprocess(executable_path: List[str], return_error=False) -> Optional[str]:
@@ -254,7 +259,7 @@ def load_percolation_curve(nodes: int, prob: float, targeted_removal: bool = Fal
         prefix = "infRelSCurve"
 
     filename = f"{prefix}_attack{targeted_removal}_n{nodes}.npy"
-    filepath = os.path.join("data", "synthetic_data", filename)
+    filepath = os.path.join(SYNTH_PATH, filename)
     
     data = np.load(filepath)
     index = int(round(prob / 0.01)) - 1
